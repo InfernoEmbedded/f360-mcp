@@ -59,3 +59,116 @@ def add_line(app, sketch_name, x1, y1, x2, y2):
     p2 = adsk.core.Point3D.create(x2, y2, 0)
     line = lines.addByTwoPoints(p1, p2)
     return {"message": f"Line added from ({x1},{y1}) to ({x2},{y2})"}
+
+def add_rectangle(app, sketch_name, x1, y1, x2, y2, x3=None, y3=None, rect_type="two_point"):
+    """
+    Adds a rectangle to an existing sketch.
+    rect_type can be "two_point", "three_point", or "center".
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    lines = sketch.sketchCurves.sketchLines
+    
+    p1 = adsk.core.Point3D.create(x1, y1, 0)
+    p2 = adsk.core.Point3D.create(x2, y2, 0)
+    
+    if rect_type == "three_point" and x3 is not None and y3 is not None:
+        p3 = adsk.core.Point3D.create(x3, y3, 0)
+        lines.addThreePointRectangle(p1, p2, p3)
+        return {"message": "Three-point rectangle added."}
+    elif rect_type == "center":
+        lines.addCenterPointRectangle(p1, p2) # p1=center, p2=corner
+        return {"message": "Center-point rectangle added."}
+    else:
+        lines.addTwoPointRectangle(p1, p2)
+        return {"message": "Two-point rectangle added."}
+
+def add_arc(app, sketch_name, x1, y1, x2, y2, x3, y3, arc_type="three_point"):
+    """
+    Adds an arc.
+    three_point: x1,y1=start, x2,y2=point_on, x3,y3=end
+    center_start_sweep: x1,y1=center, x2,y2=start, x3=sweep_angle (radians)
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    arcs = sketch.sketchCurves.sketchArcs
+    
+    if arc_type == "center_start_sweep":
+        center = adsk.core.Point3D.create(x1, y1, 0)
+        start = adsk.core.Point3D.create(x2, y2, 0)
+        sweep = x3 # Overloading x3 as angle
+        arcs.addByCenterStartSweep(center, start, sweep)
+        return {"message": "Center-start-sweep arc added."}
+    else:
+        p1 = adsk.core.Point3D.create(x1, y1, 0)
+        p2 = adsk.core.Point3D.create(x2, y2, 0)
+        p3 = adsk.core.Point3D.create(x3, y3, 0)
+        arcs.addByThreePoints(p1, p2, p3)
+        return {"message": "Three-point arc added."}
+
+def add_spline(app, sketch_name, points):
+    """
+    Adds a fitted spline through a list of (x, y) coordinates.
+    points: list of [x, y] lists.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    splines = sketch.sketchCurves.sketchFittedSplines
+    
+    points_collection = adsk.core.ObjectCollection.create()
+    for pt in points:
+        points_collection.add(adsk.core.Point3D.create(pt[0], pt[1], 0))
+        
+    splines.add(points_collection)
+    return {"message": f"Spline added with {len(points)} points."}
+
+def add_polygon(app, sketch_name, center_x, center_y, num_sides, vertex_x, vertex_y, poly_type="inscribed"):
+    """
+    Adds a regular polygon.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    polygons = sketch.sketchPolygons
+    
+    center = adsk.core.Point3D.create(center_x, center_y, 0)
+    vertex = adsk.core.Point3D.create(vertex_x, vertex_y, 0)
+    
+    if poly_type == "circumscribed":
+        polygons.addCircumscribedPolygon(center, num_sides, vertex)
+    else:
+        polygons.addInscribedPolygon(center, num_sides, vertex)
+        
+    return {"message": f"{poly_type.capitalize()} polygon with {num_sides} sides added."}
+
+def add_ellipse(app, sketch_name, center_x, center_y, major_x, major_y, minor_x, minor_y):
+    """
+    Adds an ellipse.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    ellipses = sketch.sketchCurves.sketchEllipses
+    
+    center = adsk.core.Point3D.create(center_x, center_y, 0)
+    major = adsk.core.Point3D.create(major_x, major_y, 0)
+    minor = adsk.core.Point3D.create(minor_x, minor_y, 0)
+    
+    ellipses.add(center, major, minor)
+    return {"message": "Ellipse added."}
+
+def add_point(app, sketch_name, x, y):
+    """
+    Adds a sketch point.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    points = sketch.sketchPoints
+    
+    p = adsk.core.Point3D.create(x, y, 0)
+    points.add(p)
+    return {"message": f"Point added at ({x}, {y})."}
+
+def add_text(app, sketch_name, text, x, y, height=0.5):
+    """
+    Adds text to a sketch.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    texts = sketch.sketchTexts
+    
+    position = adsk.core.Point3D.create(x, y, 0)
+    input = texts.createInput(text, height, position)
+    texts.add(input)
+    return {"message": f"Text '{text}' added at ({x}, {y})."}

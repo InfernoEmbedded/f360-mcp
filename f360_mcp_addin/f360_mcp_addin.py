@@ -41,14 +41,21 @@ def handle_client(conn, addr):
                 # However, adsk.core.Application.executeTextCommand could be used, or custom events.
                 # For simplicity in this demo, we'll try direct calls. If it crashes, we'll need a custom event.
                 try:
-                    if method == 'create_sketch':
-                        result = commands.create_sketch(app, **params)
-                        response['result'] = result
-                    elif method == 'add_circle':
-                        result = commands.add_circle(app, **params)
-                        response['result'] = result
-                    elif method == 'add_line':
-                        result = commands.add_line(app, **params)
+                    dispatch = {
+                        'create_sketch': commands.create_sketch,
+                        'add_circle': commands.add_circle,
+                        'add_line': commands.add_line,
+                        'add_rectangle': commands.add_rectangle,
+                        'add_arc': commands.add_arc,
+                        'add_spline': commands.add_spline,
+                        'add_polygon': commands.add_polygon,
+                        'add_ellipse': commands.add_ellipse,
+                        'add_point': commands.add_point,
+                        'add_text': commands.add_text,
+                    }
+                    
+                    if method in dispatch:
+                        result = dispatch[method](app, **params)
                         response['result'] = result
                     else:
                         response['error'] = {"code": -32601, "message": f"Method not found: {method}"}

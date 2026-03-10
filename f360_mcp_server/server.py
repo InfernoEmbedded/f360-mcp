@@ -93,6 +93,133 @@ async def add_line(sketch_name: str, x1: float, y1: float, x2: float, y2: float)
         "y2": y2
     })
 
+@mcp.tool()
+async def add_rectangle(
+    sketch_name: str,
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    x3: float | None = None,
+    y3: float | None = None,
+    rect_type: str = "two_point"
+) -> Dict[str, Any]:
+    """
+    Adds a rectangle to an existing sketch in Fusion 360.
+    rect_type: "two_point" (default), "three_point", or "center".
+    For "two_point": (x1,y1) and (x2,y2) are opposite corners.
+    For "three_point": (x1,y1), (x2,y2), (x3,y3) define three corners.
+    For "center": (x1,y1) is center, (x2,y2) is a corner.
+    """
+    params = {
+        "sketch_name": sketch_name,
+        "x1": x1,
+        "y1": y1,
+        "x2": x2,
+        "y2": y2,
+        "rect_type": rect_type
+    }
+    if x3 is not None: params["x3"] = x3
+    if y3 is not None: params["y3"] = y3
+    return await send_to_addin('add_rectangle', params)
+
+@mcp.tool()
+async def add_arc(
+    sketch_name: str,
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    x3: float,
+    y3: float = 0,
+    arc_type: str = "three_point"
+) -> Dict[str, Any]:
+    """
+    Adds an arc to an existing sketch.
+    For "three_point": (x1,y1)=start, (x2,y2)=point_on_arc, (x3,y3)=end.
+    For "center_start_sweep": (x1,y1)=center, (x2,y2)=start, x3=sweep_angle (in radians).
+    """
+    return await send_to_addin('add_arc', {
+        "sketch_name": sketch_name,
+        "x1": x1, "y1": y1,
+        "x2": x2, "y2": y2,
+        "x3": x3, "y3": y3,
+        "arc_type": arc_type
+    })
+
+@mcp.tool()
+async def add_spline(sketch_name: str, points: list[list[float]]) -> Dict[str, Any]:
+    """
+    Adds a fitted spline through a list of points.
+    points: A list of [x, y] coordinate pairs, e.g., [[0,0], [1,1], [2,0]].
+    """
+    return await send_to_addin('add_spline', {
+        "sketch_name": sketch_name,
+        "points": points
+    })
+
+@mcp.tool()
+async def add_polygon(
+    sketch_name: str,
+    center_x: float,
+    center_y: float,
+    num_sides: int,
+    vertex_x: float,
+    vertex_y: float,
+    poly_type: str = "inscribed"
+) -> Dict[str, Any]:
+    """
+    Adds a regular polygon.
+    poly_type: "inscribed" or "circumscribed".
+    """
+    return await send_to_addin('add_polygon', {
+        "sketch_name": sketch_name,
+        "center_x": center_x,
+        "center_y": center_y,
+        "num_sides": num_sides,
+        "vertex_x": vertex_x,
+        "vertex_y": vertex_y,
+        "poly_type": poly_type
+    })
+
+@mcp.tool()
+async def add_ellipse(
+    sketch_name: str,
+    center_x: float,
+    center_y: float,
+    major_x: float,
+    major_y: float,
+    minor_x: float,
+    minor_y: float
+) -> Dict[str, Any]:
+    """
+    Adds an ellipse.
+    (center_x, center_y) is the center point.
+    (major_x, major_y) defines the major axis radius and orientation.
+    (minor_x, minor_y) defines a point on the minor axis.
+    """
+    return await send_to_addin('add_ellipse', {
+        "sketch_name": sketch_name,
+        "center_x": center_x, "center_y": center_y,
+        "major_x": major_x, "major_y": major_y,
+        "minor_x": minor_x, "minor_y": minor_y
+    })
+
+@mcp.tool()
+async def add_point(sketch_name: str, x: float, y: float) -> Dict[str, Any]:
+    """Adds a point to a sketch."""
+    return await send_to_addin('add_point', {"sketch_name": sketch_name, "x": x, "y": y})
+
+@mcp.tool()
+async def add_text(sketch_name: str, text: str, x: float, y: float, height: float = 0.5) -> Dict[str, Any]:
+    """Adds text to a sketch at the specified (x, y) location."""
+    return await send_to_addin('add_text', {
+        "sketch_name": sketch_name,
+        "text": text,
+        "x": x,
+        "y": y,
+        "height": height
+    })
+
 if __name__ == "__main__":
-    # Start as a standard io server for Claude Desktop / general MCP clients
     mcp.run(transport='stdio')
