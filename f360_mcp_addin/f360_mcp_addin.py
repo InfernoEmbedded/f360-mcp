@@ -52,6 +52,8 @@ def handle_client(conn, addr):
                         'add_ellipse': commands.add_ellipse,
                         'add_point': commands.add_point,
                         'add_text': commands.add_text,
+                        'apply_constraint': commands.apply_constraint,
+                        'add_symmetry_constraint': commands.add_symmetry_constraint,
                     }
                     
                     if method in dispatch:

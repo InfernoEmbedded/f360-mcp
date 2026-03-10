@@ -22,19 +22,16 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`add_point`**: Add individual sketch points.
 - [x] **`add_text`**: Add text to a sketch with custom height.
 
-## Unimplemented Features (TODO)
+### Constraints
+- [x] **`apply_constraint`**: Add Coincident, Collinear, Concentric, MidPoint, Parallel, Perpendicular, Horizontal, Vertical, Tangent, and Equal constraints.
+- [x] **`add_symmetry_constraint`**: Add a symmetry constraint between two entities and a symmetry line.
 
 ### Constraints
-- [ ] Add Coincident Constraint
-- [ ] Add Collinear Constraint
-- [ ] Add Concentric Constraint
-- [ ] Add MidPoint Constraint
-- [ ] Add Parallel Constraint
-- [ ] Add Perpendicular Constraint
-- [ ] Add Horizontal/Vertical Constraint
-- [ ] Add Tangent Constraint
-- [ ] Add Equal Constraint
-- [ ] Add Symmetry Constraint
+- [x] **`apply_constraint`**: Add Coincident, Collinear, Concentric, MidPoint, Parallel, Perpendicular, Horizontal, Vertical, Tangent, and Equal constraints.
+- [x] **`add_symmetry_constraint`**: Add a symmetry constraint between two entities and a symmetry line.
+
+## Unimplemented Features (TODO)
+
 
 ### Dimensions
 - [ ] Add Linear Dimension

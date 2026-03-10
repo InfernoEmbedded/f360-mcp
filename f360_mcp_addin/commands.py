@@ -172,3 +172,92 @@ def add_text(app, sketch_name, text, x, y, height=0.5):
     input = texts.createInput(text, height, position)
     texts.add(input)
     return {"message": f"Text '{text}' added at ({x}, {y})."}
+
+# --- Constraint Helpers and Commands ---
+
+def resolve_entity(sketch, entity_type, index):
+    """
+    Resolves a string entity_type and integer index to a physical Fusion 360 SketchEntity.
+    Examples format: "line", "line_start", "line_end", "circle", "circle_center", "arc_start", "point", etc.
+    """
+    parts = entity_type.split('_')
+    base_type = parts[0]
+    sub_type = parts[1] if len(parts) > 1 else None
+    
+    ent = None
+    if base_type == "line":
+        ent = sketch.sketchCurves.sketchLines.item(index)
+        if sub_type == "start": return ent.startSketchPoint
+        if sub_type == "end": return ent.endSketchPoint
+    elif base_type == "circle":
+        ent = sketch.sketchCurves.sketchCircles.item(index)
+        if sub_type == "center": return ent.centerSketchPoint
+    elif base_type == "arc":
+        ent = sketch.sketchCurves.sketchArcs.item(index)
+        if sub_type == "center": return ent.centerSketchPoint
+        if sub_type == "start": return ent.startSketchPoint
+        if sub_type == "end": return ent.endSketchPoint
+    elif base_type == "spline":
+        ent = sketch.sketchCurves.sketchFittedSplines.item(index)
+    elif base_type == "ellipse":
+        ent = sketch.sketchCurves.sketchEllipses.item(index)
+        if sub_type == "center": return ent.centerSketchPoint
+    elif base_type == "point":
+        return sketch.sketchPoints.item(index)
+        
+    if ent:
+        return ent
+    raise Exception(f"Unable to resolve entity: {entity_type} at index {index}")
+
+def apply_constraint(app, sketch_name, constraint_type, ent1_type, ent1_idx, ent2_type=None, ent2_idx=None):
+    """
+    Applies a geometric constraint between one or two sketch entities.
+    constraint_type can be: "coincident", "collinear", "concentric", "midpoint", "parallel", "perpendicular", "horizontal", "vertical", "tangent", "equal", "symmetry"
+    (Note: symmetry requires ent3 which we will handle separately or overload ent2. Actually, let's keep symmetry out of this generic function for now or adapt).
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    constraints = sketch.geometricConstraints
+    
+    e1 = resolve_entity(sketch, ent1_type, ent1_idx)
+    e2 = resolve_entity(sketch, ent2_type, ent2_idx) if ent2_type else None
+    
+    try:
+        if constraint_type == "coincident":
+            c = constraints.addCoincident(e1, e2)
+        elif constraint_type == "collinear":
+            c = constraints.addCollinear(e1, e2)
+        elif constraint_type == "concentric":
+            c = constraints.addConcentric(e1, e2)
+        elif constraint_type == "midpoint":
+            c = constraints.addMidPoint(e1, e2) # e1=point, e2=curve
+        elif constraint_type == "parallel":
+            c = constraints.addParallel(e1, e2)
+        elif constraint_type == "perpendicular":
+            c = constraints.addPerpendicular(e1, e2)
+        elif constraint_type == "horizontal":
+            if e2: constraints.addHorizontalPoints(e1, e2)
+            else: constraints.addHorizontal(e1) # e1=line
+        elif constraint_type == "vertical":
+            if e2: constraints.addVerticalPoints(e1, e2)
+            else: constraints.addVertical(e1) # e1=line
+        elif constraint_type == "tangent":
+            c = constraints.addTangent(e1, e2)
+        elif constraint_type == "equal":
+            c = constraints.addEqual(e1, e2)
+        else:
+            raise Exception(f"Unknown constraint type: {constraint_type}")
+            
+        return {"message": f"Successfully added {constraint_type} constraint."}
+    except Exception as e:
+        raise Exception(f"Failed to add {constraint_type} constraint: {str(e)}")
+
+def add_symmetry_constraint(app, sketch_name, ent1_type, ent1_idx, ent2_type, ent2_idx, sym_line_type, sym_line_idx):
+    sketch = get_sketch_by_name(app, sketch_name)
+    constraints = sketch.geometricConstraints
+    
+    e1 = resolve_entity(sketch, ent1_type, ent1_idx)
+    e2 = resolve_entity(sketch, ent2_type, ent2_idx)
+    sym_line = resolve_entity(sketch, sym_line_type, sym_line_idx)
+    
+    constraints.addSymmetry(e1, e2, sym_line)
+    return {"message": "Successfully added symmetry constraint."}

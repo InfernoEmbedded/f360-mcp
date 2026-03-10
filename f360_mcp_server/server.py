@@ -221,5 +221,56 @@ async def add_text(sketch_name: str, text: str, x: float, y: float, height: floa
         "height": height
     })
 
+@mcp.tool()
+async def apply_constraint(
+    sketch_name: str,
+    constraint_type: str,
+    ent1_type: str,
+    ent1_idx: int,
+    ent2_type: str | None = None,
+    ent2_idx: int | None = None
+) -> Dict[str, Any]:
+    """
+    Applies a geometric constraint between one or two sketch entities.
+    constraint_type: "coincident", "collinear", "concentric", "midpoint", "parallel", "perpendicular", "horizontal", "vertical", "tangent", "equal".
+    entity types can be: "line", "line_start", "line_end", "circle", "circle_center", "arc", "arc_start", "arc_end", "arc_center", "point".
+    entity index is the 0-based index of that geometry type created in the sketch.
+    For horizontal/vertical on a single line, omit ent2.
+    """
+    params = {
+        "sketch_name": sketch_name,
+        "constraint_type": constraint_type,
+        "ent1_type": ent1_type,
+        "ent1_idx": ent1_idx
+    }
+    if ent2_type is not None and ent2_idx is not None:
+        params["ent2_type"] = ent2_type
+        params["ent2_idx"] = ent2_idx
+        
+    return await send_to_addin('apply_constraint', params)
+
+@mcp.tool()
+async def add_symmetry_constraint(
+    sketch_name: str,
+    ent1_type: str,
+    ent1_idx: int,
+    ent2_type: str,
+    ent2_idx: int,
+    sym_line_type: str,
+    sym_line_idx: int
+) -> Dict[str, Any]:
+    """
+    Applies a symmetry constraint between two sketch entities across a symmetry line.
+    """
+    return await send_to_addin('add_symmetry_constraint', {
+        "sketch_name": sketch_name,
+        "ent1_type": ent1_type,
+        "ent1_idx": ent1_idx,
+        "ent2_type": ent2_type,
+        "ent2_idx": ent2_idx,
+        "sym_line_type": sym_line_type,
+        "sym_line_idx": sym_line_idx
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
