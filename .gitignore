@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# Fusion 360
+*.log
+
+# MCP / Project specific
+f360_mcp_server/mock_fusion_tcp.py
+f360_mcp_server/test_mcp.py

@@ -1,0 +1,13 @@
+{
+	"autodeskProduct":	"Fusion",
+	"type":	"addin",
+	"id":	"deeb2f3e-4b9a-4c12-98ab-41d3b5eaf123",
+	"author":	"Antigravity",
+	"description":	{
+		"":	"MCP Wrapper Add-In for Fusion 360"
+	},
+	"version":	"1.0.0",
+	"runOnStartup":	false,
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true
+}
