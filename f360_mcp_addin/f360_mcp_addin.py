@@ -76,6 +76,8 @@ def handle_client(conn, addr):
                         'execute_script': commands.execute_script,
                         'create_offset_plane': commands.create_offset_plane,
                         'create_plane_at_angle': commands.create_plane_at_angle,
+                        'get_body_properties': commands.get_body_properties,
+                        'find_faces': commands.find_faces,
                     }
 
 

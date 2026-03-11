@@ -7,28 +7,43 @@ def get_active_design(app):
         raise Exception("No active Fusion 360 design.")
     return design
 
-def create_sketch(app, plane_name="XY"):
+def create_sketch(app, plane_name="XY", body_name=None, face_index=None):
     """
-    Creates a new sketch on the specified base plane.
-    plane_name can be "XY", "XZ", or "YZ".
+    Creates a new sketch.
+    To sketch on an origin plane or construction plane, use `plane_name` ("XY", "XZ", "YZ", or name).
+    To sketch on a solid face, provide `body_name` and `face_index` (from find_faces tool).
     """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
-    if plane_name.upper() == "XY":
-        planes = rootComp.xYConstructionPlane
-    elif plane_name.upper() == "XZ":
-        planes = rootComp.xZConstructionPlane
-    elif plane_name.upper() == "YZ":
-        planes = rootComp.yZConstructionPlane
+    if body_name is not None and face_index is not None:
+        def get_body(name):
+            for i in range(rootComp.bRepBodies.count):
+                b = rootComp.bRepBodies.item(i)
+                if b.name == name:
+                    return b
+            raise Exception(f"Body '{name}' not found.")
+        body = get_body(body_name)
+        if face_index < 0 or face_index >= body.faces.count:
+            raise Exception(f"Face index {face_index} out of bounds.")
+        planes = body.faces.item(face_index)
+        name_suffix = f"Face{face_index}"
     else:
-        planes = rootComp.constructionPlanes.itemByName(plane_name)
-        if not planes:
-            raise Exception(f"Plane '{plane_name}' not found.")
+        if plane_name.upper() == "XY":
+            planes = rootComp.xYConstructionPlane
+        elif plane_name.upper() == "XZ":
+            planes = rootComp.xZConstructionPlane
+        elif plane_name.upper() == "YZ":
+            planes = rootComp.yZConstructionPlane
+        else:
+            planes = rootComp.constructionPlanes.itemByName(plane_name)
+            if not planes:
+                raise Exception(f"Plane '{plane_name}' not found.")
+        name_suffix = plane_name
         
     sketches = rootComp.sketches
     sketch = sketches.add(planes)
-    sketch.name = f"MCP_Sketch_{plane_name}"
+    sketch.name = f"MCP_Sketch_{name_suffix}"
     
     # Return the index of the sketch so it can be referenced later
     sketch_index = sketch.creationIndex # We can return index or name
@@ -812,3 +827,74 @@ def create_plane_at_angle(app, axis_name, angle_deg):
         
     plane = planes.add(planeInput)
     return {"message": f"Angled plane created around {axis_name} at {angle_deg} degrees.", "plane_name": plane.name}
+
+def get_body_properties(app, body_name):
+    """
+    Returns physical properties of a body: volume, mass, area, bounding box, center of mass.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    phys = body.physicalProperties
+    bbox = body.boundingBox
+    
+    return {
+        "body_name": body_name,
+        "volume_cm3": round(phys.volume, 3),
+        "mass_kg": round(phys.mass, 3),
+        "area_cm2": round(phys.area, 3),
+        "center_of_mass_cm": {"x": round(phys.centerOfMass.x, 3), "y": round(phys.centerOfMass.y, 3), "z": round(phys.centerOfMass.z, 3)},
+        "bounding_box_cm": {
+            "min": {"x": round(bbox.minPoint.x, 3), "y": round(bbox.minPoint.y, 3), "z": round(bbox.minPoint.z, 3)},
+            "max": {"x": round(bbox.maxPoint.x, 3), "y": round(bbox.maxPoint.y, 3), "z": round(bbox.maxPoint.z, 3)}
+        }
+    }
+
+def find_faces(app, body_name):
+    """
+    Returns a list of faces on a body with their index, normals, and area to help identify them.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    faces_info = []
+    
+    for i in range(body.faces.count):
+        face = body.faces.item(i)
+        
+        geom = face.geometry
+        geom_type = geom.objectType.split('::')[-1]
+        info = {
+            "face_index": i,
+            "area_cm2": round(face.area, 3),
+            "geometry_type": geom_type,
+            "is_planar": (geom_type == "Plane")
+        }
+        
+        pt = face.pointOnFace
+        if pt:
+            info["center_point"] = {"x": round(pt.x, 3), "y": round(pt.y, 3), "z": round(pt.z, 3)}
+            success, normal = face.evaluator.getNormalAtPoint(pt)
+            if success:
+                normal.normalize()
+                info["normal"] = {"x": round(normal.x, 3), "y": round(normal.y, 3), "z": round(normal.z, 3)}
+                
+        faces_info.append(info)
+        
+    return {"body_name": body_name, "faces": faces_info}

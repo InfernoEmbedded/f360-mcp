@@ -3,7 +3,7 @@ import json
 import socket
 import sys
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -58,13 +58,21 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         raise Exception("Invalid response from Fusion 360 Add-In.")
 
 @mcp.tool()
-async def create_sketch(plane_name: str = "XY") -> Dict[str, Any]:
+async def create_sketch(
+    plane_name: str = "XY",
+    body_name: Optional[str] = None,
+    face_index: Optional[int] = None
+) -> Dict[str, Any]:
     """
-    Creates a new empty sketch in the active Fusion 360 design.
-    Plane name can be "XY", "XZ", or "YZ".
-    Returns the newly created sketch name.
+    Creates a new sketch.
+    To sketch on an origin plane or construction plane, use `plane_name` ("XY", "XZ", "YZ", or name).
+    To sketch on a solid face, provide `body_name` and `face_index` (from find_faces tool).
     """
-    return await send_to_addin('create_sketch', {"plane_name": plane_name})
+    return await send_to_addin('create_sketch', {
+        "plane_name": plane_name,
+        "body_name": body_name,
+        "face_index": face_index
+    })
 
 @mcp.tool()
 async def add_circle(sketch_name: str, x: float, y: float, radius: float) -> Dict[str, Any]:
@@ -645,6 +653,30 @@ async def create_plane_at_angle(
     return await send_to_addin('create_plane_at_angle', {
         "axis_name": axis_name,
         "angle_deg": angle_deg
+    })
+
+@mcp.tool()
+async def get_body_properties(
+    body_name: str
+) -> Dict[str, Any]:
+    """
+    Returns physical properties of a body: volume, mass, area, bounding box, center of mass.
+    Use this to measure physical properties of a solid body.
+    """
+    return await send_to_addin('get_body_properties', {
+        "body_name": body_name
+    })
+
+@mcp.tool()
+async def find_faces(
+    body_name: str
+) -> Dict[str, Any]:
+    """
+    Returns a list of faces on a body with their index, normals, center points, and area.
+    Use this to look for faces to attach new sketches to.
+    """
+    return await send_to_addin('find_faces', {
+        "body_name": body_name
     })
 
 if __name__ == "__main__":

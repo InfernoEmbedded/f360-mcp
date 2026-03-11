@@ -62,14 +62,16 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 ### Script Execution
 - [x] **`execute_script`**: Execute custom Python code within the Fusion 360 environment.
 
+### Advanced Modeling & Inspection
+- [x] **`create_offset_plane`**: Create a plane offset from an existing plane or planar face.
+- [x] **`create_plane_at_angle`**: Create a plane at an angle relative to an axis/edge.
+- [x] **`get_body_properties`**: Get volume, mass, bounding box, surface area.
+- [x] **`find_faces`**: Query faces by normal vector or bounding box.
+
 ## Unimplemented Features (TODO)
 
 ### Phase 10: Advanced Features
-- [ ] **`create_offset_plane`**: Create a plane offset from an existing plane or planar face.
-- [ ] **`create_plane_at_angle`**: Create a plane at an angle relative to an axis/edge.
-- [ ] **`sketch_on_face`**: Create a sketch on a planar face of a body.
-- [ ] **`get_body_properties`**: Get volume, mass, bounding box, surface area.
-- [ ] **`find_faces`**: Query faces by normal vector or bounding box.
+- [ ] **`sketch_on_face`**: Create a sketch on a planar face of a body. (Note: Implemented via updating `create_sketch`)
 - [ ] **`create_user_parameter`**: Create a parametric dimension.
 - [ ] **`list_user_parameters`**: Read existing parameters.
 - [ ] **`update_user_parameter`**: Modify a parameter.
