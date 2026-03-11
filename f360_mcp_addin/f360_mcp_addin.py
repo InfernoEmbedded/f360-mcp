@@ -78,6 +78,9 @@ def handle_client(conn, addr):
                         'create_plane_at_angle': commands.create_plane_at_angle,
                         'get_body_properties': commands.get_body_properties,
                         'find_faces': commands.find_faces,
+                        'create_user_parameter': commands.create_user_parameter,
+                        'list_user_parameters': commands.list_user_parameters,
+                        'update_user_parameter': commands.update_user_parameter,
                     }
 
 

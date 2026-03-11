@@ -898,3 +898,41 @@ def find_faces(app, body_name):
         faces_info.append(info)
         
     return {"body_name": body_name, "faces": faces_info}
+
+def create_user_parameter(app, name, expression, unit=""):
+    """
+    Creates a new user parameter.
+    """
+    design = get_active_design(app)
+    userParams = design.userParameters
+    param = userParams.add(name, adsk.core.ValueInput.createByString(expression), unit, "")
+    return {"message": f"Created parameter '{name}' = {expression}", "name": param.name, "value": round(param.value, 3)}
+
+def list_user_parameters(app):
+    """
+    Lists all user parameters.
+    """
+    design = get_active_design(app)
+    userParams = design.userParameters
+    params_list = []
+    for i in range(userParams.count):
+        p = userParams.item(i)
+        params_list.append({
+            "name": p.name,
+            "expression": p.expression,
+            "value": round(p.value, 3),
+            "unit": p.unit
+        })
+    return {"parameters": params_list}
+
+def update_user_parameter(app, name, expression):
+    """
+    Updates an existing user parameter.
+    """
+    design = get_active_design(app)
+    userParams = design.userParameters
+    param = userParams.itemByName(name)
+    if not param:
+        raise Exception(f"Parameter '{name}' not found.")
+    param.expression = expression
+    return {"message": f"Updated parameter '{name}' to {expression}", "name": param.name, "value": round(param.value, 3)}

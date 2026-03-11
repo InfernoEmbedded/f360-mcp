@@ -679,5 +679,43 @@ async def find_faces(
         "body_name": body_name
     })
 
+@mcp.tool()
+async def create_user_parameter(
+    name: str,
+    expression: str,
+    unit: str = ""
+) -> Dict[str, Any]:
+    """
+    Creates a new user parametric parameter.
+    name: Parameter name (no spaces).
+    expression: Math expression or value string (e.g. "50mm", "width * 2").
+    unit: Optional unit string (e.g. "mm", "cm", "deg"). Use "" for unitless.
+    """
+    return await send_to_addin('create_user_parameter', {
+        "name": name,
+        "expression": expression,
+        "unit": unit
+    })
+
+@mcp.tool()
+async def list_user_parameters() -> Dict[str, Any]:
+    """
+    Lists all parametric user parameters in the design.
+    """
+    return await send_to_addin('list_user_parameters', {})
+
+@mcp.tool()
+async def update_user_parameter(
+    name: str,
+    expression: str
+) -> Dict[str, Any]:
+    """
+    Updates an existing user parameter's expression.
+    """
+    return await send_to_addin('update_user_parameter', {
+        "name": name,
+        "expression": expression
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
