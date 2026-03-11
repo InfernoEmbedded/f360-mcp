@@ -767,15 +767,20 @@ async def export_model(
     file_path: str,
     file_type: str = "step",
     body_name: Optional[str] = None,
-    send_to_mcp: bool = False
+    send_to_mcp: bool = False,
+    local_file_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Exports the entire design or a specific body.
-    file_path: The absolute path to save the file. If send_to_mcp=True, it will be saved on the MCP server's host machine.
+    file_path: The absolute path to save the file ON THE FUSION 360 MACHINE.
     file_type: "step", "stl", or "3mf".
     body_name: (optional) Name of a specific body to export.
-    send_to_mcp: If True, the file is sent over the network and saved directly to the MCP server's local filesystem at file_path.
+    send_to_mcp: If True, the file is sent over the network.
+    local_file_path: If send_to_mcp is True, the absolute path to save the file ON THE MCP HOST MACHINE.
     """
+    if send_to_mcp and not local_file_path:
+        raise Exception("local_file_path must be provided if send_to_mcp is True.")
+        
     response = await send_to_addin('export_model', {
         "file_path": file_path,
         "file_type": file_type,
@@ -783,20 +788,20 @@ async def export_model(
         "send_to_mcp": send_to_mcp
     })
     
-    if send_to_mcp and "file_content_base64" in response:
+    if send_to_mcp and "file_content_base64" in response and isinstance(local_file_path, str):
         import base64
         import os
         
-        local_dir = os.path.dirname(file_path)
+        local_dir = os.path.dirname(local_file_path)
         if local_dir:
             os.makedirs(local_dir, exist_ok=True)
             
-        with open(file_path, "wb") as f:
+        with open(local_file_path, "wb") as f:
             f.write(base64.b64decode(response["file_content_base64"]))
             
-        response["message"] = f"Successfully exported model and saved to MCP host at {file_path}"
+        response["message"] = f"Successfully exported model and saved to MCP host at {local_file_path}"
         response.pop("file_content_base64", None)
-        response["local_file_path"] = file_path
+        response["local_file_path"] = local_file_path
         
     return response
 
