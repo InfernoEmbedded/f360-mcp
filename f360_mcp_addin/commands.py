@@ -569,4 +569,31 @@ def create_hole(app, sketch_name, point_idx, diameter, depth):
     hole = holes.add(holeInput)
     return {"message": f"Hole created with diameter {diameter}cm and depth {depth}cm.", "feature_name": hole.name}
 
+def create_shell(app, body_name, thickness):
+    """
+    Hollows out a body to a specific thickness.
+    thickness is in cm.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    shells = rootComp.features.shellFeatures
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    entities = adsk.core.ObjectCollection.create()
+    entities.add(body)
+    
+    thickness_val = adsk.core.ValueInput.createByReal(thickness)
+    shellInput = shells.createInput(entities, False)
+    shellInput.insideThickness = thickness_val
+    
+    shell = shells.add(shellInput)
+    return {"message": f"Shell created with {thickness}cm thickness.", "feature_name": shell.name}
+
 

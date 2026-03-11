@@ -534,5 +534,18 @@ async def create_hole(
         "depth": depth
     })
 
+@mcp.tool()
+async def create_shell(
+    body_name: str,
+    thickness: float
+) -> Dict[str, Any]:
+    """
+    Hollows out a specified body to a specific thickness in cm.
+    """
+    return await send_to_addin('create_shell', {
+        "body_name": body_name,
+        "thickness": thickness
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
