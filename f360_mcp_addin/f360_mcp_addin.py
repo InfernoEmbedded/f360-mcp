@@ -74,6 +74,8 @@ def handle_client(conn, addr):
                         'feature_mirror': commands.feature_mirror,
                         'create_loft': commands.create_loft,
                         'execute_script': commands.execute_script,
+                        'create_offset_plane': commands.create_offset_plane,
+                        'create_plane_at_angle': commands.create_plane_at_angle,
                     }
 
 

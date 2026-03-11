@@ -64,7 +64,21 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 
 ## Unimplemented Features (TODO)
 
+### Phase 10: Advanced Features
+- [ ] **`create_offset_plane`**: Create a plane offset from an existing plane or planar face.
+- [ ] **`create_plane_at_angle`**: Create a plane at an angle relative to an axis/edge.
+- [ ] **`sketch_on_face`**: Create a sketch on a planar face of a body.
+- [ ] **`get_body_properties`**: Get volume, mass, bounding box, surface area.
+- [ ] **`find_faces`**: Query faces by normal vector or bounding box.
+- [ ] **`create_user_parameter`**: Create a parametric dimension.
+- [ ] **`list_user_parameters`**: Read existing parameters.
+- [ ] **`update_user_parameter`**: Modify a parameter.
+- [ ] **`create_component`**: Group bodies into a sub-component.
+- [ ] **`create_joint`**: Assemble components together.
+- [ ] **`create_rectangular_pattern`**: Pattern geometry in a grid.
+- [ ] **`create_circular_pattern`**: Pattern geometry radially.
+- [ ] **`export_model`**: Export the design as a standard file (.step, .stl).
+
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
 - [ ] Mirror Geometry
-- [ ] Delete sketch

@@ -617,5 +617,35 @@ async def execute_script(
         "script_code": script_code
     })
 
+@mcp.tool()
+async def create_offset_plane(
+    base_plane: str,
+    offset: float
+) -> Dict[str, Any]:
+    """
+    Creates a new construction plane offset from a base plane.
+    base_plane can be "XY", "YZ", "XZ", or the name of an existing construction plane.
+    offset is given in centimeters (cm).
+    """
+    return await send_to_addin('create_offset_plane', {
+        "base_plane": base_plane,
+        "offset": offset
+    })
+
+@mcp.tool()
+async def create_plane_at_angle(
+    axis_name: str,
+    angle_deg: float
+) -> Dict[str, Any]:
+    """
+    Creates a new construction plane at an angle around an axis.
+    axis_name can be "X", "Y", "Z", or the name of an existing construction axis.
+    angle_deg is the angle in degrees.
+    """
+    return await send_to_addin('create_plane_at_angle', {
+        "axis_name": axis_name,
+        "angle_deg": angle_deg
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

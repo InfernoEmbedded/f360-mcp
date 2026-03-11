@@ -15,11 +15,16 @@ def create_sketch(app, plane_name="XY"):
     design = get_active_design(app)
     rootComp = design.rootComponent
     
-    planes = rootComp.xYConstructionPlane
-    if plane_name.upper() == "XZ":
+    if plane_name.upper() == "XY":
+        planes = rootComp.xYConstructionPlane
+    elif plane_name.upper() == "XZ":
         planes = rootComp.xZConstructionPlane
     elif plane_name.upper() == "YZ":
         planes = rootComp.yZConstructionPlane
+    else:
+        planes = rootComp.constructionPlanes.itemByName(plane_name)
+        if not planes:
+            raise Exception(f"Plane '{plane_name}' not found.")
         
     sketches = rootComp.sketches
     sketch = sketches.add(planes)
@@ -741,4 +746,69 @@ def execute_script(app, script_code):
         error_info = traceback.format_exc()
         raise Exception(f"Script Error: {str(e)}\n\nTraceback:\n{error_info}")
 
+def create_offset_plane(app, base_plane, offset):
+    """
+    Creates a new construction plane offset from a base plane.
+    offset is in cm.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    planes = rootComp.constructionPlanes
+    
+    if base_plane.upper() == "XY":
+        base = rootComp.xYConstructionPlane
+    elif base_plane.upper() == "XZ":
+        base = rootComp.xZConstructionPlane
+    elif base_plane.upper() == "YZ":
+        base = rootComp.yZConstructionPlane
+    else:
+        base = planes.itemByName(base_plane)
+        if not base:
+            raise Exception(f"Base plane '{base_plane}' not found.")
+            
+    planeInput = planes.createInput()
+    offsetValue = adsk.core.ValueInput.createByReal(offset)
+    planeInput.setByOffset(base, offsetValue)
+    plane = planes.add(planeInput)
+    return {"message": f"Offset plane created from {base_plane} by {offset}cm.", "plane_name": plane.name}
 
+def create_plane_at_angle(app, axis_name, angle_deg):
+    """
+    Creates a new construction plane at an angle around an axis.
+    axis_name can be "X", "Y", "Z".
+    angle_deg is the angle in degrees.
+    """
+    import math
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    planes = rootComp.constructionPlanes
+    
+    if axis_name.upper() == "X":
+        axis = rootComp.xConstructionAxis
+        ref_plane = rootComp.xYConstructionPlane
+    elif axis_name.upper() == "Y":
+        axis = rootComp.yConstructionAxis
+        ref_plane = rootComp.xYConstructionPlane
+    elif axis_name.upper() == "Z":
+        axis = rootComp.zConstructionAxis
+        ref_plane = rootComp.xZConstructionPlane
+    else:
+        axes = rootComp.constructionAxes
+        axis = axes.itemByName(axis_name)
+        if not axis:
+            raise Exception(f"Axis '{axis_name}' not found.")
+        ref_plane = None # We'd need a reference plane
+        
+    planeInput = planes.createInput()
+    angleValue = adsk.core.ValueInput.createByReal(math.radians(angle_deg))
+    if ref_plane:
+        try:
+            # setByAngle might require planar entity
+            planeInput.setByAngle(axis, angleValue, ref_plane)
+        except:
+            planeInput.setByAngle(axis, angleValue)
+    else:
+        planeInput.setByAngle(axis, angleValue)
+        
+    plane = planes.add(planeInput)
+    return {"message": f"Angled plane created around {axis_name} at {angle_deg} degrees.", "plane_name": plane.name}
