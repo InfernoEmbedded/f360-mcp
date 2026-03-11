@@ -449,5 +449,29 @@ async def create_extrude(
         "profile_index": profile_index
     })
 
+@mcp.tool()
+async def create_revolve(
+    sketch_name: str,
+    axis_ent_type: str,
+    axis_ent_idx: int,
+    angle: float,
+    operation: str = "new_body",
+    profile_index: int = 0
+) -> Dict[str, Any]:
+    """
+    Revolves a specific closed profile around an axis entity to a specific angle in degrees.
+    operation can be 'new_body', 'join', 'cut', or 'intersect'.
+    axis_ent_type typically "line" from the same sketch.
+    profile_index is 0-indexed. 0 is usually the outer profile.
+    """
+    return await send_to_addin('create_revolve', {
+        "sketch_name": sketch_name,
+        "axis_ent_type": axis_ent_type,
+        "axis_ent_idx": axis_ent_idx,
+        "angle": angle,
+        "operation": operation,
+        "profile_index": profile_index
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

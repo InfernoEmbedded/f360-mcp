@@ -63,6 +63,7 @@ def handle_client(conn, addr):
                         'delete_sketch_entity': commands.delete_sketch_entity,
                         'trim_sketch_geometry': commands.trim_sketch_geometry,
                         'create_extrude': commands.create_extrude,
+                        'create_revolve': commands.create_revolve,
                     }
 
 
