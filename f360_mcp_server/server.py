@@ -818,5 +818,25 @@ async def rename_body(
         "new_name": new_name
     })
 
+@mcp.tool()
+async def list_features() -> Dict[str, Any]:
+    """
+    Lists all modeling features in the design timeline.
+    """
+    return await send_to_addin('list_features', {})
+
+@mcp.tool()
+async def rename_feature(
+    old_name: str,
+    new_name: str
+) -> Dict[str, Any]:
+    """
+    Renames a feature in the design timeline.
+    """
+    return await send_to_addin('rename_feature', {
+        "old_name": old_name,
+        "new_name": new_name
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

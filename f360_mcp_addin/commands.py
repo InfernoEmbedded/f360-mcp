@@ -1086,3 +1086,46 @@ def rename_body(app, old_name, new_name):
             return {"message": f"Renamed body '{old_name}' to '{new_name}'", "new_name": body.name}
             
     raise Exception(f"Body '{old_name}' not found.")
+
+def list_features(app):
+    """
+    Lists all features in the timeline (root component).
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    features = rootComp.features
+    
+    features_list = []
+    for i in range(features.count):
+        feat = features.item(i)
+        features_list.append({
+            "name": feat.name,
+            "type": feat.objectType,
+            "index": i,
+            "is_suppressed": feat.isSuppressed
+        })
+    return {"features": features_list}
+
+def rename_feature(app, old_name, new_name):
+    """
+    Renames a feature in the timeline.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    features = rootComp.features
+    
+    # Try to find by name
+    feat = features.itemByName(old_name)
+    if not feat:
+        # Fallback manual search if itemByName fails (sometimes API can be picky)
+        for i in range(features.count):
+            f = features.item(i)
+            if f.name == old_name:
+                feat = f
+                break
+                
+    if not feat:
+        raise Exception(f"Feature '{old_name}' not found.")
+        
+    feat.name = new_name
+    return {"message": f"Renamed feature '{old_name}' to '{new_name}'", "new_name": feat.name}

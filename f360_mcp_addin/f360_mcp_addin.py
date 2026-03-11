@@ -86,6 +86,8 @@ def handle_client(conn, addr):
                         'create_circular_pattern': commands.create_circular_pattern,
                         'export_model': commands.export_model,
                         'rename_body': commands.rename_body,
+                        'list_features': commands.list_features,
+                        'rename_feature': commands.rename_feature,
                     }
 
 
