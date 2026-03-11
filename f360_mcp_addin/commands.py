@@ -392,3 +392,41 @@ def trim_sketch_geometry(app, sketch_name, ent_type, ent_idx, x, y):
     else:
         raise Exception(f"Entity type {ent_type} does not support trimming.")
 
+# --- Solid Modeling (Features) ---
+
+def create_extrude(app, sketch_name, distance, operation="new_body", profile_index=0):
+    """
+    Extrudes a profile from a sketch to a specific distance.
+    operation can be 'new_body', 'join', 'cut', or 'intersect'.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    extrudes = rootComp.features.extrudeFeatures
+    
+    sketch = get_sketch_by_name(app, sketch_name)
+    if sketch.profiles.count == 0:
+        raise Exception(f"Sketch '{sketch_name}' does not contain any closed profiles to extrude.")
+        
+    if profile_index >= sketch.profiles.count:
+        raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
+        
+    profile = sketch.profiles.item(profile_index)
+    
+    # Define distance value (in cm)
+    distance_val = adsk.core.ValueInput.createByReal(distance)
+    
+    # Map string to Fusion operation enum
+    op_map = {
+        "new_body": adsk.fusion.FeatureOperations.NewBodyFeatureOperation,
+        "join": adsk.fusion.FeatureOperations.JoinFeatureOperation,
+        "cut": adsk.fusion.FeatureOperations.CutFeatureOperation,
+        "intersect": adsk.fusion.FeatureOperations.IntersectFeatureOperation
+    }
+    fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+    
+    extrudeInput = extrudes.createInput(profile, fusion_op)
+    extrudeInput.setDistanceExtent(False, distance_val)
+    
+    extrude = extrudes.add(extrudeInput)
+    return {"message": f"Extruded {distance}cm using operation {operation}.", "feature_name": extrude.name}
+

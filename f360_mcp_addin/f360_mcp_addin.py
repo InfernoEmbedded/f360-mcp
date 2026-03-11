@@ -62,6 +62,7 @@ def handle_client(conn, addr):
                         'offset_geometry': commands.offset_geometry,
                         'delete_sketch_entity': commands.delete_sketch_entity,
                         'trim_sketch_geometry': commands.trim_sketch_geometry,
+                        'create_extrude': commands.create_extrude,
                     }
 
 

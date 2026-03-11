@@ -430,5 +430,24 @@ async def trim_sketch_geometry(
         "y": y
     })
 
+@mcp.tool()
+async def create_extrude(
+    sketch_name: str,
+    distance: float,
+    operation: str = "new_body",
+    profile_index: int = 0
+) -> Dict[str, Any]:
+    """
+    Extrudes a specific closed profile from a sketch to a specific distance in cm.
+    operation can be 'new_body', 'join', 'cut', or 'intersect'.
+    profile_index is 0-indexed. 0 is usually the outer profile.
+    """
+    return await send_to_addin('create_extrude', {
+        "sketch_name": sketch_name,
+        "distance": distance,
+        "operation": operation,
+        "profile_index": profile_index
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

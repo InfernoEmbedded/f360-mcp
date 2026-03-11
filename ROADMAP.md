@@ -40,7 +40,24 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`trim_sketch_geometry`**: Trim a sketch curve using a coordinate point.
 - [x] **`delete_sketch_entity`**: Delete a specific entity inside a sketch.
 
+### Solid Modeling Phase 1 (Essentials)
+- [x] **`create_extrude`**: Extrude a sketch profile.
+
 ## Unimplemented Features (TODO)
+
+### Solid Modeling Phase 1 (Essentials)
+- [ ] **`create_revolve`**: Revolve a sketch profile around an axis.
+- [ ] **`create_sweep`**: Sweep a profile along a path.
+
+### Solid Modeling Phase 2 (Modification)
+- [ ] **`combine_bodies`**: Join, cut, or intersect bodies.
+- [ ] **`create_hole`**: Create a hole from a point.
+- [ ] **`create_shell`**: Shell a body to a specific thickness.
+
+### Solid Modeling Phase 3 (Finishing)
+- [ ] **`create_fillet`**: Add a fillet to an edge or face.
+- [ ] **`create_chamfer`**: Add a chamfer to an edge or face.
+- [ ] **`feature_mirror`**: Mirror a body or feature.
 
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
