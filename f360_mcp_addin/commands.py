@@ -623,4 +623,31 @@ def create_fillet(app, body_name, radius):
     fillet = fillets.add(filletInput)
     return {"message": f"Filleted all edges of body {body_name} with {radius}cm radius.", "feature_name": fillet.name}
 
+def create_chamfer(app, body_name, distance):
+    """
+    Chamfers all edges of a body to a specific distance in cm.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    chamfers = rootComp.features.chamferFeatures
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    edges = adsk.core.ObjectCollection.create()
+    for i in range(body.edges.count):
+        edges.add(body.edges.item(i))
+        
+    distance_val = adsk.core.ValueInput.createByReal(distance)
+    chamferInput = chamfers.createInput(edges, True)
+    chamferInput.setToEqualDistance(distance_val)
+    
+    chamfer = chamfers.add(chamferInput)
+    return {"message": f"Chamfered all edges of body {body_name} with {distance}cm distance.", "feature_name": chamfer.name}
+
 

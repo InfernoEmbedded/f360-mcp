@@ -560,5 +560,18 @@ async def create_fillet(
         "radius": radius
     })
 
+@mcp.tool()
+async def create_chamfer(
+    body_name: str,
+    distance: float
+) -> Dict[str, Any]:
+    """
+    Chamfers all edges of a specified body to a specific distance in cm.
+    """
+    return await send_to_addin('create_chamfer', {
+        "body_name": body_name,
+        "distance": distance
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
