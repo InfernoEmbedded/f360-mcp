@@ -69,6 +69,7 @@ def handle_client(conn, addr):
                         'combine_bodies': commands.combine_bodies,
                         'create_hole': commands.create_hole,
                         'create_shell': commands.create_shell,
+                        'create_fillet': commands.create_fillet,
                     }
 
 

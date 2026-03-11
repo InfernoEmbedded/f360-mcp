@@ -596,4 +596,31 @@ def create_shell(app, body_name, thickness):
     shell = shells.add(shellInput)
     return {"message": f"Shell created with {thickness}cm thickness.", "feature_name": shell.name}
 
+def create_fillet(app, body_name, radius):
+    """
+    Fillets all edges of a body to a specific radius in cm.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    fillets = rootComp.features.filletFeatures
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    edges = adsk.core.ObjectCollection.create()
+    for i in range(body.edges.count):
+        edges.add(body.edges.item(i))
+        
+    radius_val = adsk.core.ValueInput.createByReal(radius)
+    filletInput = fillets.createInput()
+    filletInput.addConstantRadiusEdgeSet(edges, radius_val, True)
+    
+    fillet = fillets.add(filletInput)
+    return {"message": f"Filleted all edges of body {body_name} with {radius}cm radius.", "feature_name": fillet.name}
+
 

@@ -547,5 +547,18 @@ async def create_shell(
         "thickness": thickness
     })
 
+@mcp.tool()
+async def create_fillet(
+    body_name: str,
+    radius: float
+) -> Dict[str, Any]:
+    """
+    Fillets all edges of a specified body to a specific radius in cm.
+    """
+    return await send_to_addin('create_fillet', {
+        "body_name": body_name,
+        "radius": radius
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
