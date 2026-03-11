@@ -56,11 +56,9 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 ### Solid Modeling Phase 3 (Finishing)
 - [x] **`create_fillet`**: Add a fillet to an edge or face.
 - [x] **`create_chamfer`**: Add a chamfer to an edge or face.
+- [x] **`feature_mirror`**: Mirror a body or feature.
 
 ## Unimplemented Features (TODO)
-
-### Solid Modeling Phase 3 (Finishing)
-- [ ] **`feature_mirror`**: Mirror a body or feature.
 
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry

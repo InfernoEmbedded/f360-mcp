@@ -71,6 +71,7 @@ def handle_client(conn, addr):
                         'create_shell': commands.create_shell,
                         'create_fillet': commands.create_fillet,
                         'create_chamfer': commands.create_chamfer,
+                        'feature_mirror': commands.feature_mirror,
                     }
 
 

@@ -573,5 +573,19 @@ async def create_chamfer(
         "distance": distance
     })
 
+@mcp.tool()
+async def feature_mirror(
+    body_name: str,
+    plane_name: str
+) -> Dict[str, Any]:
+    """
+    Mirrors a specified body across an origin plane.
+    Allowed plane names: 'xy', 'yz', 'xz'.
+    """
+    return await send_to_addin('feature_mirror', {
+        "body_name": body_name,
+        "plane_name": plane_name
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

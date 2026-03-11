@@ -650,4 +650,38 @@ def create_chamfer(app, body_name, distance):
     chamfer = chamfers.add(chamferInput)
     return {"message": f"Chamfered all edges of body {body_name} with {distance}cm distance.", "feature_name": chamfer.name}
 
+def feature_mirror(app, body_name, plane_name):
+    """
+    Mirrors a body across an origin plane ('xy', 'yz', 'xz').
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    mirrors = rootComp.features.mirrorFeatures
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    
+    plane_map = {
+        'xy': rootComp.xYConstructionPlane,
+        'yz': rootComp.yZConstructionPlane,
+        'xz': rootComp.xZConstructionPlane,
+        'zx': rootComp.xZConstructionPlane
+    }
+    plane = plane_map.get(plane_name.lower())
+    if not plane:
+        raise Exception(f"Invalid plane '{plane_name}'. Use 'xy', 'yz', or 'xz'.")
+        
+    inputEntities = adsk.core.ObjectCollection.create()
+    inputEntities.add(body)
+    
+    mirrorInput = mirrors.createInput(inputEntities, plane)
+    mirror = mirrors.add(mirrorInput)
+    return {"message": f"Mirrored body {body_name} across {plane_name} plane.", "feature_name": mirror.name}
+
 
