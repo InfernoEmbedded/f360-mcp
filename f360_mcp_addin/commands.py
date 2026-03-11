@@ -545,3 +545,28 @@ def combine_bodies(app, target_body_name, tool_body_names, operation="join"):
     combine = combines.add(combineInput)
     return {"message": f"Combined bodies using {operation}.", "feature_name": combine.name}
 
+def create_hole(app, sketch_name, point_idx, diameter, depth):
+    """
+    Creates a simple hole on a sketch point.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    holes = rootComp.features.holeFeatures
+    
+    sketch = get_sketch_by_name(app, sketch_name)
+    if point_idx >= sketch.sketchPoints.count:
+        raise Exception(f"Point index {point_idx} is out of bounds for sketch '{sketch_name}'.")
+        
+    point = sketch.sketchPoints.item(point_idx)
+    
+    diameter_val = adsk.core.ValueInput.createByReal(diameter)
+    depth_val = adsk.core.ValueInput.createByReal(depth)
+    
+    holeInput = holes.createSimpleInput(diameter_val)
+    holeInput.setPositionBySketchPoint(point)
+    holeInput.setDistanceExtent(depth_val)
+    
+    hole = holes.add(holeInput)
+    return {"message": f"Hole created with diameter {diameter}cm and depth {depth}cm.", "feature_name": hole.name}
+
+

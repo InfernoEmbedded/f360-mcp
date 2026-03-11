@@ -516,5 +516,23 @@ async def combine_bodies(
         "operation": operation
     })
 
+@mcp.tool()
+async def create_hole(
+    sketch_name: str,
+    point_idx: int,
+    diameter: float,
+    depth: float
+) -> Dict[str, Any]:
+    """
+    Creates a simple hole from a specific point in a sketch.
+    Diameter and depth are in cm.
+    """
+    return await send_to_addin('create_hole', {
+        "sketch_name": sketch_name,
+        "point_idx": point_idx,
+        "diameter": diameter,
+        "depth": depth
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

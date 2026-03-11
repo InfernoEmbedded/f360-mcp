@@ -67,6 +67,7 @@ def handle_client(conn, addr):
                         'create_sweep': commands.create_sweep,
                         'list_bodies': commands.list_bodies,
                         'combine_bodies': commands.combine_bodies,
+                        'create_hole': commands.create_hole,
                     }
 
 

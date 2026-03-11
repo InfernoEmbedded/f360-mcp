@@ -48,11 +48,11 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 ### Solid Modeling Phase 2 (Modification)
 - [x] **`combine_bodies`**: Join, cut, or intersect bodies.
 - [x] **`list_bodies`**: List all bodies in the active design.
+- [x] **`create_hole`**: Create a hole from a point.
 
 ## Unimplemented Features (TODO)
 
 ### Solid Modeling Phase 2 (Modification)
-- [ ] **`create_hole`**: Create a hole from a point.
 - [ ] **`create_shell`**: Shell a body to a specific thickness.
 
 ### Solid Modeling Phase 3 (Finishing)
