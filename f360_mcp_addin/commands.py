@@ -1020,21 +1020,55 @@ def create_circular_pattern(app, body_name, axis_name, count, angle_deg):
     pattern = circPatterns.add(circPatternInput)
     return {"message": f"Created circular pattern for '{body_name}' around {axis_name}", "pattern_name": pattern.name}
 
-def export_model(app, file_path, file_type="step"):
+def export_model(app, file_path, file_type="step", body_name=None, send_to_mcp=False):
     """
-    Exports the current design. file_type can be "step" or "stl".
+    Exports the current design or a specific body. file_type can be "step", "stl", or "3mf".
+    If send_to_mcp is True, reads the file from disk and returns it as a base64 string.
     """
+    import base64
+    import os
+    
     design = get_active_design(app)
     exportMgr = design.exportManager
+    rootComp = design.rootComponent
+    
+    target = rootComp
+    if body_name:
+        def get_body(name):
+            for i in range(rootComp.bRepBodies.count):
+                b = rootComp.bRepBodies.item(i)
+                if b.name == name:
+                    return b
+            raise Exception(f"Body '{name}' not found.")
+        target = get_body(body_name)
     
     if file_type.lower() == "step":
+        if body_name:
+            raise Exception("STEP export currently only supported for the full component in this wrapper.")
         options = exportMgr.createSTEPExportOptions(file_path)
     elif file_type.lower() == "stl":
-        options = exportMgr.createSTLExportOptions(design.rootComponent, file_path)
+        options = exportMgr.createSTLExportOptions(target, file_path)
+    elif file_type.lower() == "3mf":
+        # Note: 3MF export requires Fusion 360 to have the 3MF export feature enabled/available
+        try:
+            options = exportMgr.create3MFExportOptions(target, file_path)
+        except AttributeError:
+            # Fallback if create3MFExportOptions is not directly on exportMgr in some older API versions
+            raise Exception("3MF export not supported in this version of the Fusion 360 API.")
     else:
-        raise Exception("Unsupported file type. Use 'step' or 'stl'.")
+        raise Exception("Unsupported file type. Use 'step', 'stl', or '3mf'.")
         
     if not exportMgr.execute(options):
         raise Exception(f"Failed to export {file_type} to {file_path}")
         
-    return {"message": f"Successfully exported model to {file_path}"}
+    result = {"message": f"Successfully exported model to {file_path}", "file_path": file_path}
+    
+    if send_to_mcp:
+        if os.path.exists(file_path):
+            with open(file_path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode('utf-8')
+                result["file_content_base64"] = encoded
+        else:
+            raise Exception("Export succeeded, but file was not found on disk to send to MCP.")
+            
+    return result

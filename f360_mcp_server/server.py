@@ -28,7 +28,7 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     
     def sync_request():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(5.0) # 5 second timeout
+            s.settimeout(60.0) # 60 second timeout for complex operations
             s.connect((ADDIN_HOST, ADDIN_PORT))
             s.sendall(json.dumps(request).encode('utf-8') + b'\n')
             
@@ -765,17 +765,40 @@ async def create_circular_pattern(
 @mcp.tool()
 async def export_model(
     file_path: str,
-    file_type: str = "step"
+    file_type: str = "step",
+    body_name: Optional[str] = None,
+    send_to_mcp: bool = False
 ) -> Dict[str, Any]:
     """
-    Exports the entire design to a file.
-    file_path must be an absolute path (e.g. "/tmp/my_model.step")
-    file_type can be "step" or "stl".
+    Exports the entire design or a specific body.
+    file_path: The absolute path to save the file. If send_to_mcp=True, it will be saved on the MCP server's host machine.
+    file_type: "step", "stl", or "3mf".
+    body_name: (optional) Name of a specific body to export.
+    send_to_mcp: If True, the file is sent over the network and saved directly to the MCP server's local filesystem at file_path.
     """
-    return await send_to_addin('export_model', {
+    response = await send_to_addin('export_model', {
         "file_path": file_path,
-        "file_type": file_type
+        "file_type": file_type,
+        "body_name": body_name,
+        "send_to_mcp": send_to_mcp
     })
+    
+    if send_to_mcp and "file_content_base64" in response:
+        import base64
+        import os
+        
+        local_dir = os.path.dirname(file_path)
+        if local_dir:
+            os.makedirs(local_dir, exist_ok=True)
+            
+        with open(file_path, "wb") as f:
+            f.write(base64.b64decode(response["file_content_base64"]))
+            
+        response["message"] = f"Successfully exported model and saved to MCP host at {file_path}"
+        response.pop("file_content_base64", None)
+        response["local_file_path"] = file_path
+        
+    return response
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')
