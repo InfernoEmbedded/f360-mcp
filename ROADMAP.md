@@ -67,20 +67,20 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_plane_at_angle`**: Create a plane at an angle relative to an axis/edge.
 - [x] **`get_body_properties`**: Get volume, mass, bounding box, surface area.
 - [x] **`find_faces`**: Query faces by normal vector or bounding box.
+- [x] **`create_user_parameter`**: Create a parametric dimension.
+- [x] **`list_user_parameters`**: Read existing parameters.
+- [x] **`update_user_parameter`**: Modify a parameter.
+- [x] **`create_component`**: Group bodies into a sub-component.
+- [x] **`create_rectangular_pattern`**: Pattern geometry in a grid.
+- [x] **`create_circular_pattern`**: Pattern geometry radially.
+- [x] **`export_model`**: Export the design as a standard file (.step, .stl).
 
 ## Unimplemented Features (TODO)
 
 ### Phase 10: Advanced Features
 - [ ] **`sketch_on_face`**: Create a sketch on a planar face of a body. (Note: Implemented via updating `create_sketch`)
-- [ ] **`create_user_parameter`**: Create a parametric dimension.
-- [ ] **`list_user_parameters`**: Read existing parameters.
-- [ ] **`update_user_parameter`**: Modify a parameter.
-- [ ] **`create_component`**: Group bodies into a sub-component.
-- [ ] **`create_joint`**: Assemble components together.
-- [ ] **`create_rectangular_pattern`**: Pattern geometry in a grid.
-- [ ] **`create_circular_pattern`**: Pattern geometry radially.
-- [ ] **`export_model`**: Export the design as a standard file (.step, .stl).
 
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
 - [ ] Mirror Geometry
+- [ ] Create Joint (Deferred)

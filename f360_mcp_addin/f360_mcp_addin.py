@@ -81,6 +81,10 @@ def handle_client(conn, addr):
                         'create_user_parameter': commands.create_user_parameter,
                         'list_user_parameters': commands.list_user_parameters,
                         'update_user_parameter': commands.update_user_parameter,
+                        'create_component': commands.create_component,
+                        'create_rectangular_pattern': commands.create_rectangular_pattern,
+                        'create_circular_pattern': commands.create_circular_pattern,
+                        'export_model': commands.export_model,
                     }
 
 

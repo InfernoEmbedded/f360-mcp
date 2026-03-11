@@ -936,3 +936,105 @@ def update_user_parameter(app, name, expression):
         raise Exception(f"Parameter '{name}' not found.")
     param.expression = expression
     return {"message": f"Updated parameter '{name}' to {expression}", "name": param.name, "value": round(param.value, 3)}
+
+def create_component(app, name):
+    """
+    Creates a new empty component.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    occurrences = rootComp.occurrences
+    transform = adsk.core.Matrix3D.create()
+    occ = occurrences.addNewComponent(transform)
+    comp = occ.component
+    comp.name = name
+    return {"message": f"Created component '{name}'. Note: modeling still default happens in root component via MCP.", "component_name": comp.name}
+
+def create_rectangular_pattern(app, body_name, count_x, count_y, distance_x, distance_y):
+    """
+    Creates a rectangular pattern of a body.
+    Distances in cm.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    inputEntities = adsk.core.ObjectCollection.create()
+    inputEntities.add(body)
+    
+    xAxis = rootComp.xConstructionAxis
+    yAxis = rootComp.yConstructionAxis
+    
+    rectPatterns = rootComp.features.rectangularPatternFeatures
+    rectPatternInput = rectPatterns.createInput(inputEntities, xAxis, adsk.core.ValueInput.createByReal(count_x), adsk.core.ValueInput.createByReal(distance_x), adsk.fusion.PatternDistanceType.SpacingPatternDistanceType)
+    
+    rectPatternInput.setDirectionTwo(yAxis, adsk.core.ValueInput.createByReal(count_y), adsk.core.ValueInput.createByReal(distance_y))
+    
+    pattern = rectPatterns.add(rectPatternInput)
+    return {"message": f"Created rectangular pattern for '{body_name}'", "pattern_name": pattern.name}
+
+def create_circular_pattern(app, body_name, axis_name, count, angle_deg):
+    """
+    Creates a circular pattern of a body around an axis.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    inputEntities = adsk.core.ObjectCollection.create()
+    inputEntities.add(body)
+    
+    if axis_name.upper() == "X":
+        axis = rootComp.xConstructionAxis
+    elif axis_name.upper() == "Y":
+        axis = rootComp.yConstructionAxis
+    elif axis_name.upper() == "Z":
+        axis = rootComp.zConstructionAxis
+    else:
+        axes = rootComp.constructionAxes
+        axis = axes.itemByName(axis_name)
+        if not axis:
+            raise Exception(f"Axis '{axis_name}' not found.")
+            
+    circPatterns = rootComp.features.circularPatternFeatures
+    circPatternInput = circPatterns.createInput(inputEntities, axis)
+    circPatternInput.quantity = adsk.core.ValueInput.createByReal(count)
+    import math
+    circPatternInput.angle = adsk.core.ValueInput.createByReal(math.radians(angle_deg))
+    circPatternInput.isSymmetric = False
+    
+    pattern = circPatterns.add(circPatternInput)
+    return {"message": f"Created circular pattern for '{body_name}' around {axis_name}", "pattern_name": pattern.name}
+
+def export_model(app, file_path, file_type="step"):
+    """
+    Exports the current design. file_type can be "step" or "stl".
+    """
+    design = get_active_design(app)
+    exportMgr = design.exportManager
+    
+    if file_type.lower() == "step":
+        options = exportMgr.createSTEPExportOptions(file_path)
+    elif file_type.lower() == "stl":
+        options = exportMgr.createSTLExportOptions(design.rootComponent, file_path)
+    else:
+        raise Exception("Unsupported file type. Use 'step' or 'stl'.")
+        
+    if not exportMgr.execute(options):
+        raise Exception(f"Failed to export {file_type} to {file_path}")
+        
+    return {"message": f"Successfully exported model to {file_path}"}

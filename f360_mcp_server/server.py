@@ -717,5 +717,65 @@ async def update_user_parameter(
         "expression": expression
     })
 
+@mcp.tool()
+async def create_component(name: str) -> Dict[str, Any]:
+    """
+    Creates a new empty sub-component in the design.
+    """
+    return await send_to_addin('create_component', {"name": name})
+
+@mcp.tool()
+async def create_rectangular_pattern(
+    body_name: str,
+    count_x: int,
+    count_y: int,
+    distance_x: float,
+    distance_y: float
+) -> Dict[str, Any]:
+    """
+    Creates a rectangular pattern of a solid body along the X and Y axes.
+    Distances are measured in cm.
+    """
+    return await send_to_addin('create_rectangular_pattern', {
+        "body_name": body_name,
+        "count_x": count_x,
+        "count_y": count_y,
+        "distance_x": distance_x,
+        "distance_y": distance_y
+    })
+
+@mcp.tool()
+async def create_circular_pattern(
+    body_name: str,
+    axis_name: str,
+    count: int,
+    angle_deg: float
+) -> Dict[str, Any]:
+    """
+    Creates a circular pattern of a solid body around an axis.
+    axis_name can be "X", "Y", "Z". Angle is in degrees.
+    """
+    return await send_to_addin('create_circular_pattern', {
+        "body_name": body_name,
+        "axis_name": axis_name,
+        "count": count,
+        "angle_deg": angle_deg
+    })
+
+@mcp.tool()
+async def export_model(
+    file_path: str,
+    file_type: str = "step"
+) -> Dict[str, Any]:
+    """
+    Exports the entire design to a file.
+    file_path must be an absolute path (e.g. "/tmp/my_model.step")
+    file_type can be "step" or "stl".
+    """
+    return await send_to_addin('export_model', {
+        "file_path": file_path,
+        "file_type": file_type
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
