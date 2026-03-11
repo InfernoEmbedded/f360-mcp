@@ -34,15 +34,15 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 
 ### Utilities & Operations
 - [x] **`list_sketches`**: List all sketches in the design.
-- [x] **`delete_sketch`**: Delete a sketch by name.
+- [x] **`delete_sketch`**: Delete an entire sketch by name.
 - [x] **`project_geometry`**: Project geometry from another sketch.
 - [x] **`offset_geometry`**: Create an offset of a sketch entity.
+- [x] **`trim_sketch_geometry`**: Trim a sketch curve using a coordinate point.
+- [x] **`delete_sketch_entity`**: Delete a specific entity inside a sketch.
 
 ## Unimplemented Features (TODO)
 
 ### Utilities & Operations (Deferred due to API limits)
-- [ ] Trim Geometry
 - [ ] Extend Geometry
 - [ ] Mirror Geometry
-es in active design
 - [ ] Delete sketch

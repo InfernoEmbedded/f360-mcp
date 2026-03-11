@@ -366,3 +366,29 @@ def offset_geometry(app, sketch_name, ent_type, ent_idx, offset_distance):
     offset_curves = sketch.offset(curves, dir_point, offset_distance)
     return {"message": f"Created offset with {len(offset_curves)} curves."}
 
+def delete_sketch_entity(app, sketch_name, ent_type, ent_idx):
+    """
+    Deletes a specific entity from a sketch.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    ent = resolve_entity(sketch, ent_type, ent_idx)
+    ent.deleteMe()
+    return {"message": f"Entity '{ent_type}' at index {ent_idx} deleted."}
+
+def trim_sketch_geometry(app, sketch_name, ent_type, ent_idx, x, y):
+    """
+    Trims a sketch curve around the provided (x, y) coordinates.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    ent = resolve_entity(sketch, ent_type, ent_idx)
+    
+    # Needs a 3D point indicating where to trim the curve
+    pt = adsk.core.Point3D.create(x, y, 0)
+    
+    if hasattr(ent, 'trim'):
+        new_curves = ent.trim(pt)
+        count = new_curves.count if new_curves else 0
+        return {"message": f"Trimmed curve resulting in {count} new pieces."}
+    else:
+        raise Exception(f"Entity type {ent_type} does not support trimming.")
+

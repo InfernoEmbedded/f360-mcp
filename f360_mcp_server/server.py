@@ -398,5 +398,37 @@ async def offset_geometry(
         "offset_distance": offset_distance
     })
 
+@mcp.tool()
+async def delete_sketch_entity(
+    sketch_name: str,
+    ent_type: str,
+    ent_idx: int
+) -> Dict[str, Any]:
+    """Deletes a specific entity from a sketch by its type and index."""
+    return await send_to_addin('delete_sketch_entity', {
+        "sketch_name": sketch_name,
+        "ent_type": ent_type,
+        "ent_idx": ent_idx
+    })
+
+@mcp.tool()
+async def trim_sketch_geometry(
+    sketch_name: str,
+    ent_type: str,
+    ent_idx: int,
+    x: float,
+    y: float
+) -> Dict[str, Any]:
+    """
+    Trims a sketch curve around the provided (x, y) coordinates.
+    """
+    return await send_to_addin('trim_sketch_geometry', {
+        "sketch_name": sketch_name,
+        "ent_type": ent_type,
+        "ent_idx": ent_idx,
+        "x": x,
+        "y": y
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

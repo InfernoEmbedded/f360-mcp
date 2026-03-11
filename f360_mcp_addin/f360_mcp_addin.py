@@ -60,7 +60,10 @@ def handle_client(conn, addr):
                         'delete_sketch': commands.delete_sketch,
                         'project_geometry': commands.project_geometry,
                         'offset_geometry': commands.offset_geometry,
+                        'delete_sketch_entity': commands.delete_sketch_entity,
+                        'trim_sketch_geometry': commands.trim_sketch_geometry,
                     }
+
 
                     
                     if method in dispatch:
