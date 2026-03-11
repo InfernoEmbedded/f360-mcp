@@ -26,13 +26,15 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`apply_constraint`**: Add Coincident, Collinear, Concentric, MidPoint, Parallel, Perpendicular, Horizontal, Vertical, Tangent, and Equal constraints.
 - [x] **`add_symmetry_constraint`**: Add a symmetry constraint between two entities and a symmetry line.
 
+### Dimensions
+- [x] **`add_distance_dimension`**: Add aligned, horizontal, or vertical dimension.
+- [x] **`add_radial_dimension`**: Add radial dimension to an arc or circle.
+- [x] **`add_diameter_dimension`**: Add diameter dimension to a circle or arc.
+- [x] **`add_angular_dimension`**: Add angular dimension between two lines.
+
 ## Unimplemented Features (TODO)
 
 
-### Dimensions
-- [ ] Add Linear Dimension
-- [ ] Add Radial/Diameter Dimension
-- [ ] Add Angular Dimension
 
 ### Utilities & Operations
 - [ ] Project Geometry

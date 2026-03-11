@@ -272,5 +272,82 @@ async def add_symmetry_constraint(
         "sym_line_idx": sym_line_idx
     })
 
+@mcp.tool()
+async def add_distance_dimension(
+    sketch_name: str,
+    ent1_type: str,
+    ent1_idx: int,
+    ent2_type: str,
+    ent2_idx: int,
+    text_x: float,
+    text_y: float,
+    orientation: str = "aligned"
+) -> Dict[str, Any]:
+    """
+    Adds a distance dimension between two sketch entities.
+    orientation: "aligned", "horizontal", or "vertical"
+    """
+    return await send_to_addin('add_distance_dimension', {
+        "sketch_name": sketch_name,
+        "ent1_type": ent1_type,
+        "ent1_idx": ent1_idx,
+        "ent2_type": ent2_type,
+        "ent2_idx": ent2_idx,
+        "text_x": text_x,
+        "text_y": text_y,
+        "orientation": orientation
+    })
+
+@mcp.tool()
+async def add_radial_dimension(
+    sketch_name: str,
+    ent_type: str,
+    ent_idx: int,
+    text_x: float,
+    text_y: float
+) -> Dict[str, Any]:
+    """Adds a radial dimension to an arc or circle."""
+    return await send_to_addin('add_radial_dimension', {
+        "sketch_name": sketch_name,
+        "ent_type": ent_type,
+        "ent_idx": ent_idx,
+        "text_x": text_x,
+        "text_y": text_y
+    })
+
+@mcp.tool()
+async def add_diameter_dimension(
+    sketch_name: str,
+    ent_type: str,
+    ent_idx: int,
+    text_x: float,
+    text_y: float
+) -> Dict[str, Any]:
+    """Adds a diameter dimension to a circle or arc."""
+    return await send_to_addin('add_diameter_dimension', {
+        "sketch_name": sketch_name,
+        "ent_type": ent_type,
+        "ent_idx": ent_idx,
+        "text_x": text_x,
+        "text_y": text_y
+    })
+
+@mcp.tool()
+async def add_angular_dimension(
+    sketch_name: str,
+    line1_idx: int,
+    line2_idx: int,
+    text_x: float,
+    text_y: float
+) -> Dict[str, Any]:
+    """Adds an angular dimension between two lines."""
+    return await send_to_addin('add_angular_dimension', {
+        "sketch_name": sketch_name,
+        "line1_idx": line1_idx,
+        "line2_idx": line2_idx,
+        "text_x": text_x,
+        "text_y": text_y
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

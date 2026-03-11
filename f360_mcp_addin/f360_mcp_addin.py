@@ -49,12 +49,16 @@ def handle_client(conn, addr):
                         'add_arc': commands.add_arc,
                         'add_spline': commands.add_spline,
                         'add_polygon': commands.add_polygon,
-                        'add_ellipse': commands.add_ellipse,
                         'add_point': commands.add_point,
                         'add_text': commands.add_text,
                         'apply_constraint': commands.apply_constraint,
                         'add_symmetry_constraint': commands.add_symmetry_constraint,
+                        'add_distance_dimension': commands.add_distance_dimension,
+                        'add_radial_dimension': commands.add_radial_dimension,
+                        'add_diameter_dimension': commands.add_diameter_dimension,
+                        'add_angular_dimension': commands.add_angular_dimension,
                     }
+
                     
                     if method in dispatch:
                         result = dispatch[method](app, **params)

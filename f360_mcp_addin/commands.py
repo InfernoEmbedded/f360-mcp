@@ -261,3 +261,56 @@ def add_symmetry_constraint(app, sketch_name, ent1_type, ent1_idx, ent2_type, en
     
     constraints.addSymmetry(e1, e2, sym_line)
     return {"message": "Successfully added symmetry constraint."}
+
+# --- Dimension Commands ---
+
+def add_distance_dimension(app, sketch_name, ent1_type, ent1_idx, ent2_type, ent2_idx, text_x, text_y, orientation="aligned"):
+    """
+    orientation: "aligned", "horizontal", or "vertical"
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    dims = sketch.sketchDimensions
+    
+    e1 = resolve_entity(sketch, ent1_type, ent1_idx)
+    e2 = resolve_entity(sketch, ent2_type, ent2_idx)
+    text_pos = adsk.core.Point3D.create(text_x, text_y, 0)
+    
+    orient_enum = adsk.fusion.DimensionOrientations.AlignedDimensionOrientation
+    if orientation == "horizontal":
+        orient_enum = adsk.fusion.DimensionOrientations.HorizontalDimensionOrientation
+    elif orientation == "vertical":
+        orient_enum = adsk.fusion.DimensionOrientations.VerticalDimensionOrientation
+        
+    dim = dims.addDistanceDimension(e1, e2, orient_enum, text_pos)
+    return {"message": "Distance dimension added.", "value": dim.parameter.value}
+
+def add_radial_dimension(app, sketch_name, ent_type, ent_idx, text_x, text_y):
+    sketch = get_sketch_by_name(app, sketch_name)
+    dims = sketch.sketchDimensions
+    
+    e1 = resolve_entity(sketch, ent_type, ent_idx)
+    text_pos = adsk.core.Point3D.create(text_x, text_y, 0)
+    
+    dim = dims.addRadialDimension(e1, text_pos)
+    return {"message": "Radial dimension added.", "value": dim.parameter.value}
+
+def add_diameter_dimension(app, sketch_name, ent_type, ent_idx, text_x, text_y):
+    sketch = get_sketch_by_name(app, sketch_name)
+    dims = sketch.sketchDimensions
+    
+    e1 = resolve_entity(sketch, ent_type, ent_idx)
+    text_pos = adsk.core.Point3D.create(text_x, text_y, 0)
+    
+    dim = dims.addDiameterDimension(e1, text_pos)
+    return {"message": "Diameter dimension added.", "value": dim.parameter.value}
+
+def add_angular_dimension(app, sketch_name, line1_idx, line2_idx, text_x, text_y):
+    sketch = get_sketch_by_name(app, sketch_name)
+    dims = sketch.sketchDimensions
+    
+    line1 = resolve_entity(sketch, "line", line1_idx)
+    line2 = resolve_entity(sketch, "line", line2_idx)
+    text_pos = adsk.core.Point3D.create(text_x, text_y, 0)
+    
+    dim = dims.addAngularDimension(line1, line2, text_pos)
+    return {"message": "Angular dimension added.", "value": dim.parameter.value}
