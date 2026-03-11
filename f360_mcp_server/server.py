@@ -349,5 +349,54 @@ async def add_angular_dimension(
         "text_y": text_y
     })
 
+@mcp.tool()
+async def list_sketches() -> Dict[str, Any]:
+    """Lists all sketches in the active design."""
+    return await send_to_addin('list_sketches', {})
+
+@mcp.tool()
+async def delete_sketch(sketch_name: str) -> Dict[str, Any]:
+    """Deletes a sketch by name."""
+    return await send_to_addin('delete_sketch', {"sketch_name": sketch_name})
+
+@mcp.tool()
+async def project_geometry(
+    sketch_name: str,
+    ent_type: str,
+    ent_idx: int,
+    from_sketch_name: str = None
+) -> Dict[str, Any]:
+    """
+    Projects geometry from another sketch into the active sketch.
+    If from_sketch_name is omitted, it attempts to resolve the entity from the active sketch
+    (or another active context if valid).
+    """
+    params = {
+        "sketch_name": sketch_name,
+        "ent_type": ent_type,
+        "ent_idx": ent_idx
+    }
+    if from_sketch_name:
+        params["from_sketch_name"] = from_sketch_name
+    return await send_to_addin('project_geometry', params)
+
+@mcp.tool()
+async def offset_geometry(
+    sketch_name: str,
+    ent_type: str,
+    ent_idx: int,
+    offset_distance: float
+) -> Dict[str, Any]:
+    """
+    Creates an offset of a sketch entity by a specified distance.
+    Distance is in cm. Positive or negative determines direction.
+    """
+    return await send_to_addin('offset_geometry', {
+        "sketch_name": sketch_name,
+        "ent_type": ent_type,
+        "ent_idx": ent_idx,
+        "offset_distance": offset_distance
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

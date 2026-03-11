@@ -314,3 +314,55 @@ def add_angular_dimension(app, sketch_name, line1_idx, line2_idx, text_x, text_y
     
     dim = dims.addAngularDimension(line1, line2, text_pos)
     return {"message": "Angular dimension added.", "value": dim.parameter.value}
+
+# --- Utilities & Operations ---
+
+def list_sketches(app):
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    sketches = rootComp.sketches
+    
+    sketch_list = []
+    for i in range(sketches.count):
+        sketch = sketches.item(i)
+        sketch_list.append({"name": sketch.name, "index": i})
+        
+    return {"sketches": sketch_list}
+
+def delete_sketch(app, sketch_name):
+    sketch = get_sketch_by_name(app, sketch_name)
+    sketch.deleteMe()
+    return {"message": f"Sketch '{sketch_name}' deleted."}
+
+def project_geometry(app, sketch_name, ent_type, ent_idx, from_sketch_name=None):
+    """
+    Projects geometry from another sketch into the active sketch.
+    If from_sketch_name is None, it tries to project from the same sketch (which may not make sense, 
+    but we allow resolving it from either the active sketch or another sketch).
+    Usually you project body edges or origin planes, but for this API we stick to sketch entities.
+    """
+    target_sketch = get_sketch_by_name(app, sketch_name)
+    source_sketch = get_sketch_by_name(app, from_sketch_name) if from_sketch_name else target_sketch
+    
+    ent = resolve_entity(source_sketch, ent_type, ent_idx)
+    projected_curves = target_sketch.project(ent)
+    
+    return {"message": f"Projected {len(projected_curves)} curves."}
+
+def offset_geometry(app, sketch_name, ent_type, ent_idx, offset_distance):
+    """
+    Creates an offset of a sketch entity.
+    """
+    sketch = get_sketch_by_name(app, sketch_name)
+    ent = resolve_entity(sketch, ent_type, ent_idx)
+    
+    # In Fusion 360 API, offset requires an ObjectCollection of connected curves
+    curves = adsk.core.ObjectCollection.create()
+    curves.add(ent)
+    
+    dir_point = adsk.core.Point3D.create(0, 0, 0) # Just a reference point for direction
+    
+    # offset() is an older method, but it exists on Sketch
+    offset_curves = sketch.offset(curves, dir_point, offset_distance)
+    return {"message": f"Created offset with {len(offset_curves)} curves."}
+

@@ -32,14 +32,17 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`add_diameter_dimension`**: Add diameter dimension to a circle or arc.
 - [x] **`add_angular_dimension`**: Add angular dimension between two lines.
 
+### Utilities & Operations
+- [x] **`list_sketches`**: List all sketches in the design.
+- [x] **`delete_sketch`**: Delete a sketch by name.
+- [x] **`project_geometry`**: Project geometry from another sketch.
+- [x] **`offset_geometry`**: Create an offset of a sketch entity.
+
 ## Unimplemented Features (TODO)
 
-
-
-### Utilities & Operations
-- [ ] Project Geometry
-- [ ] Offset Geometry
-- [ ] Trim/Extend Geometry
+### Utilities & Operations (Deferred due to API limits)
+- [ ] Trim Geometry
+- [ ] Extend Geometry
 - [ ] Mirror Geometry
-- [ ] List available sketches in active design
+es in active design
 - [ ] Delete sketch

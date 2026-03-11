@@ -54,9 +54,12 @@ def handle_client(conn, addr):
                         'apply_constraint': commands.apply_constraint,
                         'add_symmetry_constraint': commands.add_symmetry_constraint,
                         'add_distance_dimension': commands.add_distance_dimension,
-                        'add_radial_dimension': commands.add_radial_dimension,
                         'add_diameter_dimension': commands.add_diameter_dimension,
                         'add_angular_dimension': commands.add_angular_dimension,
+                        'list_sketches': commands.list_sketches,
+                        'delete_sketch': commands.delete_sketch,
+                        'project_geometry': commands.project_geometry,
+                        'offset_geometry': commands.offset_geometry,
                     }
 
                     
