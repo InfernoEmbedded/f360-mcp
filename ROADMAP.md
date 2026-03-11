@@ -26,10 +26,6 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`apply_constraint`**: Add Coincident, Collinear, Concentric, MidPoint, Parallel, Perpendicular, Horizontal, Vertical, Tangent, and Equal constraints.
 - [x] **`add_symmetry_constraint`**: Add a symmetry constraint between two entities and a symmetry line.
 
-### Constraints
-- [x] **`apply_constraint`**: Add Coincident, Collinear, Concentric, MidPoint, Parallel, Perpendicular, Horizontal, Vertical, Tangent, and Equal constraints.
-- [x] **`add_symmetry_constraint`**: Add a symmetry constraint between two entities and a symmetry line.
-
 ## Unimplemented Features (TODO)
 
 
