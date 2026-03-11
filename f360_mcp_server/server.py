@@ -495,5 +495,26 @@ async def create_sweep(
         "profile_index": profile_index
     })
 
+@mcp.tool()
+async def list_bodies() -> Dict[str, Any]:
+    """Lists all bodies in the active design."""
+    return await send_to_addin('list_bodies', {})
+
+@mcp.tool()
+async def combine_bodies(
+    target_body_name: str,
+    tool_body_names: list[str],
+    operation: str = "join"
+) -> Dict[str, Any]:
+    """
+    Combines multiple tool bodies into a target body.
+    operation can be 'join', 'cut', or 'intersect'.
+    """
+    return await send_to_addin('combine_bodies', {
+        "target_body_name": target_body_name,
+        "tool_body_names": tool_body_names,
+        "operation": operation
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

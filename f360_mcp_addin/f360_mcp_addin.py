@@ -65,6 +65,8 @@ def handle_client(conn, addr):
                         'create_extrude': commands.create_extrude,
                         'create_revolve': commands.create_revolve,
                         'create_sweep': commands.create_sweep,
+                        'list_bodies': commands.list_bodies,
+                        'combine_bodies': commands.combine_bodies,
                     }
 
 

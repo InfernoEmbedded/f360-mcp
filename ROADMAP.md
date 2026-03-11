@@ -45,10 +45,13 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_revolve`**: Revolve a sketch profile around an axis.
 - [x] **`create_sweep`**: Sweep a profile along a path.
 
+### Solid Modeling Phase 2 (Modification)
+- [x] **`combine_bodies`**: Join, cut, or intersect bodies.
+- [x] **`list_bodies`**: List all bodies in the active design.
+
 ## Unimplemented Features (TODO)
 
 ### Solid Modeling Phase 2 (Modification)
-- [ ] **`combine_bodies`**: Join, cut, or intersect bodies.
 - [ ] **`create_hole`**: Create a hole from a point.
 - [ ] **`create_shell`**: Shell a body to a specific thickness.
 

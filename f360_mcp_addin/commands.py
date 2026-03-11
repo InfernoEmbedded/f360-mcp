@@ -503,3 +503,45 @@ def create_sweep(app, profile_sketch_name, path_sketch_name, path_ent_type, path
     sweep = sweeps.add(sweepInput)
     return {"message": f"Sweep created using operation {operation}.", "feature_name": sweep.name}
 
+def list_bodies(app):
+    """Lists all bodies in the active design."""
+    design = get_active_design(app)
+    bodies_list = []
+    for i in range(design.rootComponent.bRepBodies.count):
+        body = design.rootComponent.bRepBodies.item(i)
+        bodies_list.append({"name": body.name, "index": i})
+    return {"bodies": bodies_list}
+
+def combine_bodies(app, target_body_name, tool_body_names, operation="join"):
+    """
+    Combines bodies.
+    operation can be 'join', 'cut', or 'intersect'.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    combines = rootComp.features.combineFeatures
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    target = get_body(target_body_name)
+    tools = adsk.core.ObjectCollection.create()
+    for t_name in tool_body_names:
+        tools.add(get_body(t_name))
+        
+    combineInput = combines.createInput(target, tools)
+    
+    op_map = {
+        "join": adsk.fusion.FeatureOperations.JoinFeatureOperation,
+        "cut": adsk.fusion.FeatureOperations.CutFeatureOperation,
+        "intersect": adsk.fusion.FeatureOperations.IntersectFeatureOperation
+    }
+    combineInput.operation = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.JoinFeatureOperation)
+    
+    combine = combines.add(combineInput)
+    return {"message": f"Combined bodies using {operation}.", "feature_name": combine.name}
+
