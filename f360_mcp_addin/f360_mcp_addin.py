@@ -88,6 +88,16 @@ def handle_client(conn, addr):
                         'rename_body': commands.rename_body,
                         'list_features': commands.list_features,
                         'rename_feature': commands.rename_feature,
+                        'rename_sketch': commands.rename_sketch,
+                        'delete_body': commands.delete_body,
+                        'delete_feature': commands.delete_feature,
+                        'list_components': commands.list_components,
+                        'rename_component': commands.rename_component,
+                        'delete_component': commands.delete_component,
+                        'list_construction': commands.list_construction,
+                        'rename_construction': commands.rename_construction,
+                        'delete_construction': commands.delete_construction,
+                        'delete_user_parameter': commands.delete_user_parameter,
                     }
 
 

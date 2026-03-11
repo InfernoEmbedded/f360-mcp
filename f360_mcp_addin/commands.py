@@ -1129,3 +1129,142 @@ def rename_feature(app, old_name, new_name):
         
     feat.name = new_name
     return {"message": f"Renamed feature '{old_name}' to '{new_name}'", "new_name": feat.name}
+
+def rename_sketch(app, old_name, new_name):
+    """Renames a sketch."""
+    sketch = get_sketch_by_name(app, old_name)
+    sketch.name = new_name
+    return {"message": f"Renamed sketch '{old_name}' to '{new_name}'", "new_name": sketch.name}
+
+def delete_body(app, body_name):
+    """Deletes a BRep body."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    for i in range(rootComp.bRepBodies.count):
+        body = rootComp.bRepBodies.item(i)
+        if body.name == body_name:
+            body.deleteMe()
+            return {"message": f"Deleted body '{body_name}'"}
+    raise Exception(f"Body '{body_name}' not found.")
+
+def delete_feature(app, feature_name):
+    """Deletes a feature from the timeline."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    feat = rootComp.features.itemByName(feature_name)
+    if not feat:
+        # Manual search
+        for i in range(rootComp.features.count):
+            f = rootComp.features.item(i)
+            if f.name == feature_name:
+                feat = f
+                break
+    if not feat:
+        raise Exception(f"Feature '{feature_name}' not found.")
+    feat.deleteMe()
+    return {"message": f"Deleted feature '{feature_name}'"}
+
+def list_components(app):
+    """Lists all sub-components in the design."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    comp_list = []
+    # occurrences returns the instances of components in the root
+    for i in range(rootComp.occurrences.count):
+        occ = rootComp.occurrences.item(i)
+        comp = occ.component
+        comp_list.append({
+            "name": comp.name,
+            "occurrence_name": occ.name,
+            "is_visible": occ.isVisible
+        })
+    return {"components": comp_list}
+
+def rename_component(app, old_name, new_name):
+    """Renames a sub-component (its underlying component object)."""
+    design = get_active_design(app)
+    # Search in all components (excluding root potentially, or including)
+    for comp in design.allComponents:
+        if comp.name == old_name:
+            comp.name = new_name
+            return {"message": f"Renamed component '{old_name}' to '{new_name}'"}
+    raise Exception(f"Component '{old_name}' not found.")
+
+def delete_component(app, occurrence_name):
+    """Deletes a component instance (occurrence) from the design."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    occ = rootComp.occurrences.itemByName(occurrence_name)
+    if not occ:
+        raise Exception(f"Component occurrence '{occurrence_name}' not found in root.")
+    occ.deleteMe()
+    return {"message": f"Deleted component instance '{occurrence_name}'"}
+
+def list_construction(app):
+    """Lists all construction planes, axes, and points."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    planes = []
+    for i in range(rootComp.constructionPlanes.count):
+        p = rootComp.constructionPlanes.item(i)
+        planes.append({"name": p.name, "type": "plane", "is_visible": p.isVisible})
+        
+    axes = []
+    for i in range(rootComp.constructionAxes.count):
+        a = rootComp.constructionAxes.item(i)
+        axes.append({"name": a.name, "type": "axis", "is_visible": a.isVisible})
+        
+    points = []
+    for i in range(rootComp.constructionPoints.count):
+        pt = rootComp.constructionPoints.item(i)
+        points.append({"name": pt.name, "type": "point", "is_visible": pt.isVisible})
+        
+    return {"planes": planes, "axes": axes, "points": points}
+
+def rename_construction(app, old_name, new_name, type="plane"):
+    """Renames a construction plane, axis, or point."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    item = None
+    if type == "plane":
+        item = rootComp.constructionPlanes.itemByName(old_name)
+    elif type == "axis":
+        item = rootComp.constructionAxes.itemByName(old_name)
+    elif type == "point":
+        item = rootComp.constructionPoints.itemByName(old_name)
+        
+    if not item:
+        raise Exception(f"Construction {type} '{old_name}' not found.")
+        
+    item.name = new_name
+    return {"message": f"Renamed {type} '{old_name}' to '{new_name}'"}
+
+def delete_construction(app, name, type="plane"):
+    """Deletes a construction plane, axis, or point."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    item = None
+    if type == "plane":
+        item = rootComp.constructionPlanes.itemByName(name)
+    elif type == "axis":
+        item = rootComp.constructionAxes.itemByName(name)
+    elif type == "point":
+        item = rootComp.constructionPoints.itemByName(name)
+        
+    if not item:
+        raise Exception(f"Construction {type} '{name}' not found.")
+        
+    item.deleteMe()
+    return {"message": f"Deleted {type} '{name}'"}
+
+def delete_user_parameter(app, name):
+    """Deletes a user parameter."""
+    design = get_active_design(app)
+    param = design.userParameters.itemByName(name)
+    if not param:
+        raise Exception(f"User parameter '{name}' not found.")
+    param.deleteMe()
+    return {"message": f"Deleted parameter '{name}'"}

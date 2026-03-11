@@ -838,5 +838,55 @@ async def rename_feature(
         "new_name": new_name
     })
 
+@mcp.tool()
+async def rename_sketch(old_name: str, new_name: str) -> Dict[str, Any]:
+    """Renames a sketch in the design."""
+    return await send_to_addin('rename_sketch', {"old_name": old_name, "new_name": new_name})
+
+@mcp.tool()
+async def delete_body(body_name: str) -> Dict[str, Any]:
+    """Deletes a solid body from the design."""
+    return await send_to_addin('delete_body', {"body_name": body_name})
+
+@mcp.tool()
+async def delete_feature(feature_name: str) -> Dict[str, Any]:
+    """Deletes a modeling feature from the timeline."""
+    return await send_to_addin('delete_feature', {"feature_name": feature_name})
+
+@mcp.tool()
+async def list_components() -> Dict[str, Any]:
+    """Lists all component instances (occurrences) in the design."""
+    return await send_to_addin('list_components', {})
+
+@mcp.tool()
+async def rename_component(old_name: str, new_name: str) -> Dict[str, Any]:
+    """Renames a component definition."""
+    return await send_to_addin('rename_component', {"old_name": old_name, "new_name": new_name})
+
+@mcp.tool()
+async def delete_component(occurrence_name: str) -> Dict[str, Any]:
+    """Deletes a component instance (occurrence) from the design."""
+    return await send_to_addin('delete_component', {"occurrence_name": occurrence_name})
+
+@mcp.tool()
+async def list_construction() -> Dict[str, Any]:
+    """Lists all construction planes, axes, and points."""
+    return await send_to_addin('list_construction', {})
+
+@mcp.tool()
+async def rename_construction(old_name: str, new_name: str, type: str = "plane") -> Dict[str, Any]:
+    """Renames a construction item. type: 'plane', 'axis', or 'point'."""
+    return await send_to_addin('rename_construction', {"old_name": old_name, "new_name": new_name, "type": type})
+
+@mcp.tool()
+async def delete_construction(name: str, type: str = "plane") -> Dict[str, Any]:
+    """Deletes a construction item. type: 'plane', 'axis', or 'point'."""
+    return await send_to_addin('delete_construction', {"name": name, "type": type})
+
+@mcp.tool()
+async def delete_user_parameter(name: str) -> Dict[str, Any]:
+    """Deletes a user parameter."""
+    return await send_to_addin('delete_user_parameter', {"name": name})
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
