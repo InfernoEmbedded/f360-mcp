@@ -64,6 +64,7 @@ def handle_client(conn, addr):
                         'trim_sketch_geometry': commands.trim_sketch_geometry,
                         'create_extrude': commands.create_extrude,
                         'create_revolve': commands.create_revolve,
+                        'create_sweep': commands.create_sweep,
                     }
 
 

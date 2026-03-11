@@ -42,12 +42,10 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 
 ### Solid Modeling Phase 1 (Essentials)
 - [x] **`create_extrude`**: Extrude a sketch profile.
+- [x] **`create_revolve`**: Revolve a sketch profile around an axis.
+- [x] **`create_sweep`**: Sweep a profile along a path.
 
 ## Unimplemented Features (TODO)
-
-### Solid Modeling Phase 1 (Essentials)
-- [ ] **`create_revolve`**: Revolve a sketch profile around an axis.
-- [ ] **`create_sweep`**: Sweep a profile along a path.
 
 ### Solid Modeling Phase 2 (Modification)
 - [ ] **`combine_bodies`**: Join, cut, or intersect bodies.

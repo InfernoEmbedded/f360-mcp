@@ -473,5 +473,27 @@ async def create_revolve(
         "profile_index": profile_index
     })
 
+@mcp.tool()
+async def create_sweep(
+    profile_sketch_name: str,
+    path_sketch_name: str,
+    path_ent_type: str,
+    path_ent_idx: int,
+    operation: str = "new_body",
+    profile_index: int = 0
+) -> Dict[str, Any]:
+    """
+    Sweeps a specific closed profile along a path entity (like a line or spline).
+    operation can be 'new_body', 'join', 'cut', or 'intersect'.
+    """
+    return await send_to_addin('create_sweep', {
+        "profile_sketch_name": profile_sketch_name,
+        "path_sketch_name": path_sketch_name,
+        "path_ent_type": path_ent_type,
+        "path_ent_idx": path_ent_idx,
+        "operation": operation,
+        "profile_index": profile_index
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

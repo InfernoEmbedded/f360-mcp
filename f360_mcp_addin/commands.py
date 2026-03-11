@@ -467,3 +467,39 @@ def create_revolve(app, sketch_name, axis_ent_type, axis_ent_idx, angle, operati
     revolve = revolves.add(revolveInput)
     return {"message": f"Revolved {angle} degrees using operation {operation}.", "feature_name": revolve.name}
 
+def create_sweep(app, profile_sketch_name, path_sketch_name, path_ent_type, path_ent_idx, operation="new_body", profile_index=0):
+    """
+    Sweeps a profile along a path entity.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    sweeps = rootComp.features.sweepFeatures
+    
+    prof_sketch = get_sketch_by_name(app, profile_sketch_name)
+    if prof_sketch.profiles.count == 0:
+        raise Exception(f"Sketch '{profile_sketch_name}' does not contain any closed profiles to sweep.")
+        
+    if profile_index >= prof_sketch.profiles.count:
+        raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{profile_sketch_name}'.")
+        
+    profile = prof_sketch.profiles.item(profile_index)
+    
+    path_sketch = get_sketch_by_name(app, path_sketch_name)
+    path_ent = resolve_entity(path_sketch, path_ent_type, path_ent_idx)
+    
+    # Create the path object needed for sweep
+    path = rootComp.features.createPath(path_ent)
+    
+    op_map = {
+        "new_body": adsk.fusion.FeatureOperations.NewBodyFeatureOperation,
+        "join": adsk.fusion.FeatureOperations.JoinFeatureOperation,
+        "cut": adsk.fusion.FeatureOperations.CutFeatureOperation,
+        "intersect": adsk.fusion.FeatureOperations.IntersectFeatureOperation
+    }
+    fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+    
+    sweepInput = sweeps.createInput(profile, path, fusion_op)
+    
+    sweep = sweeps.add(sweepInput)
+    return {"message": f"Sweep created using operation {operation}.", "feature_name": sweep.name}
+
