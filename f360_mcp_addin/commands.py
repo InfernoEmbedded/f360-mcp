@@ -1070,5 +1070,19 @@ def export_model(app, file_path, file_type="step", body_name=None, send_to_mcp=F
                 result["file_content_base64"] = encoded
         else:
             raise Exception("Export succeeded, but file was not found on disk to send to MCP.")
-            
+    
     return result
+
+def rename_body(app, old_name, new_name):
+    """
+    Renames a BRep body.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    for i in range(rootComp.bRepBodies.count):
+        body = rootComp.bRepBodies.item(i)
+        if body.name == old_name:
+            body.name = new_name
+            return {"message": f"Renamed body '{old_name}' to '{new_name}'", "new_name": body.name}
+            
+    raise Exception(f"Body '{old_name}' not found.")
