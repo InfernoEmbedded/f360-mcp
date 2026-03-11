@@ -105,7 +105,43 @@ def handle_client(conn, addr):
 
                     
                     if method in dispatch:
+                        # Capture health before
+                        old_issues = commands._get_timeline_health_map(app)
+                        
                         result = dispatch[method](app, **params)
+                        
+                        # Capture health after
+                        new_issues_map = commands._get_timeline_health_map(app)
+                        
+                        # Compare
+                        introduced = []
+                        for idx, data in new_issues_map.items():
+                            if idx not in old_issues or old_issues[idx] != data:
+                                # This is a new or changed issue
+                                # Find name if possible
+                                name = "Unnamed"
+                                try:
+                                    design = commands.get_active_design(app)
+                                    item = design.timeline.item(idx)
+                                    if hasattr(item, 'entity') and hasattr(item.entity, 'name'):
+                                        name = item.entity.name
+                                except:
+                                    pass
+                                    
+                                introduced.append({
+                                    "index": idx,
+                                    "type": data[0],
+                                    "health": data[1],
+                                    "message": data[2],
+                                    "name": name
+                                })
+                        
+                        if introduced:
+                            if isinstance(result, dict):
+                                result["new_issues"] = introduced
+                            else:
+                                result = {"result": result, "new_issues": introduced}
+                                
                         response['result'] = result
                     else:
                         response['error'] = {"code": -32601, "message": f"Method not found: {method}"}

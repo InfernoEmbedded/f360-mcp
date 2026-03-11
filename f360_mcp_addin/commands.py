@@ -1323,3 +1323,30 @@ def get_design_health(app):
             "message": f"Found {len(issues)} issues in the design timeline.",
             "issues": issues
         }
+
+def _get_timeline_health_map(app):
+    """
+    Internal helper to get a map of timeline item health.
+    Used for detecting new issues after an operation.
+    """
+    try:
+        design = get_active_design(app)
+        timeline = design.timeline
+        health_map = {}
+        for i in range(timeline.count):
+            item = timeline.item(i)
+            try:
+                state = item.healthState
+                if state != 0 and state != 3: # Not Success and not Info
+                    msg = ""
+                    try:
+                        msg = item.errorOrWarningMessage
+                    except:
+                        pass
+                    # Use a stable-ish key: index + type
+                    health_map[i] = (item.objectType, state, msg)
+            except:
+                continue
+        return health_map
+    except:
+        return {}
