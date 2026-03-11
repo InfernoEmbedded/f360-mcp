@@ -98,6 +98,8 @@ def handle_client(conn, addr):
                         'rename_construction': commands.rename_construction,
                         'delete_construction': commands.delete_construction,
                         'delete_user_parameter': commands.delete_user_parameter,
+                        'compute_all': commands.compute_all,
+                        'get_design_health': commands.get_design_health,
                     }
 
 

@@ -888,5 +888,19 @@ async def delete_user_parameter(name: str) -> Dict[str, Any]:
     """Deletes a user parameter."""
     return await send_to_addin('delete_user_parameter', {"name": name})
 
+@mcp.tool()
+async def compute_all() -> Dict[str, Any]:
+    """
+    Triggers a full rebuild of the design (Compute All) and returns the health status.
+    """
+    return await send_to_addin('compute_all', {})
+
+@mcp.tool()
+async def get_design_health() -> Dict[str, Any]:
+    """
+    Checks the design timeline for any errors or warnings.
+    """
+    return await send_to_addin('get_design_health', {})
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

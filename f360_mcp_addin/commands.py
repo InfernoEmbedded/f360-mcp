@@ -1268,3 +1268,58 @@ def delete_user_parameter(app, name):
         raise Exception(f"User parameter '{name}' not found.")
     param.deleteMe()
     return {"message": f"Deleted parameter '{name}'"}
+
+def compute_all(app):
+    """
+    Triggers a full rebuild of the design (Compute All).
+    """
+    design = get_active_design(app)
+    design.computeAll()
+    # We might want to check health immediately after compute
+    return get_design_health(app)
+
+def get_design_health(app):
+    """
+    Checks the timeline for errors and warnings.
+    """
+    design = get_active_design(app)
+    timeline = design.timeline
+    
+    issues = []
+    # HealthState enums:
+    # 0: Success
+    # 1: Warning
+    # 2: Error
+    # 3: Information
+    # 4: ErrorButHasLastNativeValue
+    # 5: Unknown
+    
+    for i in range(timeline.count):
+        item = timeline.item(i)
+        try:
+            health = item.healthState
+            if health != 0 and health != 3: # Not Success and not Information
+                msg = ""
+                try:
+                    msg = item.errorOrWarningMessage
+                except:
+                    msg = "Could not retrieve error message."
+                
+                issues.append({
+                    "index": i,
+                    "name": item.entity.name if hasattr(item, 'entity') and hasattr(item.entity, 'name') else "Unnamed",
+                    "type": item.objectType,
+                    "health": health,
+                    "message": msg
+                })
+        except:
+            # Skip if we can't query health (likely one of the problematic types: Planes, Sketches, etc.)
+            continue
+            
+    if not issues:
+        return {"message": "Design is healthy. No errors or warnings in timeline."}
+    else:
+        return {
+            "message": f"Found {len(issues)} issues in the design timeline.",
+            "issues": issues
+        }
