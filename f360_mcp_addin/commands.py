@@ -684,4 +684,29 @@ def feature_mirror(app, body_name, plane_name):
     mirror = mirrors.add(mirrorInput)
     return {"message": f"Mirrored body {body_name} across {plane_name} plane.", "feature_name": mirror.name}
 
+def create_loft(app, profiles_info):
+    """
+    Creates a loft feature from multiple sketch profiles.
+    profiles_info is a list of dicts: [{'sketch_name': 'sk1', 'profile_idx': 0}, ...]
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    lofts = rootComp.features.loftFeatures
+    
+    loftInput = lofts.createInput(adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+    loftSections = loftInput.loftSections
+    
+    for p_info in profiles_info:
+        sketch = get_sketch_by_name(app, p_info['sketch_name'])
+        idx = p_info.get('profile_idx', 0)
+        if idx >= sketch.profiles.count:
+            raise Exception(f"Profile {idx} not found in sketch '{p_info['sketch_name']}'")
+        
+        prof = sketch.profiles.item(idx)
+        loftSections.add(prof)
+        
+    loftInput.isSolid = True
+    loft = lofts.add(loftInput)
+    return {"message": f"Created loft from {len(profiles_info)} profiles.", "feature_name": loft.name}
+
 

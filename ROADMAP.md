@@ -44,6 +44,7 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_extrude`**: Extrude a sketch profile.
 - [x] **`create_revolve`**: Revolve a sketch profile around an axis.
 - [x] **`create_sweep`**: Sweep a profile along a path.
+- [x] **`create_loft`**: Create a loft across multiple profiles.
 
 ### Solid Modeling Phase 2 (Modification)
 - [x] **`combine_bodies`**: Join, cut, or intersect bodies.

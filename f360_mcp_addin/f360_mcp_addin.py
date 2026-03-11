@@ -72,6 +72,7 @@ def handle_client(conn, addr):
                         'create_fillet': commands.create_fillet,
                         'create_chamfer': commands.create_chamfer,
                         'feature_mirror': commands.feature_mirror,
+                        'create_loft': commands.create_loft,
                     }
 
 

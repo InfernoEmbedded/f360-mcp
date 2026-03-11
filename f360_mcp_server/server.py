@@ -3,7 +3,7 @@ import json
 import socket
 import sys
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from mcp.server.fastmcp import FastMCP
 
@@ -585,6 +585,18 @@ async def feature_mirror(
     return await send_to_addin('feature_mirror', {
         "body_name": body_name,
         "plane_name": plane_name
+    })
+
+@mcp.tool()
+async def create_loft(
+    profiles_info: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Creates a loft feature from multiple sketch profiles.
+    profiles_info should be a list of objects like: [{"sketch_name": "sk1", "profile_idx": 0}, {"sketch_name": "sk2", "profile_idx": 0}]
+    """
+    return await send_to_addin('create_loft', {
+        "profiles_info": profiles_info
     })
 
 if __name__ == "__main__":
