@@ -599,5 +599,23 @@ async def create_loft(
         "profiles_info": profiles_info
     })
 
+@mcp.tool()
+async def execute_script(
+    script_code: str
+) -> Dict[str, Any]:
+    """
+    Executes arbitrary Python code in the Fusion 360 environment.
+    The code has access to the standard global variables: 'app' (adsk.core.Application.get()), 'ui', and 'adsk'.
+    If the script needs to return a value, it must assign it to a global variable named 'result'.
+    Example: 
+    ```python
+    design = app.activeProduct
+    result = {"design_name": design.parentDocument.name}
+    ```
+    """
+    return await send_to_addin('execute_script', {
+        "script_code": script_code
+    })
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

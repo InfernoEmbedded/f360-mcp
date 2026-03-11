@@ -59,6 +59,9 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_chamfer`**: Add a chamfer to an edge or face.
 - [x] **`feature_mirror`**: Mirror a body or feature.
 
+### Script Execution
+- [x] **`execute_script`**: Execute custom Python code within the Fusion 360 environment.
+
 ## Unimplemented Features (TODO)
 
 ### Utilities & Operations (Deferred due to API limits)

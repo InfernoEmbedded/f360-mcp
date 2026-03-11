@@ -709,4 +709,36 @@ def create_loft(app, profiles_info):
     loft = lofts.add(loftInput)
     return {"message": f"Created loft from {len(profiles_info)} profiles.", "feature_name": loft.name}
 
+def execute_script(app, script_code):
+    """
+    Executes an arbitrary block of Python code in the Fusion 360 context.
+    The script has access to 'app' (adsk.core.Application.get()) and 'ui'.
+    It must define a variable 'result' if you want it returned.
+    """
+    import adsk.core
+    import traceback
+    
+    ui = app.userInterface
+    
+    # Create the global namespace for the script execution
+    exec_globals = {
+        'app': app,
+        'ui': ui,
+        'adsk': adsk,
+        'result': None
+    }
+    
+    try:
+        # We execute the script in the context of the defined globals.
+        # This will securely (relatively) evaluate the arbitrary python code provided. 
+        # CAUTION: Exec is inherently dangerous if the source of the code is untrusted. 
+        # Since this is an LLM writing scripts for a local user, it's an acceptable risk here.
+        exec(script_code, exec_globals)
+        
+        # We attempt to retrieve whatever 'result' the script generated.
+        return {"message": "Script executed successfully.", "result": exec_globals.get('result')}
+    except Exception as e:
+        error_info = traceback.format_exc()
+        raise Exception(f"Script Error: {str(e)}\n\nTraceback:\n{error_info}")
+
 
