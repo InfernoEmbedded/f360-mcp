@@ -84,18 +84,25 @@ def register_dynamic_tool(name, metadata, module_globals=None):
     Dynamically creates and registers an MCP tool based on metadata.
     """
     params_list = metadata.get("parameters", [])
-    docstring = metadata.get("doc", "No description provided.")
+    raw_doc = metadata.get("doc", "No description provided.")
     
-    # Build the function signature string
+    # Clean up the docstring
+    import inspect
+    docstring = inspect.cleandoc(raw_doc)
+    
+    # Append cheat sheet reference prominently
+    docstring += "\n\n    IMPORTANT: Refer to fusion360://cheat-sheet.md for modeling patterns and units (cm)."
+    
+    # Build the function signature string and collect parameter docs
     arg_strings = []
+    param_docs = []
     for param in params_list:
-        arg_str = param["name"]
+        arg_name = param["name"]
+        arg_str = arg_name
         
         # Add type annotation if available
         annotation = param.get("annotation", "Any")
         if annotation and annotation != "inspect._empty":
-            # Strip Optional and Union if needed for simplicity in exec, 
-            # but usually FastMCP handles basic types fine.
             arg_str += f": {annotation}"
             
         # Add default value if available
@@ -106,24 +113,35 @@ def register_dynamic_tool(name, metadata, module_globals=None):
             else:
                 arg_str += f" = {default_val}"
         arg_strings.append(arg_str)
+        
+        # Collect description for docstring enrichment
+        if param.get("description"):
+            param_docs.append(f"        {arg_name}: {param['description']}")
+    
+    if param_docs:
+        docstring += "\n\n    Args:\n" + "\n".join(param_docs)
     
     full_sig = ", ".join(arg_strings)
     
     # Add local_file_path for specific tools if they seem to return files
-    # or just add it universally for convenience?
-    # Based on old server.py, export_model and capture_screenshot had it.
     if name in ["export_model", "capture_screenshot"]:
-        if "local_file_path" not in full_sig:
+        if "local_file_path" not in [p["name"] for p in params_list]:
+            field = "local_file_path: Optional[str] = None"
             if full_sig:
-                full_sig += ", local_file_path: Optional[str] = None"
+                full_sig += f", {field}"
             else:
-                full_sig = "local_file_path: Optional[str] = None"
+                full_sig = field
+            docstring += f"\n\n    Args (MCP Host):\n        local_file_path: Optional path to save the returned file on the host machine."
     
     # Create the function source
+    # We use indent to ensure the docstring is properly formatted in the exec'd string
+    doc_lines = docstring.split("\n")
+    indented_doc = "\n".join("    " + line for line in doc_lines)
+    
     source = f"""
 async def {name}({full_sig}):
     \"\"\"
-    {docstring}
+{indented_doc}
     \"\"\"
     # Collect all local variables (which are the function arguments)
     args = locals().copy()
