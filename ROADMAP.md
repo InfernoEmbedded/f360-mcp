@@ -46,6 +46,13 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_sweep`**: Sweep a profile along a path.
 - [x] **`create_loft`**: Create a loft across multiple profiles.
 
+### Solid Modeling Phase 4: Assembly & Groups
+- [x] **`create_component`**: Create a new sub-component.
+- [x] **`list_components`**: List all components in the design.
+- [x] **`rename_component`**: Rename a component.
+- [x] **`delete_component`**: Delete a component.
+- [x] **Timeline Groups**: Support for manual (`start_timeline_group`) and automatic grouping.
+
 ### Solid Modeling Phase 2 (Modification)
 - [x] **`combine_bodies`**: Join, cut, or intersect bodies.
 - [x] **`list_bodies`**: List all bodies in the active design.

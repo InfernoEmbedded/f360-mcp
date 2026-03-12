@@ -64,6 +64,10 @@ class MockFusionServer:
                     }
             elif method == 'get_design_health':
                 result = {"message": "Design is healthy. No errors or warnings in timeline."}
+            elif method == 'start_timeline_group':
+                result = {"message": f"Started timeline group '{params.get('name', 'Unnamed')}'"}
+            elif method == 'stop_timeline_group':
+                result = {"message": "Created timeline group 'Test Group' with 1 items."}
             elif method == 'shutdown':
                 result = {"message": "Shutting down mock server..."}
                 # Use a small delay to allow sending response before stopping

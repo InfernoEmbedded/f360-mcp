@@ -938,6 +938,21 @@ async def apply_appearance(body_name: str, appearance_name: str) -> Dict[str, An
     """
     return await send_to_addin('apply_appearance', {"body_name": body_name, "appearance_name": appearance_name})
 
+@mcp.tool()
+async def start_timeline_group(name: str) -> Dict[str, Any]:
+    """
+    Starts a timeline group. All operations until stop_timeline_group will be grouped.
+    Use this to logically group related features (e.g., "Lid Features").
+    """
+    return await send_to_addin('start_timeline_group', {"name": name})
+
+@mcp.tool()
+async def stop_timeline_group() -> Dict[str, Any]:
+    """
+    Stops the current timeline group and creates it in Fusion 360.
+    """
+    return await send_to_addin('stop_timeline_group', {})
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fusion 360 MCP Server")

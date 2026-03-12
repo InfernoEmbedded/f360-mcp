@@ -100,18 +100,36 @@ def handle_client(conn, addr):
                         'delete_user_parameter': commands.delete_user_parameter,
                         'compute_all': commands.compute_all,
                         'get_design_health': commands.get_design_health,
+                        'start_timeline_group': commands.start_timeline_group,
+                        'stop_timeline_group': commands.stop_timeline_group,
                     }
 
 
                     
                     if method in dispatch:
-                        # Capture health before
+                        # Capture state before
                         old_issues = commands._get_timeline_health_map(app)
+                        design = commands.get_active_design(app)
+                        pre_count = design.timeline.count
                         
                         result = dispatch[method](app, **params)
                         
-                        # Capture health after
+                        # Capture state after
                         new_issues_map = commands._get_timeline_health_map(app)
+                        post_count = design.timeline.count
+
+                        # Automatic grouping if no manual group is active
+                        if post_count > pre_count and not commands._group_stack:
+                            # Avoid grouping grouping commands themselves (though they don't add items usually)
+                            if method not in ['start_timeline_group', 'stop_timeline_group']:
+                                try:
+                                    group_name = f"Group: {method}"
+                                    # If it was a create_sketch, maybe use sketch name? 
+                                    # For now, generic name is fine.
+                                    group = design.timeline.timelineGroups.add(pre_count, post_count - 1)
+                                    group.name = group_name
+                                except Exception as e:
+                                    app.log(f"Auto-grouping failed: {str(e)}")
                         
                         # Compare
                         introduced = []

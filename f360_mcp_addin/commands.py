@@ -1,6 +1,8 @@
 import adsk.core
 import adsk.fusion
 
+_group_stack = []
+
 def get_active_design(app):
     design = app.activeProduct
     if not design or type(design) is not adsk.fusion.Design:
@@ -1460,3 +1462,25 @@ def apply_appearance(app, body_name, appearance_name):
     body.appearance = appearance
     return {"message": f"Successfully applied appearance '{appearance_name}' to body '{body_name}'."}
 
+def start_timeline_group(app, name):
+    """Starts a timeline group. All operations until stop_timeline_group will be grouped."""
+    design = get_active_design(app)
+    _group_stack.append({"name": name, "start": design.timeline.count})
+    return {"message": f"Started timeline group '{name}'"}
+
+def stop_timeline_group(app):
+    """Stops the current timeline group and creates it in Fusion 360."""
+    design = get_active_design(app)
+    if not _group_stack:
+        raise Exception("No active timeline group to stop.")
+    
+    group_info = _group_stack.pop()
+    start_idx = group_info["start"]
+    end_idx = design.timeline.count - 1
+    
+    if end_idx >= start_idx:
+        group = design.timeline.timelineGroups.add(start_idx, end_idx)
+        group.name = group_info["name"]
+        return {"message": f"Created timeline group '{group.name}' with {end_idx - start_idx + 1} items."}
+    else:
+        return {"message": f"Timeline group '{group_info['name']}' was empty and not created."}
