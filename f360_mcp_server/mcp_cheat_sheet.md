@@ -42,6 +42,10 @@ To reconstruct or modify a parametric solid base from an existing STL/OBJ:
 2. `convert_mesh_to_solid(body_name="Mesh Body 1", method="prismatic")` to natively convert the mesh triangles into an editable BRep/Solid BaseFeature. (Note: Prismatic is preferred for mechanical parts).
 3. Use downstream solid tools like `create_extrude`, `split_body`, or `create_hole` to adjust the now-solid geometry.
 
+### 6. Updating the MCP Server & Add-in
+To natively auto-update the Wrapper to the latest codebase:
+1. `update_and_reload_mcp(git_repo, branch)` to natively pull new code via Git, automatically close the Add-in, reload it with a temporary script, and restart the MCP Server.
+
 ## ⚠️ Common Pitfalls
 
 - **Closed Profiles**: Features like `create_extrude` require a **closed loop** of lines/arcs. If your sketch isn't "water-tight", it will fail or extrude unexpected regions.

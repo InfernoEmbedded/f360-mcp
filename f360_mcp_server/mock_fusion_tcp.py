@@ -14,6 +14,7 @@ DEFAULT_METADATA = {
     "add_circle": {"doc": "Adds a circle.", "parameters": [{"name": "sketch_name", "has_default": False, "default": None, "annotation": "Any"}, {"name": "x", "has_default": False, "default": None, "annotation": "Any"}, {"name": "y", "has_default": False, "default": None, "annotation": "Any"}, {"name": "radius", "has_default": False, "default": None, "annotation": "Any"}]},
     "export_model": {"parameters": [{"name": "file_path"}, {"name": "send_to_mcp", "has_default": True, "default": False}, {"name": "local_file_path", "has_default": True, "default": None}]},
     "execute_script": {"parameters": [{"name": "script_code"}]},
+    "reload_addin": {"parameters": []},
     "_get_command_metadata": {"parameters": []}
 }
 
@@ -197,6 +198,8 @@ class MockFusionServer:
             elif method == 'shutdown':
                 result = {"message": "Shutting down mock server..."}
                 if self.loop: self.loop.call_later(0.1, self.loop.stop)
+            elif method == 'reload_addin':
+                result = {"message": "Reloader script executed. Add-in should restart momentarily."}
             else:
                 # Default generic result
                 result = {"message": f"Successfully executed {method}"}

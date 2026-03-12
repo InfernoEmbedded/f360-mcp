@@ -218,6 +218,66 @@ async def refresh_tools() -> str:
     await initialize_tools()
     return "Tools refreshed successfully."
 
+@mcp.tool()
+async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion360-mcp.git", branch: str = "master") -> str:
+    """
+    Updates the Fusion 360 MCP Wrapper from a Git repository and restarts both the server and the Fusion 360 Add-in.
+    
+    Args:
+        git_repo: The URL of the repository to pull from.
+        branch: The specific branch to checkout and update to.
+    """
+    import subprocess
+    import time
+    
+    logger.info(f"Triggering auto-update from {git_repo} branch {branch}")
+    
+    try:
+        # Get the root directory of the repo (one level up from this file's dir)
+        repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # 1. Update files via Git
+        logger.info(f"Updating files in {repo_dir}...")
+        
+        # Make sure it's a git repo
+        if not os.path.exists(os.path.join(repo_dir, ".git")):
+            return f"Error: Directory {repo_dir} is not a git repository."
+            
+        cmds = [
+            ["git", "fetch", "origin", branch],
+            ["git", "checkout", branch],
+            ["git", "reset", "--hard", f"origin/{branch}"]
+        ]
+        
+        for cmd in cmds:
+            result = subprocess.run(cmd, cwd=repo_dir, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"Git command failed: {' '.join(cmd)}\n{result.stderr}")
+                return f"Error during git update: {result.stderr}"
+                
+        logger.info("Files updated successfully. Telling Add-in to reload...")
+                
+        # 2. Tell the Fusion 360 Add-in to reload itself
+        # This will spin off a temporary script in Fusion that stops the old addin and runs the new one
+        addin_response = await send_to_addin("reload_addin", {})
+        
+        # 3. Restart this server process
+        logger.info("Restarting MCP Server process...")
+        
+        def restart_server():
+            time.sleep(1) # Give the add-in a moment to start its reloader script
+            os.execv(sys.executable, ['python'] + sys.argv)
+            
+        # Run restart in a background thread so we can return the response first
+        import threading
+        threading.Thread(target=restart_server, daemon=True).start()
+        
+        return f"Successfully pulled latest code from {branch}. The Fusion 360 Add-in and MCP Server are now restarting."
+        
+    except Exception as e:
+        logger.error(f"Auto-update failed: {str(e)}")
+        return f"Error during update and reload: {str(e)}"
+
 # We'll return a special placeholder that delegates to the real handler
 class ToolPlaceholder:
     def __init__(self, tool_name):

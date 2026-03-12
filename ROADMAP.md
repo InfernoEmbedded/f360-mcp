@@ -102,6 +102,9 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`import_mesh`**: Import an STL or OBJ mesh file into the active design.
 - [x] **`convert_mesh_to_solid`**: Convert a mesh body to a BRep solid body (prismatic or faceted).
 
+### Auto-Update Mechanism
+- [x] **`update_and_reload_mcp`**: Update the MCP server and Fusion 360 Add-in from Git and automatically restart both.
+
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
 - [ ] Mirror Geometry

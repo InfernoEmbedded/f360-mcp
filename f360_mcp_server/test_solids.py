@@ -5,7 +5,7 @@ from server import (
     combine_bodies, feature_mirror, split_body, scale_body,
     create_thread, move_body, measure_interference,
     create_rib, create_web, create_emboss,
-    import_mesh, convert_mesh_to_solid
+    import_mesh, convert_mesh_to_solid, reload_addin
 )
 
 @pytest.mark.asyncio
@@ -127,3 +127,9 @@ async def test_convert_mesh_to_solid(mock_fusion):
     result = await convert_mesh_to_solid(body_name="Mesh 1", method="prismatic")
     assert "Successfully" in result["message"]
     assert mock_fusion.last_request["method"] == "convert_mesh_to_solid"
+
+@pytest.mark.asyncio
+async def test_reload_addin(mock_fusion):
+    result = await reload_addin()
+    assert "Reloader script executed" in result["message"]
+    assert mock_fusion.last_request["method"] == "reload_addin"
