@@ -9,8 +9,10 @@ WORKING_DIR="$(cd "${SCRIPT_DIR}/../f360_mcp_server" && pwd)"
 VENV_PYTHON="${WORKING_DIR}/venv/bin/python"
 
 # Default values
-DEFAULT_HOST="0.0.0.0"
-DEFAULT_PORT="8000"
+DEFAULT_MCP_HOST="0.0.0.0"
+DEFAULT_MCP_PORT="8000"
+DEFAULT_F360_HOST="127.0.0.1"
+DEFAULT_F360_PORT="30011"
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
@@ -49,31 +51,46 @@ else
     echo "Existing virtual environment found."
 fi
 
-# Prompt for settings (optional in non-interactive if needed)
+# Prompt for settings
 if [ -z "$NON_INTERACTIVE" ]; then
-    read -p "Enter MCP Host [$DEFAULT_HOST]: " MCP_HOST
-    MCP_HOST=${MCP_HOST:-$DEFAULT_HOST}
+    read -p "Enter MCP HTTP Host [$DEFAULT_MCP_HOST]: " MCP_HOST
+    MCP_HOST=${MCP_HOST:-$DEFAULT_MCP_HOST}
 
-    read -p "Enter MCP Port [$DEFAULT_PORT]: " MCP_PORT
-    MCP_PORT=${MCP_PORT:-$DEFAULT_PORT}
+    read -p "Enter MCP HTTP Port [$DEFAULT_MCP_PORT]: " MCP_PORT
+    MCP_PORT=${MCP_PORT:-$DEFAULT_MCP_PORT}
+
+    read -p "Enter Fusion 360 Add-in Host [$DEFAULT_F360_HOST]: " F360_HOST
+    F360_HOST=${F360_HOST:-$DEFAULT_F360_HOST}
+
+    read -p "Enter Fusion 360 Add-in Port [$DEFAULT_F360_PORT]: " F360_PORT
+    F360_PORT=${F360_PORT:-$DEFAULT_F360_PORT}
 else
-    MCP_HOST=${MCP_HOST:-$DEFAULT_HOST}
-    MCP_PORT=${MCP_PORT:-$DEFAULT_PORT}
+    MCP_HOST=${MCP_HOST:-$DEFAULT_MCP_HOST}
+    MCP_PORT=${MCP_PORT:-$DEFAULT_MCP_PORT}
+    F360_HOST=${F360_HOST:-$DEFAULT_F360_HOST}
+    F360_PORT=${F360_PORT:-$DEFAULT_F360_PORT}
 fi
 
-# Fusion 360 Add-in defaults
-F360_ADDIN_HOST="127.0.0.1"
-F360_ADDIN_PORT="30011"
+# Create environment file
+ENV_FILE="/etc/default/fusion360-mcp"
+echo "Creating environment file at $ENV_FILE..."
+cat <<EOF > "$ENV_FILE"
+# Fusion 360 MCP Server Configuration
+MCP_TRANSPORT=sse
+MCP_HOST=$MCP_HOST
+MCP_PORT=$MCP_PORT
+F360_ADDIN_HOST=$F360_HOST
+F360_ADDIN_PORT=$F360_PORT
+EOF
+
+chmod 644 "$ENV_FILE"
 
 # Create service file from template
+echo "Creating service file at $SERVICE_FILE..."
 sed -e "s|{{USER}}|$REAL_USER|g" \
     -e "s|{{GROUP}}|$REAL_GROUP|g" \
     -e "s|{{WORKING_DIR}}|$WORKING_DIR|g" \
     -e "s|{{VENV_PYTHON}}|$VENV_PYTHON|g" \
-    -e "s|{{MCP_HOST}}|$MCP_HOST|g" \
-    -e "s|{{MCP_PORT}}|$MCP_PORT|g" \
-    -e "s|{{F360_ADDIN_HOST}}|$F360_ADDIN_HOST|g" \
-    -e "s|{{F360_ADDIN_PORT}}|$F360_ADDIN_PORT|g" \
     "$TEMPLATE_FILE" > "$SERVICE_FILE"
 
 echo "Service file created at $SERVICE_FILE"

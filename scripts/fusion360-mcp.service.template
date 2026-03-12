@@ -6,11 +6,7 @@ After=network.target
 User={{USER}}
 Group={{GROUP}}
 WorkingDirectory={{WORKING_DIR}}
-Environment="MCP_TRANSPORT=sse"
-Environment="MCP_HOST={{MCP_HOST}}"
-Environment="MCP_PORT={{MCP_PORT}}"
-Environment="F360_ADDIN_HOST={{F360_ADDIN_HOST}}"
-Environment="F360_ADDIN_PORT={{F360_ADDIN_PORT}}"
+EnvironmentFile=/etc/default/fusion360-mcp
 ExecStart={{VENV_PYTHON}} server.py
 Restart=always
 RestartSec=10
