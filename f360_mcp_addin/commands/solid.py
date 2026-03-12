@@ -382,6 +382,37 @@ def scale_body(app, body_name, scale_factor):
     return {"message": f"Successfully scaled body '{body_name}' by factor {scale_factor}.", "feature_name": scale.name}
 
 @command()
+def create_thread(app, body_name, face_index=0, is_modeled=True):
+    """Adds a thread to a cylindrical face of a body."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    body = _get_body(app, body_name)
+    if face_index >= body.faces.count:
+        raise Exception(f"Face index {face_index} out of bounds for body {body_name}.")
+    cylinderFace = body.faces.item(face_index)
+    
+    threadFeats = rootComp.features.threadFeatures
+    threadDataQuery = threadFeats.threadDataQuery
+    defaultThreadType = threadDataQuery.defaultMetricThreadType
+    
+    result = threadDataQuery.recommendThreadData(cylinderFace.geometry.radius * 2, False, defaultThreadType)
+    if not result[0]:
+        result = threadDataQuery.recommendThreadData(cylinderFace.geometry.radius * 2, True, defaultThreadType)
+        
+    if not result[0]:
+        raise Exception("Could not find a recommended thread size for this cylinder.")
+        
+    threadInfo = threadFeats.createThreadInfo(is_modeled, defaultThreadType, result[1], result[2])
+    
+    faces = adsk.core.ObjectCollection.create()
+    faces.add(cylinderFace)
+    
+    threadInput = threadFeats.createInput(faces, threadInfo)
+    thread = threadFeats.add(threadInput)
+    return {"message": f"Successfully created thread on '{body_name}' face {face_index}.", "feature_name": thread.name}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()

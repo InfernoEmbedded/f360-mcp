@@ -69,7 +69,7 @@ class MockFusionServer:
                     "feature_mirror": [{"name": "body_name"}, {"name": "plane_name"}],
                     "combine_bodies": [{"name": "target_body_name"}, {"name": "tool_body_names"}, {"name": "operation", "has_default": True, "default": "join"}],
                     "scale_body": [{"name": "body_name"}, {"name": "scale_factor"}],
-                    "create_thread": [{"name": "cylinder_face_name"}, {"name": "is_modeled", "has_default": True, "default": True}],
+                    "create_thread": [{"name": "body_name"}, {"name": "face_index", "has_default": True, "default": 0}, {"name": "is_modeled", "has_default": True, "default": True}],
                     "move_body": [{"name": "body_name"}, {"name": "dx"}, {"name": "dy"}, {"name": "dz"}],
                     "measure_interference": [{"name": "body_names"}],
                     "create_rib": [{"name": "sketch_name"}, {"name": "thickness"}],
