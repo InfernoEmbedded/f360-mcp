@@ -1660,3 +1660,108 @@ def capture_screenshot(app, file_path, width=1280, height=720, send_to_mcp=False
             result["file_content_base64"] = base64.b64encode(content).decode('ascii')
             
     return result
+
+def list_projects(app):
+    """
+    Lists all available projects across all hubs.
+    """
+    projects = []
+    for hub in app.data.dataHubs:
+        for project in hub.dataProjects:
+            projects.append({
+                "name": project.name,
+                "id": project.id,
+                "hub_name": hub.name
+            })
+    return {"projects": projects}
+
+def create_project(app, name):
+    """
+    Creates a new project in the active hub.
+    """
+    hub = app.data.activeHub
+    if not hub:
+        raise Exception("No active hub found.")
+    
+    # Check if project already exists
+    for p in hub.dataProjects:
+        if p.name == name:
+            return {"message": f"Project '{name}' already exists.", "project_id": p.id}
+            
+    project = hub.dataProjects.add(name)
+    return {"message": f"Created project '{name}'", "project_id": project.id}
+
+def create_folder(app, project_name, folder_name, parent_folder_path=None):
+    """
+    Creates a folder within a project.
+    parent_folder_path: Optional path like "Folder1/Subfolder1"
+    """
+    target_project = None
+    for hub in app.data.dataHubs:
+        for project in hub.dataProjects:
+            if project.name == project_name:
+                target_project = project
+                break
+        if target_project:
+            break
+            
+    if not target_project:
+        raise Exception(f"Project '{project_name}' not found.")
+        
+    parent_folder = target_project.rootFolder
+    if parent_folder_path:
+        parts = parent_folder_path.strip('/').split('/')
+        for part in parts:
+            found = False
+            for f in parent_folder.dataFolders:
+                if f.name == part:
+                    parent_folder = f
+                    found = True
+                    break
+            if not found:
+                raise Exception(f"Parent folder path '{parent_folder_path}' not found (missing '{part}').")
+                
+    # Check if folder already exists
+    for f in parent_folder.dataFolders:
+        if f.name == folder_name:
+            return {"message": f"Folder '{folder_name}' already exists.", "folder_id": f.id}
+            
+    new_folder = parent_folder.dataFolders.add(folder_name)
+    return {"message": f"Created folder '{folder_name}'", "folder_id": new_folder.id}
+
+def create_new_design(app, name, project_name=None, folder_path=None):
+    """
+    Creates a new design and optionally saves it.
+    """
+    doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+    
+    if project_name:
+        target_project = None
+        for hub in app.data.dataHubs:
+            for project in hub.dataProjects:
+                if project.name == project_name:
+                    target_project = project
+                    break
+            if target_project:
+                break
+        
+        if not target_project:
+            return {"message": f"Created design '{name}' but project '{project_name}' not found for saving.", "status": "unsaved"}
+
+        folder = target_project.rootFolder
+        if folder_path:
+            parts = folder_path.strip('/').split('/')
+            for part in parts:
+                found = False
+                for f in folder.dataFolders:
+                    if f.name == part:
+                        folder = f
+                        found = True
+                        break
+                if not found:
+                    return {"message": f"Created design '{name}' but folder path '{folder_path}' not found for saving.", "status": "unsaved"}
+        
+        doc.saveAs(name, folder, "", "")
+        return {"message": f"Created and saved design '{name}'", "status": "saved", "folder": folder.name}
+        
+    return {"message": f"Created new unsaved design '{name}'", "status": "unsaved"}

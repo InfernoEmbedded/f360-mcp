@@ -111,6 +111,10 @@ def handle_client(conn, addr):
                         'create_joint': commands.create_joint,
                         'create_as_built_joint': commands.create_as_built_joint,
                         'capture_screenshot': commands.capture_screenshot,
+                        'list_projects': commands.list_projects,
+                        'create_project': commands.create_project,
+                        'create_folder': commands.create_folder,
+                        'create_new_design': commands.create_new_design,
                     }
 
 

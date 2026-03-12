@@ -1075,6 +1075,56 @@ async def capture_screenshot(
 
     return response
 
+@mcp.tool()
+async def list_projects() -> Dict[str, Any]:
+    """
+    Lists all available projects across all hubs.
+    """
+    return await send_to_addin('list_projects', {})
+
+@mcp.tool()
+async def create_project(name: str) -> Dict[str, Any]:
+    """
+    Creates a new project in the active hub.
+    """
+    return await send_to_addin('create_project', {"name": name})
+
+@mcp.tool()
+async def create_folder(
+    project_name: str,
+    folder_name: str,
+    parent_folder_path: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Creates a folder within a project.
+    project_name: The name of the project.
+    folder_name: The name of the new folder.
+    parent_folder_path: Optional path like "Folder1/Subfolder1" to create subfolder.
+    """
+    return await send_to_addin('create_folder', {
+        "project_name": project_name,
+        "folder_name": folder_name,
+        "parent_folder_path": parent_folder_path
+    })
+
+@mcp.tool()
+async def create_new_design(
+    name: str,
+    project_name: Optional[str] = None,
+    folder_path: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Creates a new design document and optionally saves it.
+    name: The name for the new design.
+    project_name: Optional project name to save the design in.
+    folder_path: Optional folder path within the project.
+    """
+    return await send_to_addin('create_new_design', {
+        "name": name,
+        "project_name": project_name,
+        "folder_path": folder_path
+    })
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fusion 360 MCP Server")

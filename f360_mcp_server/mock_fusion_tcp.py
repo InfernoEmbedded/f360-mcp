@@ -112,6 +112,20 @@ class MockFusionServer:
                 result = {"message": f"Screenshot saved to {params.get('file_path')}", "file_path": params.get('file_path')}
                 if params.get('send_to_mcp'):
                     result["file_content_base64"] = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" # 1x1 png
+            elif method == 'list_projects':
+                result = {"projects": [
+                    {"name": "Admin Project", "id": "proj1", "hub_name": "My Hub"},
+                    {"name": "Test Project", "id": "proj2", "hub_name": "My Hub"}
+                ]}
+            elif method == 'create_project':
+                result = {"message": f"Created project '{params['name']}'", "project_id": "new_proj_id"}
+            elif method == 'create_folder':
+                result = {"message": f"Created folder '{params['folder_name']}'", "folder_id": "new_folder_id"}
+            elif method == 'create_new_design':
+                if params.get('project_name'):
+                    result = {"message": f"Created and saved design '{params['name']}'", "status": "saved"}
+                else:
+                    result = {"message": f"Created new unsaved design '{params['name']}'", "status": "unsaved"}
 
             response = {
                 "jsonrpc": "2.0",
