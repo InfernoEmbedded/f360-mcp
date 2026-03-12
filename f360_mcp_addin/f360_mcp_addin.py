@@ -6,7 +6,8 @@ import socket
 import json
 import time
 
-from . import commands
+from .commands import registry, sketch, solid, construction, assembly, params, data, query, materials, utils
+from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
 app = None
@@ -19,7 +20,7 @@ def handle_client(conn, addr):
     app.log(f'Connected by {addr}')
     try:
         while not stop_event.is_set():
-            data = conn.recv(4096)
+            data = conn.recv(8192)
             if not data:
                 break
             
@@ -36,143 +37,53 @@ def handle_client(conn, addr):
                     "id": req_id,
                 }
                 
-                # Execute in the main thread is not strictly required if we are just modifying data,
-                # but it's highly recommended for Fusion 360 API stability. For simple tests, we can just call.
-                # However, adsk.core.Application.executeTextCommand could be used, or custom events.
-                # For simplicity in this demo, we'll try direct calls. If it crashes, we'll need a custom event.
                 try:
-                    dispatch = {
-                        'create_sketch': commands.create_sketch,
-                        'add_circle': commands.add_circle,
-                        'add_line': commands.add_line,
-                        'add_rectangle': commands.add_rectangle,
-                        'add_arc': commands.add_arc,
-                        'add_spline': commands.add_spline,
-                        'add_polygon': commands.add_polygon,
-                        'add_point': commands.add_point,
-                        'add_text': commands.add_text,
-                        'apply_constraint': commands.apply_constraint,
-                        'add_symmetry_constraint': commands.add_symmetry_constraint,
-                        'add_distance_dimension': commands.add_distance_dimension,
-                        'add_diameter_dimension': commands.add_diameter_dimension,
-                        'add_angular_dimension': commands.add_angular_dimension,
-                        'list_sketches': commands.list_sketches,
-                        'delete_sketch': commands.delete_sketch,
-                        'project_geometry': commands.project_geometry,
-                        'offset_geometry': commands.offset_geometry,
-                        'delete_sketch_entity': commands.delete_sketch_entity,
-                        'trim_sketch_geometry': commands.trim_sketch_geometry,
-                        'create_extrude': commands.create_extrude,
-                        'create_revolve': commands.create_revolve,
-                        'create_sweep': commands.create_sweep,
-                        'list_bodies': commands.list_bodies,
-                        'combine_bodies': commands.combine_bodies,
-                        'create_hole': commands.create_hole,
-                        'create_shell': commands.create_shell,
-                        'create_fillet': commands.create_fillet,
-                        'create_chamfer': commands.create_chamfer,
-                        'feature_mirror': commands.feature_mirror,
-                        'create_loft': commands.create_loft,
-                        'execute_script': commands.execute_script,
-                        'create_offset_plane': commands.create_offset_plane,
-                        'create_plane_at_angle': commands.create_plane_at_angle,
-                        'get_body_properties': commands.get_body_properties,
-                        'find_faces': commands.find_faces,
-                        'create_user_parameter': commands.create_user_parameter,
-                        'list_parameters': commands.list_parameters,
-                        'update_parameter': commands.update_parameter,
-                        'create_component': commands.create_component,
-                        'create_rectangular_pattern': commands.create_rectangular_pattern,
-                        'create_circular_pattern': commands.create_circular_pattern,
-                        'export_model': commands.export_model,
-                        'rename_body': commands.rename_body,
-                        'list_features': commands.list_features,
-                        'rename_feature': commands.rename_feature,
-                        'rename_sketch': commands.rename_sketch,
-                        'delete_body': commands.delete_body,
-                        'delete_feature': commands.delete_feature,
-                        'list_components': commands.list_components,
-                        'rename_component': commands.rename_component,
-                        'delete_component': commands.delete_component,
-                        'list_construction': commands.list_construction,
-                        'rename_construction': commands.rename_construction,
-                        'delete_construction': commands.delete_construction,
-                        'delete_user_parameter': commands.delete_user_parameter,
-                        'compute_all': commands.compute_all,
-                        'get_design_health': commands.get_design_health,
-                        'start_timeline_group': commands.start_timeline_group,
-                        'stop_timeline_group': commands.stop_timeline_group,
-                        'get_face_info': commands.get_face_info,
-                        'get_edge_info': commands.get_edge_info,
-                        'get_sketch_info': commands.get_sketch_info,
-                        'undo': commands.undo,
-                        'redo': commands.redo,
-                        'save_design': commands.save_design,
-                        'create_joint': commands.create_joint,
-                        'create_as_built_joint': commands.create_as_built_joint,
-                        'capture_screenshot': commands.capture_screenshot,
-                        'list_projects': commands.list_projects,
-                        'create_project': commands.create_project,
-                        'create_folder': commands.create_folder,
-                        'create_new_design': commands.create_new_design,
-                    }
-
-
+                    dispatch = registry.dispatch_table
                     
                     if method in dispatch:
                         # Capture state before
-                        old_issues = commands._get_timeline_health_map(app)
-                        design = commands.get_active_design(app)
+                        old_issues = _get_timeline_health_map(app)
+                        design = get_active_design(app)
                         pre_count = design.timeline.count
                         
                         result = dispatch[method](app, **params)
                         
                         # Capture state after
-                        new_issues_map = commands._get_timeline_health_map(app)
+                        new_issues_map = _get_timeline_health_map(app)
                         post_count = design.timeline.count
 
                         # Automatic grouping if no manual group is active
-                        if post_count > pre_count and not commands._group_stack:
-                            # Avoid grouping grouping commands themselves (though they don't add items usually)
-                            if method not in ['start_timeline_group', 'stop_timeline_group']:
+                        if post_count > pre_count and not _group_stack:
+                            from .commands.base import _is_internal_command
+                            if not _is_internal_command(method):
                                 try:
                                     group_name = f"Group: {method}"
-                                    # If it was a create_sketch, maybe use sketch name? 
-                                    # For now, generic name is fine.
                                     group = design.timeline.timelineGroups.add(pre_count, post_count - 1)
                                     group.name = group_name
                                 except Exception as e:
                                     app.log(f"Auto-grouping failed: {str(e)}")
                         
-                        # Compare
+                        # Compare health
                         introduced = []
                         for idx, data in new_issues_map.items():
                             if idx not in old_issues or old_issues[idx] != data:
-                                # This is a new or changed issue
-                                # Find name if possible
                                 name = "Unnamed"
                                 try:
-                                    design = commands.get_active_design(app)
-                                    item = design.timeline.item(idx)
-                                    if hasattr(item, 'entity') and hasattr(item.entity, 'name'):
-                                        name = item.entity.name
-                                except:
-                                    pass
-                                    
+                                    name = design.timeline.item(idx).entity.name
+                                except: pass
                                 introduced.append({
                                     "index": idx,
+                                    "name": name,
                                     "type": data[0],
                                     "health": data[1],
-                                    "message": data[2],
-                                    "name": name
+                                    "message": data[2]
                                 })
                         
-                        if introduced:
-                            if isinstance(result, dict):
-                                result["new_issues"] = introduced
-                            else:
-                                result = {"result": result, "new_issues": introduced}
-                                
+                        if isinstance(result, dict):
+                            result["new_issues"] = introduced
+                        else:
+                            result = {"result": result, "new_issues": introduced}
+                            
                         response['result'] = result
                     else:
                         response['error'] = {"code": -32601, "message": f"Method not found: {method}"}

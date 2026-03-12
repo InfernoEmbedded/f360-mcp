@@ -1,0 +1,87 @@
+import adsk.core
+import adsk.fusion
+import logging
+
+logger = logging.getLogger('f360_mcp')
+
+_group_stack = []
+
+def get_active_design(app):
+    design = app.activeProduct
+    if not design or not hasattr(design, 'rootComponent'): # Check if it's a design
+        raise Exception("No active Fusion 360 design.")
+    return design
+
+def _get_body(app, name):
+    design = get_active_design(app)
+    # Check root first
+    rootComp = design.rootComponent
+    for i in range(rootComp.bRepBodies.count):
+        b = rootComp.bRepBodies.item(i)
+        if b.name == name:
+            return b
+    # Check all components
+    for comp in design.allComponents:
+        for i in range(comp.bRepBodies.count):
+            b = comp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+    raise Exception(f"Body '{name}' not found.")
+
+def get_sketch_by_name(app, sketch_name):
+    design = get_active_design(app)
+    # Search all components for the sketch
+    for comp in design.allComponents:
+        sketch = comp.sketches.itemByName(sketch_name)
+        if sketch:
+            return sketch
+    raise Exception(f"Sketch named {sketch_name} not found.")
+
+def find_occ(app, name):
+    design = get_active_design(app)
+    root = design.rootComponent
+    for occ in root.allOccurrences:
+        if occ.name == name:
+            return occ
+    raise Exception(f"Occurrence '{name}' not found.")
+
+def _start_group(app):
+    design = get_active_design(app)
+    group = design.timeline.timelineGroups.add(design.timeline.count, design.timeline.count)
+    _group_stack.append(group)
+    return group
+
+def _stop_group():
+    if _group_stack:
+        return _group_stack.pop()
+    return None
+
+def _is_internal_command(name):
+    return name in ['start_timeline_group', 'stop_timeline_group']
+
+def _get_timeline_health_map(app):
+    """
+    Internal helper to get a map of timeline item health.
+    Used for detecting new issues after an operation.
+    """
+    try:
+        design = get_active_design(app)
+        timeline = design.timeline
+        health_map = {}
+        for i in range(timeline.count):
+            item = timeline.item(i)
+            try:
+                state = item.healthState
+                if state != 0 and state != 3: # Not Success and not Info
+                    msg = ""
+                    try:
+                        msg = item.errorOrWarningMessage
+                    except:
+                        pass
+                    # Use a stable-ish key: index + type
+                    health_map[i] = (item.objectType, state, msg)
+            except:
+                continue
+        return health_map
+    except:
+        return {}

@@ -17,6 +17,13 @@ def get_addin_port():
 
 mcp = FastMCP("fusion360-mcp")
 
+@mcp.resource("cheat_sheet://main")
+def get_cheat_sheet() -> str:
+    """Returns the Fusion 360 MCP Cheat Sheet for LLMs."""
+    path = os.path.join(os.path.dirname(__file__), "mcp_cheat_sheet.md")
+    with open(path, "r") as f:
+        return f.read()
+
 async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     request = {
         "jsonrpc": "2.0",
@@ -73,8 +80,11 @@ async def create_sketch(
 ) -> Dict[str, Any]:
     """
     Creates a new sketch.
-    To sketch on an origin plane or construction plane, use `plane_name` ("XY", "XZ", "YZ", or name).
-    To sketch on a solid face, provide `body_name` and `face_index` (from find_faces tool).
+    
+    To sketch on an origin plane or construction plane, use `plane_name` ("XY", "XZ", "YZ", or a plane's name).
+    To sketch directly on a solid face, provide the `body_name` and the `face_index` (retrieve these using the `find_faces` tool).
+    
+    Returns the name of the newly created sketch, which is required for all drawing operations.
     """
     return await send_to_addin('create_sketch', {
         "plane_name": plane_name,
@@ -85,8 +95,12 @@ async def create_sketch(
 @mcp.tool()
 async def add_circle(sketch_name: str, x: float, y: float, radius: float) -> Dict[str, Any]:
     """
-    Adds a circle to an existing sketch in Fusion 360.
-    Dimensions are in centimeters (cm).
+    Adds a circle to an existing sketch.
+    
+    Arguments:
+    - sketch_name: The name of the target sketch.
+    - x, y: Center point coordinates in centimeters (cm) relative to the sketch origin.
+    - radius: Radius of the circle in centimeters (cm).
     """
     return await send_to_addin('add_circle', {
         "sketch_name": sketch_name,
@@ -98,8 +112,12 @@ async def add_circle(sketch_name: str, x: float, y: float, radius: float) -> Dic
 @mcp.tool()
 async def add_line(sketch_name: str, x1: float, y1: float, x2: float, y2: float) -> Dict[str, Any]:
     """
-    Adds a line to an existing sketch in Fusion 360.
-    Dimensions are in centimeters (cm).
+    Adds a line to an existing sketch.
+    
+    Arguments:
+    - sketch_name: The name of the target sketch.
+    - x1, y1: Start point coordinates in centimeters (cm).
+    - x2, y2: End point coordinates in centimeters (cm).
     """
     return await send_to_addin('add_line', {
         "sketch_name": sketch_name,
@@ -121,11 +139,14 @@ async def add_rectangle(
     rect_type: str = "two_point"
 ) -> Dict[str, Any]:
     """
-    Adds a rectangle to an existing sketch in Fusion 360.
-    rect_type: "two_point" (default), "three_point", or "center".
-    For "two_point": (x1,y1) and (x2,y2) are opposite corners.
-    For "three_point": (x1,y1), (x2,y2), (x3,y3) define three corners.
-    For "center": (x1,y1) is center, (x2,y2) is a corner.
+    Adds a rectangle to an existing sketch.
+    
+    Types:
+    - "two_point" (default): (x1,y1) and (x2,y2) are opposite corners.
+    - "three_point": (x1,y1), (x2,y2) define the first side, (x3,y3) defines the depth.
+    - "center": (x1,y1) is the center point, (x2,y2) is one corner.
+    
+    All coordinates are in centimeters (cm).
     """
     params = {
         "sketch_name": sketch_name,
@@ -152,8 +173,12 @@ async def add_arc(
 ) -> Dict[str, Any]:
     """
     Adds an arc to an existing sketch.
-    For "three_point": (x1,y1)=start, (x2,y2)=point_on_arc, (x3,y3)=end.
-    For "center_start_sweep": (x1,y1)=center, (x2,y2)=start, x3=sweep_angle (in radians).
+    
+    Types:
+    - "three_point" (default): (x1,y1) is start, (x2,y2) is a point on the arc, (x3,y3) is the end.
+    - "center_start_sweep": (x1,y1) is the center point, (x2,y2) is the start point, x3 is the sweep angle in DEGREES.
+    
+    Coordinates are in centimeters (cm).
     """
     return await send_to_addin('add_arc', {
         "sketch_name": sketch_name,
@@ -166,8 +191,11 @@ async def add_arc(
 @mcp.tool()
 async def add_spline(sketch_name: str, points: list[list[float]]) -> Dict[str, Any]:
     """
-    Adds a fitted spline through a list of points.
-    points: A list of [x, y] coordinate pairs, e.g., [[0,0], [1,1], [2,0]].
+    Adds a fitted spline (smooth curve) through a list of points.
+    
+    Arguments:
+    - sketch_name: Target sketch name.
+    - points: A list of [x, y] coordinate pairs in cm, e.g., [[0,0], [2,5], [5,0]].
     """
     return await send_to_addin('add_spline', {
         "sketch_name": sketch_name,
@@ -185,8 +213,13 @@ async def add_polygon(
     poly_type: str = "inscribed"
 ) -> Dict[str, Any]:
     """
-    Adds a regular polygon.
-    poly_type: "inscribed" or "circumscribed".
+    Adds a regular polygon to a sketch.
+    
+    Arguments:
+    - center_x, center_y: Center of the polygon (cm).
+    - num_sides: Number of sides (e.g., 6 for a hexagon).
+    - vertex_x, vertex_y: Coordinates of one vertex to define size and orientation (cm).
+    - poly_type: "inscribed" (corners touch circle) or "circumscribed" (sides touch circle).
     """
     return await send_to_addin('add_polygon', {
         "sketch_name": sketch_name,
@@ -209,10 +242,12 @@ async def add_ellipse(
     minor_y: float
 ) -> Dict[str, Any]:
     """
-    Adds an ellipse.
-    (center_x, center_y) is the center point.
-    (major_x, major_y) defines the major axis radius and orientation.
-    (minor_x, minor_y) defines a point on the minor axis.
+    Adds an ellipse to a sketch.
+    
+    Arguments:
+    - center_x, center_y: Center point (cm).
+    - major_x, major_y: Coordinates defining the end of the major axis (cm).
+    - minor_x, minor_y: Coordinates defining the end of the minor axis (cm).
     """
     return await send_to_addin('add_ellipse', {
         "sketch_name": sketch_name,
@@ -247,11 +282,16 @@ async def apply_constraint(
     ent2_idx: int | None = None
 ) -> Dict[str, Any]:
     """
-    Applies a geometric constraint between one or two sketch entities.
-    constraint_type: "coincident", "collinear", "concentric", "midpoint", "parallel", "perpendicular", "horizontal", "vertical", "tangent", "equal".
-    entity types can be: "line", "line_start", "line_end", "circle", "circle_center", "arc", "arc_start", "arc_end", "arc_center", "point".
-    entity index is the 0-based index of that geometry type created in the sketch.
-    For horizontal/vertical on a single line, omit ent2.
+    Applies a geometric constraint between sketch entities.
+    
+    Constraint Types:
+    - "coincident", "collinear", "concentric", "midpoint", "parallel", "perpendicular", "horizontal", "vertical", "tangent", "equal".
+    
+    Entity Types:
+    - "line", "line_start", "line_end", "circle", "circle_center", "arc", "arc_start", "arc_end", "arc_center", "point".
+    
+    Indices:
+    - 0-based index of that geometry type as created in the specific sketch. Use `get_sketch_info` to find counts if needed.
     """
     params = {
         "sketch_name": sketch_name,
@@ -300,8 +340,13 @@ async def add_distance_dimension(
     orientation: str = "aligned"
 ) -> Dict[str, Any]:
     """
-    Adds a distance dimension between two sketch entities.
-    orientation: "aligned", "horizontal", or "vertical"
+    Adds a linear distance dimension between two entities.
+    
+    Arguments:
+    - sketch_name: Target sketch name.
+    - ent1_idx, ent2_idx: Indices of entities (lines, points, etc.) in the sketch.
+    - text_x, text_y: Coordinates for placing the dimension text (cm).
+    - orientation: "aligned", "horizontal", or "vertical".
     """
     return await send_to_addin('add_distance_dimension', {
         "sketch_name": sketch_name,
@@ -322,7 +367,7 @@ async def add_radial_dimension(
     text_x: float,
     text_y: float
 ) -> Dict[str, Any]:
-    """Adds a radial dimension to an arc or circle."""
+    """Adds a radial dimension (cm) to an arc or circle in a sketch."""
     return await send_to_addin('add_radial_dimension', {
         "sketch_name": sketch_name,
         "ent_type": ent_type,
@@ -339,7 +384,7 @@ async def add_diameter_dimension(
     text_x: float,
     text_y: float
 ) -> Dict[str, Any]:
-    """Adds a diameter dimension to a circle or arc."""
+    """Adds a diameter dimension (cm) to a circle or arc in a sketch."""
     return await send_to_addin('add_diameter_dimension', {
         "sketch_name": sketch_name,
         "ent_type": ent_type,
@@ -404,8 +449,10 @@ async def offset_geometry(
     offset_distance: float
 ) -> Dict[str, Any]:
     """
-    Creates an offset of a sketch entity by a specified distance.
-    Distance is in cm. Positive or negative determines direction.
+    Creates an offset of a sketch entity.
+    
+    Arguments:
+    - offset_distance: Distance in cm. Positive offsets away from center (for closed loops); negative offsets inward.
     """
     return await send_to_addin('offset_geometry', {
         "sketch_name": sketch_name,
@@ -454,9 +501,12 @@ async def create_extrude(
     profile_index: int = 0
 ) -> Dict[str, Any]:
     """
-    Extrudes a specific closed profile from a sketch to a specific distance in cm.
-    operation can be 'new_body', 'join', 'cut', or 'intersect'.
-    profile_index is 0-indexed. 0 is usually the outer profile.
+    Extrudes a sketch profile to create 3D volume.
+    
+    Arguments:
+    - distance: Extrusion depth in cm.
+    - operation: 'new_body', 'join', 'cut', or 'intersect'.
+    - profile_index: Index of the closed profile to extrude (0 is usually the main sketch loop).
     """
     return await send_to_addin('create_extrude', {
         "sketch_name": sketch_name,
@@ -475,10 +525,12 @@ async def create_revolve(
     profile_index: int = 0
 ) -> Dict[str, Any]:
     """
-    Revolves a specific closed profile around an axis entity to a specific angle in degrees.
-    operation can be 'new_body', 'join', 'cut', or 'intersect'.
-    axis_ent_type typically "line" from the same sketch.
-    profile_index is 0-indexed. 0 is usually the outer profile.
+    Revolves a profile around an axis to create a 3D volume.
+    
+    Arguments:
+    - axis_ent_type: Typically "line" from the same sketch.
+    - angle: Revolve angle in DEGREES (e.g., 360 for full revolve).
+    - operation: 'new_body', 'join', 'cut', or 'intersect'.
     """
     return await send_to_addin('create_revolve', {
         "sketch_name": sketch_name,
@@ -523,8 +575,10 @@ async def combine_bodies(
     operation: str = "join"
 ) -> Dict[str, Any]:
     """
-    Combines multiple tool bodies into a target body.
-    operation can be 'join', 'cut', or 'intersect'.
+    Combines or subtracts bodies.
+    
+    Arguments:
+    - operation: 'join' (fuse), 'cut' (boolean subtract), or 'intersect'.
     """
     return await send_to_addin('combine_bodies', {
         "target_body_name": target_body_name,
@@ -540,8 +594,10 @@ async def create_hole(
     depth: float
 ) -> Dict[str, Any]:
     """
-    Creates a simple hole from a specific point in a sketch.
-    Diameter and depth are in cm.
+    Creates a simple circular hole at a sketch point.
+    
+    Arguments:
+    - diameter, depth: Dimensions in centimeters (cm).
     """
     return await send_to_addin('create_hole', {
         "sketch_name": sketch_name,
@@ -556,7 +612,10 @@ async def create_shell(
     thickness: float
 ) -> Dict[str, Any]:
     """
-    Hollows out a specified body to a specific thickness in cm.
+    Hollows out a specified solid body.
+    
+    Arguments:
+    - thickness: Wall thickness in centimeters (cm).
     """
     return await send_to_addin('create_shell', {
         "body_name": body_name,
@@ -569,7 +628,10 @@ async def create_fillet(
     radius: float
 ) -> Dict[str, Any]:
     """
-    Fillets all edges of a specified body to a specific radius in cm.
+    Fillets all edges of a specified body.
+    
+    Arguments:
+    - radius: Fillet radius in centimeters (cm).
     """
     return await send_to_addin('create_fillet', {
         "body_name": body_name,
@@ -582,7 +644,10 @@ async def create_chamfer(
     distance: float
 ) -> Dict[str, Any]:
     """
-    Chamfers all edges of a specified body to a specific distance in cm.
+    Chamfers all edges of a specified body.
+    
+    Arguments:
+    - distance: Chamfer distance in centimeters (cm).
     """
     return await send_to_addin('create_chamfer', {
         "body_name": body_name,
@@ -608,8 +673,10 @@ async def create_loft(
     profiles_info: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """
-    Creates a loft feature from multiple sketch profiles.
-    profiles_info should be a list of objects like: [{"sketch_name": "sk1", "profile_idx": 0}, {"sketch_name": "sk2", "profile_idx": 0}]
+    Creates a loft feature by blending between multiple sketch profiles.
+    
+    Arguments:
+    - profiles_info: List of profiles, e.g., [{"sketch_name": "sk1", "profile_idx": 0}, {"sketch_name": "sk2", "profile_idx": 0}].
     """
     return await send_to_addin('create_loft', {
         "profiles_info": profiles_info
@@ -639,9 +706,11 @@ async def create_offset_plane(
     offset: float
 ) -> Dict[str, Any]:
     """
-    Creates a new construction plane offset from a base plane.
-    base_plane can be "XY", "YZ", "XZ", or the name of an existing construction plane.
-    offset is given in centimeters (cm).
+    Creates a new construction plane offset from a base.
+    
+    Arguments:
+    - base_plane: "XY", "YZ", "XZ", or the name of an existing construction plane.
+    - offset: Distance in centimeters (cm).
     """
     return await send_to_addin('create_offset_plane', {
         "base_plane": base_plane,
@@ -654,9 +723,11 @@ async def create_plane_at_angle(
     angle_deg: float
 ) -> Dict[str, Any]:
     """
-    Creates a new construction plane at an angle around an axis.
-    axis_name can be "X", "Y", "Z", or the name of an existing construction axis.
-    angle_deg is the angle in degrees.
+    Creates a new construction plane at an angle relative to an axis.
+    
+    Arguments:
+    - axis_name: "X", "Y", "Z", or the name of an existing construction axis.
+    - angle_deg: Angle in DEGREES.
     """
     return await send_to_addin('create_plane_at_angle', {
         "axis_name": axis_name,
@@ -668,8 +739,8 @@ async def get_body_properties(
     body_name: str
 ) -> Dict[str, Any]:
     """
-    Returns physical properties of a body: volume, mass, area, bounding box, center of mass.
-    Use this to measure physical properties of a solid body.
+    Returns physical properties of a solid body (mass, volume, area, bounding box).
+    Required for engineering calculations or measuring overall dimensions.
     """
     return await send_to_addin('get_body_properties', {
         "body_name": body_name
@@ -696,10 +767,11 @@ async def create_user_parameter(
 ) -> Dict[str, Any]:
     """
     Creates a new user parametric parameter.
-    name: Parameter name (no spaces).
-    expression: Math expression or value string (e.g. "50mm", "width * 2").
-    unit: Optional unit string (e.g. "mm", "cm", "deg"). Use "" for unitless.
-    description: Optional description/comment for the parameter.
+    
+    Arguments:
+    - expression: Math expression or value string (e.g., "50mm", "width * 2").
+    - unit: Optional unit (e.g., "mm", "cm", "deg"). Default is cm if numeric only.
+    - description: Optional comment for future reference.
     """
     return await send_to_addin('create_user_parameter', {
         "name": name,
@@ -747,8 +819,10 @@ async def create_rectangular_pattern(
     distance_y: float
 ) -> Dict[str, Any]:
     """
-    Creates a rectangular pattern of a solid body along the X and Y axes.
-    Distances are measured in cm.
+    Patterns a solid body in a rectangular grid.
+    
+    Arguments:
+    - distances: Spacings in centimeters (cm).
     """
     return await send_to_addin('create_rectangular_pattern', {
         "body_name": body_name,
@@ -919,7 +993,8 @@ async def get_design_health() -> Dict[str, Any]:
 @mcp.tool()
 async def list_materials() -> Dict[str, Any]:
     """
-    Lists available physical materials in the design and favorite libraries.
+    Lists physical materials from the 'Fusion 360 Material Library' and 'Favorite' libraries.
+    Returns names that can be used with `apply_material`.
     """
     return await send_to_addin('list_materials', {})
 
@@ -933,7 +1008,8 @@ async def apply_material(body_name: str, material_name: str) -> Dict[str, Any]:
 @mcp.tool()
 async def list_appearances() -> Dict[str, Any]:
     """
-    Lists available appearances in the design and favorite libraries.
+    Lists visual appearances from the libraries.
+    Returns names that can be used with `apply_appearance`.
     """
     return await send_to_addin('list_appearances', {})
 
@@ -962,16 +1038,20 @@ async def stop_timeline_group() -> Dict[str, Any]:
 @mcp.tool()
 async def get_face_info(body_name: str) -> Dict[str, Any]:
     """
-    Returns a list of faces on a body with their index, area, and type.
-    Use this to identify face indices for creating sketches or features.
+    Returns indices and geometry data for ALL faces of a body.
+    
+    Use this to identify which face index (0-based) to use for `create_sketch`.
+    Data includes: normal vector, center point (cm), and surface area (cm^2).
     """
     return await send_to_addin('get_face_info', {"body_name": body_name})
 
 @mcp.tool()
 async def get_edge_info(body_name: str) -> Dict[str, Any]:
     """
-    Returns a list of edges on a body with their index, length, and type.
-    Use this to identify edge indices for fillets or chamfers.
+    Returns indices and lengths for ALL edges of a body.
+    
+    Use this to identify which edge index (0-based) to use for `create_fillet` or `create_chamfer`.
+    Data includes: edge type and length in centimeters (cm).
     """
     return await send_to_addin('get_edge_info', {"body_name": body_name})
 
@@ -1007,9 +1087,11 @@ async def create_joint(
     offset_z: float = 0
 ) -> Dict[str, Any]:
     """
-    Creates a joint between two component occurrences.
-    joint_type: "rigid", "revolute", or "slider".
-    Offsets are in centimeters (cm).
+    Creates a joint (mechanical connection) between two components.
+    
+    Arguments:
+    - joint_type: "rigid" (fixed), "revolute" (rotational), or "slider" (linear).
+    - offsets: Position offsets in centimeters (cm).
     """
     return await send_to_addin('create_joint', {
         "component1_name": component1_name,
@@ -1078,7 +1160,8 @@ async def capture_screenshot(
 @mcp.tool()
 async def list_projects() -> Dict[str, Any]:
     """
-    Lists all available projects across all hubs.
+    Lists all available projects in the active Fusion 360 Hub.
+    Projects are the top-level containers for all data.
     """
     return await send_to_addin('list_projects', {})
 
@@ -1096,10 +1179,10 @@ async def create_folder(
     parent_folder_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Creates a folder within a project.
-    project_name: The name of the project.
-    folder_name: The name of the new folder.
-    parent_folder_path: Optional path like "Folder1/Subfolder1" to create subfolder.
+    Creates a new folder within a project's root or a subfolder.
+    
+    Arguments:
+    - parent_folder_path: Optional, e.g., "Designs/2024" (uses '/' as delimiter).
     """
     return await send_to_addin('create_folder', {
         "project_name": project_name,
@@ -1114,10 +1197,10 @@ async def create_new_design(
     folder_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Creates a new design document and optionally saves it.
-    name: The name for the new design.
-    project_name: Optional project name to save the design in.
-    folder_path: Optional folder path within the project.
+    Creates and saves a new Fusion 360 design file.
+    
+    Arguments:
+    - project_name, folder_path: Optional location to save the design.
     """
     return await send_to_addin('create_new_design', {
         "name": name,
