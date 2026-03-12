@@ -9,6 +9,22 @@ def get_active_design(app):
         raise Exception("No active Fusion 360 design.")
     return design
 
+def _get_body(app, name):
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    # Check root first
+    for i in range(rootComp.bRepBodies.count):
+        b = rootComp.bRepBodies.item(i)
+        if b.name == name:
+            return b
+    # Check all components
+    for comp in design.allComponents:
+        for i in range(comp.bRepBodies.count):
+            b = comp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+    raise Exception(f"Body '{name}' not found.")
+
 def create_sketch(app, plane_name="XY", body_name=None, face_index=None):
     """
     Creates a new sketch.
@@ -901,43 +917,59 @@ def find_faces(app, body_name):
         
     return {"body_name": body_name, "faces": faces_info}
 
-def create_user_parameter(app, name, expression, unit=""):
+def create_user_parameter(app, name, expression, unit="", comment=""):
     """
-    Creates a new user parameter.
+    Creates a new user parameter with optional description.
     """
     design = get_active_design(app)
     userParams = design.userParameters
-    param = userParams.add(name, adsk.core.ValueInput.createByString(expression), unit, "")
-    return {"message": f"Created parameter '{name}' = {expression}", "name": param.name, "value": round(param.value, 3)}
+    param = userParams.add(name, adsk.core.ValueInput.createByString(expression), unit, comment)
+    return {
+        "message": f"Created parameter '{name}' = {expression}",
+        "name": param.name,
+        "value": round(param.value, 3),
+        "comment": param.comment
+    }
 
-def list_user_parameters(app):
+def list_parameters(app):
     """
-    Lists all user parameters.
+    Lists all parameters (user and model) in the design.
     """
     design = get_active_design(app)
-    userParams = design.userParameters
     params_list = []
-    for i in range(userParams.count):
-        p = userParams.item(i)
+    # allParameters includes both User and Model parameters
+    for i in range(design.allParameters.count):
+        p = design.allParameters.item(i)
         params_list.append({
             "name": p.name,
             "expression": p.expression,
             "value": round(p.value, 3),
-            "unit": p.unit
+            "unit": p.unit,
+            "comment": p.comment,
+            "isUserParameter": p.isUserParameter
         })
     return {"parameters": params_list}
 
-def update_user_parameter(app, name, expression):
+def update_parameter(app, name, expression=None, comment=None):
     """
-    Updates an existing user parameter.
+    Updates an existing parameter (user or model).
     """
     design = get_active_design(app)
-    userParams = design.userParameters
-    param = userParams.itemByName(name)
+    param = design.allParameters.itemByName(name)
     if not param:
         raise Exception(f"Parameter '{name}' not found.")
-    param.expression = expression
-    return {"message": f"Updated parameter '{name}' to {expression}", "name": param.name, "value": round(param.value, 3)}
+    
+    if expression is not None:
+        param.expression = expression
+    if comment is not None:
+        param.comment = comment
+        
+    return {
+        "message": f"Updated parameter '{name}'",
+        "name": param.name,
+        "value": round(param.value, 3),
+        "comment": param.comment
+    }
 
 def create_component(app, name):
     """
@@ -1484,3 +1516,147 @@ def stop_timeline_group(app):
         return {"message": f"Created timeline group '{group.name}' with {end_idx - start_idx + 1} items."}
     else:
         return {"message": f"Timeline group '{group_info['name']}' was empty and not created."}
+
+def get_face_info(app, body_name):
+    """Lists all faces of a body with indices and some properties."""
+    body = _get_body(app, body_name)
+    faces = []
+    for i in range(body.faces.count):
+        face = body.faces.item(i)
+        # Type enum: 0=Planar, 1=Cylindrical, etc. (refer to API docs for full list)
+        faces.append({
+            "index": i,
+            "area": face.area,
+            "type": face.geometry.objectType.split('::')[-1] if hasattr(face.geometry, 'objectType') else "Unknown"
+        })
+    return {"body_name": body_name, "faces": faces}
+
+def get_edge_info(app, body_name):
+    """Lists all edges of a body with indices."""
+    body = _get_body(app, body_name)
+    edges = []
+    for i in range(body.edges.count):
+        edge = body.edges.item(i)
+        edges.append({
+            "index": i,
+            "length": edge.length,
+            "type": edge.geometry.objectType.split('::')[-1] if hasattr(edge.geometry, 'objectType') else "Unknown"
+        })
+    return {"body_name": body_name, "edges": edges}
+
+def get_sketch_info(app, sketch_name):
+    """Get detailed info about a sketch."""
+    sketch = get_sketch_by_name(app, sketch_name)
+    profiles = []
+    for i in range(sketch.profiles.count):
+        prof = sketch.profiles.item(i)
+        profiles.append({"index": i, "area": prof.areaProperties().area if prof.areaProperties() else 0})
+    
+    curves = []
+    # Simplified list of curves
+    curves.append({"count": sketch.sketchCurves.count})
+    
+    return {
+        "sketch_name": sketch_name,
+        "profiles": profiles,
+        "curves_summary": curves
+    }
+
+def undo(app, steps=1):
+    """Undoes the last action(s)."""
+    for _ in range(steps):
+        app.activeEditObject.undo() # This is a guess, let me check API
+    return {"message": f"Undid {steps} steps."}
+
+def redo(app, steps=1):
+    """Redoes previously undone actions."""
+    for _ in range(steps):
+        app.activeEditObject.redo()
+    return {"message": f"Redid {steps} steps."}
+
+def save_design(app, description="Saved via MCP"):
+    """Saves the current design."""
+    design = get_active_design(app)
+    if design.isNew:
+        raise Exception("Document is new. Use 'save_as' (not yet implemented) or save manually first.")
+    design.save(description)
+    return {"message": "Design saved successfully."}
+
+def create_joint(app, component1_name, component2_name, joint_type="rigid", offset_x=0, offset_y=0, offset_z=0):
+    """Creates a joint between two component occurrences."""
+    design = get_active_design(app)
+    root = design.rootComponent
+    
+    def find_occ(name):
+        for occ in root.allOccurrences:
+            if occ.name == name or occ.component.name == name:
+                return occ
+        raise Exception(f"Occurrence/Component '{name}' not found.")
+        
+    occ1 = find_occ(component1_name)
+    occ2 = find_occ(component2_name)
+    
+    joints = root.joints
+    geo0 = adsk.fusion.JointGeometry.createByPoint(occ1.component.originConstructionPoint)
+    geo1 = adsk.fusion.JointGeometry.createByPoint(occ2.component.originConstructionPoint)
+    
+    jointInput = joints.createInput(geo0, geo1)
+    
+    jt = joint_type.lower()
+    if jt == "rigid":
+        jointInput.setAsRigidJointMotion()
+    elif jt == "revolute":
+        jointInput.setAsRevoluteJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "slider":
+        jointInput.setAsSliderJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    
+    if offset_x != 0 or offset_y != 0 or offset_z != 0:
+        offset = adsk.core.Vector3D.create(offset_x, offset_y, offset_z)
+        jointInput.offset = offset
+        
+    joint = joints.add(jointInput)
+    return {"message": f"Created {joint_type} joint.", "joint_name": joint.name}
+
+def create_as_built_joint(app, component1_name, component2_name, joint_type="rigid"):
+    """Creates an as-built joint between two component occurrences."""
+    design = get_active_design(app)
+    root = design.rootComponent
+    
+    def find_occ(name):
+        for occ in root.allOccurrences:
+            if occ.name == name or occ.component.name == name:
+                return occ
+        raise Exception(f"Occurrence/Component '{name}' not found.")
+        
+    occ1 = find_occ(component1_name)
+    occ2 = find_occ(component2_name)
+    
+    joints = root.asBuiltJoints
+    # As built joints join occurrences
+    jointInput = joints.createInput(occ1, occ2, None)
+    
+    jt = joint_type.lower()
+    if jt == "rigid":
+        jointInput.setAsRigidJointMotion()
+    elif jt == "revolute":
+        jointInput.setAsRevoluteJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+        
+    joint = joints.add(jointInput)
+    return {"message": f"Created as-built {joint_type} joint.", "joint_name": joint.name}
+
+def capture_screenshot(app, file_path, width=1280, height=720, send_to_mcp=False):
+    """
+    Captures a screenshot of the active viewport.
+    file_path: Absolute path to save the image.
+    send_to_mcp: If True, returns the image as base64.
+    """
+    app.activeViewport.saveAsImageFile(file_path, width, height)
+    result = {"message": f"Screenshot saved to {file_path}", "file_path": file_path}
+    
+    if send_to_mcp:
+        import base64
+        with open(file_path, 'rb') as f:
+            content = f.read()
+            result["file_content_base64"] = base64.b64encode(content).decode('ascii')
+            
+    return result

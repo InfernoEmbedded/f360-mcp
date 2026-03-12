@@ -79,8 +79,8 @@ def handle_client(conn, addr):
                         'get_body_properties': commands.get_body_properties,
                         'find_faces': commands.find_faces,
                         'create_user_parameter': commands.create_user_parameter,
-                        'list_user_parameters': commands.list_user_parameters,
-                        'update_user_parameter': commands.update_user_parameter,
+                        'list_parameters': commands.list_parameters,
+                        'update_parameter': commands.update_parameter,
                         'create_component': commands.create_component,
                         'create_rectangular_pattern': commands.create_rectangular_pattern,
                         'create_circular_pattern': commands.create_circular_pattern,
@@ -102,6 +102,15 @@ def handle_client(conn, addr):
                         'get_design_health': commands.get_design_health,
                         'start_timeline_group': commands.start_timeline_group,
                         'stop_timeline_group': commands.stop_timeline_group,
+                        'get_face_info': commands.get_face_info,
+                        'get_edge_info': commands.get_edge_info,
+                        'get_sketch_info': commands.get_sketch_info,
+                        'undo': commands.undo,
+                        'redo': commands.redo,
+                        'save_design': commands.save_design,
+                        'create_joint': commands.create_joint,
+                        'create_as_built_joint': commands.create_as_built_joint,
+                        'capture_screenshot': commands.capture_screenshot,
                     }
 
 

@@ -45,8 +45,25 @@ class MockFusionServer:
                 result = {"message": f"Successfully renamed {params.get('type', 'plane')} {params['old_name']} to {params['new_name']}"}
             elif method == 'delete_construction':
                 result = {"message": f"Successfully deleted {params.get('type', 'plane')} {params['name']}"}
-            elif method == 'delete_user_parameter':
-                result = {"message": f"Successfully deleted parameter {params['name']}"}
+            elif method == 'create_user_parameter':
+                result = {
+                    "message": f"Created parameter '{params.get('name')}' = {params.get('expression')}", 
+                    "name": params.get('name'), 
+                    "value": 10.0,
+                    "comment": params.get('comment', "")
+                }
+            elif method == 'update_parameter':
+                result = {
+                    "message": f"Updated parameter '{params.get('name')}'", 
+                    "name": params.get('name'), 
+                    "value": 15.0,
+                    "comment": params.get('comment') if params.get('comment') is not None else "Updated description"
+                }
+            elif method == 'list_parameters':
+                result = {"parameters": [
+                    {"name": "width", "expression": "10cm", "value": 10.0, "unit": "cm", "comment": "Base width", "isUserParameter": True},
+                    {"name": "d1", "expression": "width * 2", "value": 20.0, "unit": "cm", "comment": "Model parameter", "isUserParameter": False}
+                ]}
             elif method == 'list_materials':
                 result = {"materials": [{"name": "Steel", "library": "Design"}, {"name": "Aluminum", "library": "Fusion 360 Material Library"}]}
             elif method == 'apply_material':
@@ -75,6 +92,26 @@ class MockFusionServer:
                     self.loop.call_later(0.1, self.loop.stop)
                 else:
                     asyncio.get_event_loop().call_later(0.1, asyncio.get_event_loop().stop)
+            elif method == 'get_face_info':
+                result = {"body_name": params.get("body_name"), "faces": [{"index": 0, "area": 3.14, "type": "Planar"}]}
+            elif method == 'get_edge_info':
+                result = {"body_name": params.get("body_name"), "edges": [{"index": 0, "length": 1.0, "type": "Line"}]}
+            elif method == 'get_sketch_info':
+                result = {"sketch_name": params.get("sketch_name"), "profiles": [{"index": 0, "area": 1.0}], "curves_summary": [{"count": 4}]}
+            elif method == 'undo':
+                result = {"message": f"Undid {params.get('steps', 1)} steps."}
+            elif method == 'redo':
+                result = {"message": f"Redid {params.get('steps', 1)} steps."}
+            elif method == 'save_design':
+                result = {"message": "Design saved successfully."}
+            elif method == 'create_joint':
+                result = {"message": f"Created {params.get('joint_type', 'rigid')} joint.", "joint_name": "Joint1"}
+            elif method == 'create_as_built_joint':
+                result = {"message": f"Created as-built {params.get('joint_type', 'rigid')} joint.", "joint_name": "Joint1"}
+            elif method == 'capture_screenshot':
+                result = {"message": f"Screenshot saved to {params.get('file_path')}", "file_path": params.get('file_path')}
+                if params.get('send_to_mcp'):
+                    result["file_content_base64"] = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" # 1x1 png
 
             response = {
                 "jsonrpc": "2.0",
@@ -91,11 +128,12 @@ class MockFusionServer:
             await writer.wait_closed()
 
     async def start(self):
-        self.server = await asyncio.start_server(
+        protocol_server = await asyncio.start_server(
             self.handle_client, self.host, self.port
         )
+        self.server = protocol_server
         # Store actual host/port (important if port was 0)
-        self.host, self.port = self.server.sockets[0].getsockname()
+        self.host, self.port = protocol_server.sockets[0].getsockname()
         os.environ['F360_ADDIN_PORT'] = str(self.port)
         logger.info(f"Mock Fusion Server started on {self.host}:{self.port}")
 

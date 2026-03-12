@@ -691,38 +691,44 @@ async def find_faces(
 async def create_user_parameter(
     name: str,
     expression: str,
-    unit: str = ""
+    unit: str = "",
+    description: str = ""
 ) -> Dict[str, Any]:
     """
     Creates a new user parametric parameter.
     name: Parameter name (no spaces).
     expression: Math expression or value string (e.g. "50mm", "width * 2").
     unit: Optional unit string (e.g. "mm", "cm", "deg"). Use "" for unitless.
+    description: Optional description/comment for the parameter.
     """
     return await send_to_addin('create_user_parameter', {
         "name": name,
         "expression": expression,
-        "unit": unit
+        "unit": unit,
+        "comment": description
     })
 
 @mcp.tool()
-async def list_user_parameters() -> Dict[str, Any]:
+async def list_parameters() -> Dict[str, Any]:
     """
-    Lists all parametric user parameters in the design.
+    Lists all parametric parameters (user and model) in the design.
     """
-    return await send_to_addin('list_user_parameters', {})
+    return await send_to_addin('list_parameters', {})
 
 @mcp.tool()
-async def update_user_parameter(
+async def update_parameter(
     name: str,
-    expression: str
+    expression: Optional[str] = None,
+    description: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Updates an existing user parameter's expression.
+    Updates an existing parameter's expression and/or description.
+    Works for both user and model parameters.
     """
-    return await send_to_addin('update_user_parameter', {
+    return await send_to_addin('update_parameter', {
         "name": name,
-        "expression": expression
+        "expression": expression,
+        "comment": description
     })
 
 @mcp.tool()
@@ -952,6 +958,122 @@ async def stop_timeline_group() -> Dict[str, Any]:
     Stops the current timeline group and creates it in Fusion 360.
     """
     return await send_to_addin('stop_timeline_group', {})
+
+@mcp.tool()
+async def get_face_info(body_name: str) -> Dict[str, Any]:
+    """
+    Returns a list of faces on a body with their index, area, and type.
+    Use this to identify face indices for creating sketches or features.
+    """
+    return await send_to_addin('get_face_info', {"body_name": body_name})
+
+@mcp.tool()
+async def get_edge_info(body_name: str) -> Dict[str, Any]:
+    """
+    Returns a list of edges on a body with their index, length, and type.
+    Use this to identify edge indices for fillets or chamfers.
+    """
+    return await send_to_addin('get_edge_info', {"body_name": body_name})
+
+@mcp.tool()
+async def get_sketch_info(sketch_name: str) -> Dict[str, Any]:
+    """
+    Returns detailed information about a sketch, including profiles and curve counts.
+    """
+    return await send_to_addin('get_sketch_info', {"sketch_name": sketch_name})
+
+@mcp.tool()
+async def undo(steps: int = 1) -> Dict[str, Any]:
+    """Undoes the last action(s) in Fusion 360."""
+    return await send_to_addin('undo', {"steps": steps})
+
+@mcp.tool()
+async def redo(steps: int = 1) -> Dict[str, Any]:
+    """Redoes previously undone actions in Fusion 360."""
+    return await send_to_addin('redo', {"steps": steps})
+
+@mcp.tool()
+async def save_design(description: str = "Saved via MCP") -> Dict[str, Any]:
+    """Saves the current Fusion 360 design."""
+    return await send_to_addin('save_design', {"description": description})
+
+@mcp.tool()
+async def create_joint(
+    component1_name: str,
+    component2_name: str,
+    joint_type: str = "rigid",
+    offset_x: float = 0,
+    offset_y: float = 0,
+    offset_z: float = 0
+) -> Dict[str, Any]:
+    """
+    Creates a joint between two component occurrences.
+    joint_type: "rigid", "revolute", or "slider".
+    Offsets are in centimeters (cm).
+    """
+    return await send_to_addin('create_joint', {
+        "component1_name": component1_name,
+        "component2_name": component2_name,
+        "joint_type": joint_type,
+        "offset_x": offset_x,
+        "offset_y": offset_y,
+        "offset_z": offset_z
+    })
+
+@mcp.tool()
+async def create_as_built_joint(
+    component1_name: str,
+    component2_name: str,
+    joint_type: str = "rigid"
+) -> Dict[str, Any]:
+    """
+    Creates an as-built joint between two component occurrences (at their current positions).
+    joint_type: "rigid" or "revolute".
+    """
+    return await send_to_addin('create_as_built_joint', {
+        "component1_name": component1_name,
+        "component2_name": component2_name,
+        "joint_type": joint_type
+    })
+
+@mcp.tool()
+async def delete_user_parameter(name: str) -> Dict[str, Any]:
+    """
+    Deletes an existing user parameter by name.
+    """
+    return await send_to_addin('delete_user_parameter', {"name": name})
+
+@mcp.tool()
+async def capture_screenshot(
+    file_path: str,
+    width: int = 1280,
+    height: int = 720,
+    send_to_mcp: bool = False,
+    local_file_path: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Captures a screenshot of the active viewport.
+    file_path: The absolute path to save the image ON THE FUSION 360 MACHINE.
+    send_to_mcp: If True, the image is sent over the network.
+    local_file_path: If send_to_mcp is True, the absolute path to save the image ON THE MCP HOST MACHINE.
+    """
+    if send_to_mcp and not local_file_path:
+        raise Exception("local_file_path must be provided if send_to_mcp is True.")
+
+    response = await send_to_addin('capture_screenshot', {
+        "file_path": file_path,
+        "width": width,
+        "height": height,
+        "send_to_mcp": send_to_mcp
+    })
+
+    if send_to_mcp and "file_content_base64" in response and isinstance(local_file_path, str):
+        import base64
+        with open(local_file_path, "wb") as f:
+            f.write(base64.b64decode(response["file_content_base64"]))
+        response["local_file_path"] = local_file_path
+
+    return response
 
 
 if __name__ == "__main__":

@@ -87,7 +87,7 @@ The server supports native SSE (Server-Sent Events) for direct integration with 
     # Ensure virtualenv is active
     python server.py --transport sse --host 0.0.0.0 --port 8000
     ```
-2.  In Open WebUI, go to **Settings** > **External Tools**.
+2.  In Open WebUI, go to **Admin Settings* > **Intergrations** > **Manage Tool Servers**.
 3.  Click **+** to add a new server.
 4.  Set the **Type** to `MCP (Streamable HTTP)`.
 5.  Set the **Server URL** to `http://your-ip:8000/sse`.
