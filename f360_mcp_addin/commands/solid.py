@@ -434,6 +434,35 @@ def move_body(app, body_name, dx, dy, dz):
     return {"message": f"Successfully moved '{body_name}' by {dx},{dy},{dz}.", "feature_name": move.name}
 
 @command()
+def measure_interference(app, body_names):
+    """Checks for interference between a list of bodies."""
+    design = get_active_design(app)
+    
+    entities = adsk.core.ObjectCollection.create()
+    for name in body_names:
+        body = _get_body(app, name)
+        entities.add(body)
+        
+    if entities.count < 2:
+        raise Exception("Need at least 2 bodies to measure interference.")
+        
+    interferenceInput = design.createInterferenceInput(entities)
+    results = design.analyzeInterference(interferenceInput)
+    
+    interferences = []
+    if results and results.count > 0:
+        for i in range(results.count):
+            res = results.item(i)
+            vol = res.interferenceBody.volume if res.interferenceBody else 0.0
+            interferences.append({
+                "body1": res.entityOne.name,
+                "body2": res.entityTwo.name,
+                "volume": vol
+            })
+            
+    return {"message": "Successfully executed measure_interference.", "interferences": interferences, "has_interference": len(interferences) > 0}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()

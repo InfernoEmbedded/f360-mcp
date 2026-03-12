@@ -3,7 +3,7 @@ from server import (
     create_extrude, create_revolve, create_sweep, create_loft,
     create_hole, create_shell, create_fillet, create_chamfer,
     combine_bodies, feature_mirror, split_body, scale_body,
-    create_thread, move_body
+    create_thread, move_body, measure_interference
 )
 
 @pytest.mark.asyncio
@@ -89,3 +89,9 @@ async def test_move_body(mock_fusion):
     result = await move_body(body_name="Body 1", dx=1.0, dy=0.0, dz=5.0)
     assert "Successfully" in result["message"]
     assert mock_fusion.last_request["method"] == "move_body"
+
+@pytest.mark.asyncio
+async def test_measure_interference(mock_fusion):
+    result = await measure_interference(body_names=["Body 1", "Body 2"])
+    assert "Successfully" in result["message"]
+    assert mock_fusion.last_request["method"] == "measure_interference"
