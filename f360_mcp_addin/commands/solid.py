@@ -413,6 +413,27 @@ def create_thread(app, body_name, face_index=0, is_modeled=True):
     return {"message": f"Successfully created thread on '{body_name}' face {face_index}.", "feature_name": thread.name}
 
 @command()
+def move_body(app, body_name, dx, dy, dz):
+    """Translates a body by (dx, dy, dz) in cm."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    body = _get_body(app, body_name)
+    moveFeats = rootComp.features.moveFeatures
+    
+    entities = adsk.core.ObjectCollection.create()
+    entities.add(body)
+    
+    transform = adsk.core.Matrix3D.create()
+    transform.translation = adsk.core.Vector3D.create(dx, dy, dz)
+    
+    moveInput = moveFeats.createInput2(entities)
+    moveInput.defineAsFreeMove(transform)
+    move = moveFeats.add(moveInput)
+    
+    return {"message": f"Successfully moved '{body_name}' by {dx},{dy},{dz}.", "feature_name": move.name}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()
