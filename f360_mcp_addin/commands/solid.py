@@ -364,6 +364,24 @@ def split_body(app, body_name, split_tool_name, is_surface_tool=True):
     return {"message": f"Successfully split body '{body_name}' using '{split_tool_name}'.", "feature_name": split.name}
 
 @command()
+def scale_body(app, body_name, scale_factor):
+    """Uniformly scales a body from the component origin."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    scaleFeats = rootComp.features.scaleFeatures
+    
+    body = _get_body(app, body_name)
+    inputEntities = adsk.core.ObjectCollection.create()
+    inputEntities.add(body)
+    
+    basePoint = rootComp.originConstructionPoint
+    scale_val = adsk.core.ValueInput.createByReal(scale_factor)
+    
+    scaleInput = scaleFeats.createInput(inputEntities, basePoint, scale_val)
+    scale = scaleFeats.add(scaleInput)
+    return {"message": f"Successfully scaled body '{body_name}' by factor {scale_factor}.", "feature_name": scale.name}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()

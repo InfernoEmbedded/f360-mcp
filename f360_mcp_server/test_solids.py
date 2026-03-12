@@ -2,7 +2,7 @@ import pytest
 from server import (
     create_extrude, create_revolve, create_sweep, create_loft,
     create_hole, create_shell, create_fillet, create_chamfer,
-    combine_bodies, feature_mirror, split_body
+    combine_bodies, feature_mirror, split_body, scale_body
 )
 
 @pytest.mark.asyncio
@@ -70,3 +70,9 @@ async def test_split_body(mock_fusion):
     result = await split_body(body_name="Body 1", split_tool_name="XY")
     assert "Successfully" in result["message"]
     assert mock_fusion.last_request["method"] == "split_body"
+
+@pytest.mark.asyncio
+async def test_scale_body(mock_fusion):
+    result = await scale_body(body_name="Body 1", scale_factor=1.05)
+    assert "Successfully" in result["message"]
+    assert mock_fusion.last_request["method"] == "scale_body"
