@@ -130,7 +130,6 @@ To run the tests:
 2.  Ensure your virtual environment is active.
 3.  Run pytest:
     ```bash
-    export PYTHONPATH=$PYTHONPATH:.  # Add current dir to path
     pytest -v
     ```
 

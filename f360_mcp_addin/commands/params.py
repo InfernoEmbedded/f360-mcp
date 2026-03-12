@@ -4,16 +4,20 @@ from . import command
 from .base import get_active_design
 
 @command()
-def create_user_parameter(app, name, expression, unit="", comment=""):
+def create_user_parameter(app, name, expression, unit="", description=""):
     design = get_active_design(app)
     userParams = design.userParameters
-    param = userParams.add(name, adsk.core.ValueInput.createByString(expression), unit, comment)
+    param = userParams.add(name, adsk.core.ValueInput.createByString(expression), unit, description)
     return {
         "message": f"Created parameter '{name}' = {expression}",
         "name": param.name,
         "value": round(param.value, 3),
         "comment": param.comment
     }
+
+@command()
+def list_user_parameters(app):
+    return list_parameters(app)
 
 @command()
 def list_parameters(app):
@@ -32,21 +36,25 @@ def list_parameters(app):
     return {"parameters": params_list}
 
 @command()
-def update_parameter(app, name, expression=None, comment=None):
+def update_parameter(app, name, expression=None, description=None):
     design = get_active_design(app)
     param = design.allParameters.itemByName(name)
     if not param:
         raise Exception(f"Parameter '{name}' not found.")
     if expression is not None:
         param.expression = expression
-    if comment is not None:
-        param.comment = comment
+    if description is not None:
+        param.comment = description
     return {
         "message": f"Updated parameter '{name}'",
         "name": param.name,
         "value": round(param.value, 3),
         "comment": param.comment
     }
+
+@command()
+def update_user_parameter(app, name, expression=None, description=None):
+    return update_parameter(app, name, expression, description)
 
 @command()
 def delete_user_parameter(app, name):

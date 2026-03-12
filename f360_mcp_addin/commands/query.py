@@ -3,8 +3,8 @@ import adsk.fusion
 from . import command
 from .base import get_active_design, _get_body
 
-@command(name='find_faces')
-def find_faces(app, body_name):
+@command(name='get_face_info')
+def get_face_info(app, body_name):
     body = _get_body(app, body_name)
     faces_info = []
     for i in range(body.faces.count):

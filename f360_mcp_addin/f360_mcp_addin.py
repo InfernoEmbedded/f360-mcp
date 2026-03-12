@@ -6,7 +6,9 @@ import socket
 import json
 import time
 
-from .commands import registry, sketch, solid, construction, assembly, params, data, query, materials, utils
+from .commands import (
+    registry, sketch, solid, construction, assembly, params, data, query, materials, utils, internal
+)
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
