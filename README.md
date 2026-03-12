@@ -77,6 +77,22 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
+### Running with Open WebUI
+
+Open WebUI primarily supports MCP via SSE (HTTP). To use this stdio-based server with Open WebUI, you can use [mcpo](https://github.com/michaelfornaro/mcpo) (MCP to OpenAPI proxy) as a bridge.
+
+1.  Start the MCP server through `mcpo`:
+    ```bash
+    # Using uv (recommended)
+    uvx mcpo --port 8000 -- python /path/to/f360-mcp/f360_mcp_server/server.py
+    ```
+2.  In Open WebUI, go to **Settings** > **External Tools**.
+3.  Click **+** to add a new server.
+4.  Set the **Type** to `OpenAPI`.
+5.  Set the **URL** to `http://localhost:8000/openapi.json`.
+6.  Click **Save**.
+
+
 ## Development and Testing
 
 The project includes a comprehensive suite of unit tests using a threaded mock server.
