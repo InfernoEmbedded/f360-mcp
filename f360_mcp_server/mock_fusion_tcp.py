@@ -41,6 +41,20 @@ class MockFusionServer:
                 result = {"sketches": [{"name": "Sketch 1"}]}
             elif method == 'list_features':
                 result = {"features": [{"name": "Extrude 1", "type": "Extrude", "index": 0}]}
+            elif method == 'rename_construction':
+                result = {"message": f"Successfully renamed {params.get('type', 'plane')} {params['old_name']} to {params['new_name']}"}
+            elif method == 'delete_construction':
+                result = {"message": f"Successfully deleted {params.get('type', 'plane')} {params['name']}"}
+            elif method == 'delete_user_parameter':
+                result = {"message": f"Successfully deleted parameter {params['name']}"}
+            elif method == 'list_materials':
+                result = {"materials": [{"name": "Steel", "library": "Design"}, {"name": "Aluminum", "library": "Fusion 360 Material Library"}]}
+            elif method == 'apply_material':
+                result = {"message": f"Successfully applied material '{params['material_name']}' to body '{params['body_name']}'."}
+            elif method == 'list_appearances':
+                result = {"appearances": [{"name": "Paint - Red", "library": "Design"}, {"name": "Chrome", "library": "Fusion 360 Appearance Library"}]}
+            elif method == 'apply_appearance':
+                result = {"message": f"Successfully applied appearance '{params['appearance_name']}' to body '{params['body_name']}'."}
             elif method == 'export_model':
                 if params.get('send_to_mcp'):
                     import base64

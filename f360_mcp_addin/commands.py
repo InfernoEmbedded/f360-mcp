@@ -1350,3 +1350,113 @@ def _get_timeline_health_map(app):
         return health_map
     except:
         return {}
+
+def list_materials(app):
+    """
+    Lists available physical materials in the design and favorite libraries.
+    """
+    design = get_active_design(app)
+    materials = []
+    
+    # Check design materials
+    for i in range(design.materials.count):
+        m = design.materials.item(i)
+        materials.append({"name": m.name, "library": "Design"})
+    
+    # Check favorite libraries
+    # Fusion 360 Material Library is usually always present
+    lib = app.materialLibraries.itemByName("Fusion 360 Material Library")
+    if lib:
+        for i in range(lib.materials.count):
+            m = lib.materials.item(i)
+            materials.append({"name": m.name, "library": lib.name})
+            if len(materials) > 100: # Limit output
+                break
+                
+    return {"materials": materials}
+
+def apply_material(app, body_name, material_name):
+    """
+    Sets the physical material of a body.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    
+    # Check design first
+    material = design.materials.itemByName(material_name)
+    
+    # Check libraries if not in design
+    if not material:
+        lib = app.materialLibraries.itemByName("Fusion 360 Material Library")
+        if lib:
+            material = lib.materials.itemByName(material_name)
+            
+    if not material:
+        raise Exception(f"Material '{material_name}' not found.")
+        
+    body.material = material
+    return {"message": f"Successfully applied material '{material_name}' to body '{body_name}'."}
+
+def list_appearances(app):
+    """
+    Lists available appearances in the design and favorite libraries.
+    """
+    design = get_active_design(app)
+    appearances = []
+    
+    # Check design appearances
+    for i in range(design.appearances.count):
+        a = design.appearances.item(i)
+        appearances.append({"name": a.name, "library": "Design"})
+        
+    # Check favorite libraries
+    lib = app.materialLibraries.itemByName("Fusion 360 Appearance Library")
+    if lib:
+        for i in range(lib.appearances.count):
+            a = lib.appearances.item(i)
+            appearances.append({"name": a.name, "library": lib.name})
+            if len(appearances) > 100: # Limit output
+                break
+                
+    return {"appearances": appearances}
+
+def apply_appearance(app, body_name, appearance_name):
+    """
+    Sets the visual appearance of a body.
+    """
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    def get_body(name):
+        for i in range(rootComp.bRepBodies.count):
+            b = rootComp.bRepBodies.item(i)
+            if b.name == name:
+                return b
+        raise Exception(f"Body '{name}' not found.")
+        
+    body = get_body(body_name)
+    
+    # Check design first
+    appearance = design.appearances.itemByName(appearance_name)
+    
+    # Check libraries if not in design
+    if not appearance:
+        lib = app.materialLibraries.itemByName("Fusion 360 Appearance Library")
+        if lib:
+            appearance = lib.appearances.itemByName(appearance_name)
+            
+    if not appearance:
+        raise Exception(f"Appearance '{appearance_name}' not found.")
+        
+    body.appearance = appearance
+    return {"message": f"Successfully applied appearance '{appearance_name}' to body '{body_name}'."}
+

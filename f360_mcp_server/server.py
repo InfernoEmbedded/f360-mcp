@@ -909,5 +909,34 @@ async def get_design_health() -> Dict[str, Any]:
     """
     return await send_to_addin('get_design_health', {})
 
+@mcp.tool()
+async def list_materials() -> Dict[str, Any]:
+    """
+    Lists available physical materials in the design and favorite libraries.
+    """
+    return await send_to_addin('list_materials', {})
+
+@mcp.tool()
+async def apply_material(body_name: str, material_name: str) -> Dict[str, Any]:
+    """
+    Sets the physical material of a body.
+    """
+    return await send_to_addin('apply_material', {"body_name": body_name, "material_name": material_name})
+
+@mcp.tool()
+async def list_appearances() -> Dict[str, Any]:
+    """
+    Lists available appearances in the design and favorite libraries.
+    """
+    return await send_to_addin('list_appearances', {})
+
+@mcp.tool()
+async def apply_appearance(body_name: str, appearance_name: str) -> Dict[str, Any]:
+    """
+    Sets the visual appearance of a body.
+    """
+    return await send_to_addin('apply_appearance', {"body_name": body_name, "appearance_name": appearance_name})
+
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')

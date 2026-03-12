@@ -77,10 +77,14 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 
 ## Unimplemented Features (TODO)
 
-### Phase 10: Advanced Features
-- [ ] **`sketch_on_face`**: Create a sketch on a planar face of a body. (Note: Implemented via updating `create_sketch`)
+### Phase 11: Materials & Appearances
+- [x] **`list_materials`**: List available physical materials.
+- [x] **`apply_material`**: Set the physical material of a body.
+- [x] **`list_appearances`**: List available appearances.
+- [x] **`apply_appearance`**: Set the visual appearance of a body.
 
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
 - [ ] Mirror Geometry
 - [ ] Create Joint (Deferred)
+
