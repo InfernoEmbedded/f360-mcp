@@ -34,7 +34,7 @@ Avoid "naked" geometry. Use constraints to make models robust:
 
 ### 4. Assemblies
 - Create components (`create_component`) to logically separate parts.
-- Use `create_joint` to connect them.
+- Use `create_joint` or `create_as_built_joint` to connect them. Supported types: `rigid`, `revolute`, `slider`, `cylindrical`, `pin_slot`, `planar`, `ball`.
 
 ### 5. Reverse Engineering / Mesh Workflow
 To reconstruct or modify a parametric solid base from an existing STL/OBJ:

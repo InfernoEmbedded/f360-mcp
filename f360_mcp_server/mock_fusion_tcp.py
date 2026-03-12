@@ -76,7 +76,9 @@ class MockFusionServer:
                     "create_web": [{"name": "sketch_name"}, {"name": "thickness"}],
                     "create_emboss": [{"name": "sketch_name"}, {"name": "body_name"}, {"name": "depth"}],
                     "import_mesh": [{"name": "file_path"}],
-                    "convert_mesh_to_solid": [{"name": "body_name"}, {"name": "method", "has_default": True, "default": "prismatic"}]
+                    "convert_mesh_to_solid": [{"name": "body_name"}, {"name": "method", "has_default": True, "default": "prismatic"}],
+                    "create_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}, {"name": "offset_x", "has_default": True, "default": 0}, {"name": "offset_y", "has_default": True, "default": 0}, {"name": "offset_z", "has_default": True, "default": 0}],
+                    "create_as_built_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}]
                 }
                 for cmd, params_list in solid_meta.items():
                     if cmd not in meta:
@@ -162,9 +164,11 @@ class MockFusionServer:
             elif method == 'save_design':
                 result = {"message": "Design saved successfully"}
             elif method == 'create_joint':
-                 result = {"message": f"Successfully Created rigid joint", "joint_name": "Rigid1"}
+                 jt = params.get('joint_type', 'rigid')
+                 result = {"message": f"Created {jt} joint", "joint_name": f"{jt.capitalize()}1"}
             elif method == 'create_as_built_joint':
-                 result = {"message": f"Successfully Created as-built revolute joint", "joint_name": "Revolute1"}
+                 jt = params.get('joint_type', 'rigid')
+                 result = {"message": f"Created as-built {jt} joint", "joint_name": f"{jt.capitalize()}1"}
             elif method == 'create_folder':
                  result = {"message": f"Successfully Created folder '{params.get('folder_name')}'", "folder_id": "new_folder_id"}
             elif method == 'create_new_design':

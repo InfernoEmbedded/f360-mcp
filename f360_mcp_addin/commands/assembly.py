@@ -55,16 +55,30 @@ def create_joint(app, component1_name, component2_name, joint_type="rigid", offs
     occ1 = find_occ(app, component1_name)
     occ2 = find_occ(app, component2_name)
     joints = root.joints
-    geo0 = adsk.fusion.JointGeometry.createByPoint(occ1.component.originConstructionPoint)
+    Geo0 = adsk.fusion.JointGeometry.createByPoint(occ1.component.originConstructionPoint)
     geo1 = adsk.fusion.JointGeometry.createByPoint(occ2.component.originConstructionPoint)
-    jointInput = joints.createInput(geo0, geo1)
+    jointInput = joints.createInput(Geo0, geo1)
     jt = joint_type.lower()
+    
+    # Configure joint motion
     if jt == "rigid":
         jointInput.setAsRigidJointMotion()
     elif jt == "revolute":
         jointInput.setAsRevoluteJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
     elif jt == "slider":
         jointInput.setAsSliderJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "cylindrical":
+        jointInput.setAsCylindricalJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "pin_slot":
+        jointInput.setAsPinSlotJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection, adsk.fusion.JointDirections.XAxisJointDirection)
+    elif jt == "planar":
+        # Planar joints typically need a normal direction (primary axis) mapping
+        jointInput.setAsPlanarJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "ball":
+        jointInput.setAsBallJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection, adsk.fusion.JointDirections.XAxisJointDirection)
+    else:
+        raise ValueError(f"Unsupported joint type: {joint_type}")
+        
     if offset_x != 0 or offset_y != 0 or offset_z != 0:
         offset = adsk.core.Vector3D.create(offset_x, offset_y, offset_z)
         jointInput.offset = offset
@@ -80,9 +94,23 @@ def create_as_built_joint(app, component1_name, component2_name, joint_type="rig
     joints = root.asBuiltJoints
     jointInput = joints.createInput(occ1, occ2, None)
     jt = joint_type.lower()
+    
     if jt == "rigid":
         jointInput.setAsRigidJointMotion()
     elif jt == "revolute":
         jointInput.setAsRevoluteJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "slider":
+        jointInput.setAsSliderJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "cylindrical":
+        jointInput.setAsCylindricalJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "pin_slot":
+        jointInput.setAsPinSlotJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection, adsk.fusion.JointDirections.XAxisJointDirection)
+    elif jt == "planar":
+        jointInput.setAsPlanarJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection)
+    elif jt == "ball":
+        jointInput.setAsBallJointMotion(adsk.fusion.JointDirections.ZAxisJointDirection, adsk.fusion.JointDirections.XAxisJointDirection)
+    else:
+        raise ValueError(f"Unsupported joint type: {joint_type}")
+        
     joint = joints.add(jointInput)
     return {"message": f"Created as-built {joint_type} joint.", "joint_name": joint.name}

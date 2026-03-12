@@ -51,6 +51,8 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`list_components`**: List all components in the design.
 - [x] **`rename_component`**: Rename a component.
 - [x] **`delete_component`**: Delete a component.
+- [x] **`create_joint`**: Create rigid, revolute, slider, cylindrical, pin-slot, planar, or ball joints.
+- [x] **`create_as_built_joint`**: Link components geometrically in place.
 - [x] **Timeline Groups**: Support for manual (`start_timeline_group`) and automatic grouping.
 
 ### Solid Modeling Phase 2 (Modification)
@@ -103,5 +105,4 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
 - [ ] Mirror Geometry
-- [ ] Create Joint (Deferred)
 
