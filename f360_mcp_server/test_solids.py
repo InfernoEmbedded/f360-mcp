@@ -3,7 +3,8 @@ from server import (
     create_extrude, create_revolve, create_sweep, create_loft,
     create_hole, create_shell, create_fillet, create_chamfer,
     combine_bodies, feature_mirror, split_body, scale_body,
-    create_thread, move_body, measure_interference
+    create_thread, move_body, measure_interference,
+    create_rib, create_web, create_emboss
 )
 
 @pytest.mark.asyncio
@@ -95,3 +96,21 @@ async def test_measure_interference(mock_fusion):
     result = await measure_interference(body_names=["Body 1", "Body 2"])
     assert "Successfully" in result["message"]
     assert mock_fusion.last_request["method"] == "measure_interference"
+
+@pytest.mark.asyncio
+async def test_create_rib(mock_fusion):
+    result = await create_rib(sketch_name="S1", thickness=0.1)
+    assert "Successfully" in result["message"]
+    assert mock_fusion.last_request["method"] == "create_rib"
+
+@pytest.mark.asyncio
+async def test_create_web(mock_fusion):
+    result = await create_web(sketch_name="S1", thickness=0.1)
+    assert "Successfully" in result["message"]
+    assert mock_fusion.last_request["method"] == "create_web"
+
+@pytest.mark.asyncio
+async def test_create_emboss(mock_fusion):
+    result = await create_emboss(sketch_name="S1", body_name="Body 1", depth=0.2)
+    assert "Successfully" in result["message"]
+    assert mock_fusion.last_request["method"] == "create_emboss"

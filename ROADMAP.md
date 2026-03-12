@@ -59,8 +59,6 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_hole`**: Create a hole from a point.
 - [x] **`create_shell`**: Shell a body to a specific thickness.
 
-## Unimplemented Features (TODO)
-
 ### Solid Modeling Phase 3 (Finishing)
 - [x] **`create_fillet`**: Add a fillet to an edge or face.
 - [x] **`create_chamfer`**: Add a chamfer to an edge or face.
@@ -82,13 +80,21 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_circular_pattern`**: Pattern geometry radially.
 - [x] **`export_model`**: Export the design as a standard file (.step, .stl).
 
-## Unimplemented Features (TODO)
-
-### Phase 11: Materials & Appearances
+### Materials & Appearances
 - [x] **`list_materials`**: List available physical materials.
 - [x] **`apply_material`**: Set the physical material of a body.
 - [x] **`list_appearances`**: List available appearances.
 - [x] **`apply_appearance`**: Set the visual appearance of a body.
+
+### 3D Printing Specifics
+- [x] **`split_body`**: Split a body using a plane or surface.
+- [x] **`scale_body`**: Uniformly scale a body.
+- [x] **`create_thread`**: Add modeled threads to a cylindrical face.
+- [x] **`move_body`**: Translate a body by a vector.
+- [x] **`measure_interference`**: Check for interference between bodies.
+- [x] **`create_rib`**: Create a rib feature from a sketch.
+- [x] **`create_web`**: Create a web feature from a sketch.
+- [x] **`create_emboss`**: Emboss/deboss a sketch profile onto a face.
 
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry

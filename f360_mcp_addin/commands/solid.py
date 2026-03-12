@@ -463,6 +463,71 @@ def measure_interference(app, body_names):
     return {"message": "Successfully executed measure_interference.", "interferences": interferences, "has_interference": len(interferences) > 0}
 
 @command()
+def create_rib(app, sketch_name, thickness):
+    """Creates a rib feature from a sketch profile."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    sketch = get_sketch_by_name(app, sketch_name)
+    if sketch.profiles.count == 0:
+        raise Exception(f"No profiles found in sketch {sketch_name}.")
+        
+    ribFeats = rootComp.features.ribFeatures
+    thick = adsk.core.ValueInput.createByReal(thickness)
+    
+    # A rib takes a sketch curve collection or a profile. 
+    # Usually, sketchCurve is used for Rib since it expects open/closed curves. Let's pass the first profile.
+    ribInput = ribFeats.createInput(sketch.profiles.item(0), thick)
+    ribInput.isSymmetric = True
+    
+    rib = ribFeats.add(ribInput)
+    return {"message": f"Successfully created rib from {sketch_name}.", "feature_name": rib.name}
+
+@command()
+def create_web(app, sketch_name, thickness):
+    """Creates a web feature from a sketch profile."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    sketch = get_sketch_by_name(app, sketch_name)
+    if sketch.profiles.count == 0:
+        raise Exception(f"No profiles found in sketch {sketch_name}.")
+        
+    webFeats = rootComp.features.webFeatures
+    thick = adsk.core.ValueInput.createByReal(thickness)
+    
+    webInput = webFeats.createInput(sketch.profiles.item(0), thick)
+    
+    web = webFeats.add(webInput)
+    return {"message": f"Successfully created web from {sketch_name}.", "feature_name": web.name}
+
+@command()
+def create_emboss(app, sketch_name, body_name, depth):
+    """Creates an emboss or deboss feature."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    sketch = get_sketch_by_name(app, sketch_name)
+    if sketch.profiles.count == 0:
+        raise Exception(f"No profiles found in sketch {sketch_name}.")
+        
+    body = _get_body(app, body_name)
+    
+    embossFeats = rootComp.features.embossFeatures
+    profiles = adsk.core.ObjectCollection.create()
+    profiles.add(sketch.profiles.item(0))
+    
+    faces = adsk.core.ObjectCollection.create()
+    for i in range(body.faces.count):
+        faces.add(body.faces.item(i))
+        
+    embossInput = embossFeats.createInput(profiles, faces)
+    embossInput.depth = adsk.core.ValueInput.createByReal(depth)
+    
+    emboss = embossFeats.add(embossInput)
+    return {"message": f"Successfully created emboss on {body_name}.", "feature_name": emboss.name}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()
