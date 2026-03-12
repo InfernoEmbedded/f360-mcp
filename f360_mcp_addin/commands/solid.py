@@ -528,6 +528,32 @@ def create_emboss(app, sketch_name, body_name, depth):
     return {"message": f"Successfully created emboss on {body_name}.", "feature_name": emboss.name}
 
 @command()
+def import_mesh(app, file_path):
+    """Imports an STL or OBJ mesh file into the active design."""
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    importManager = app.importManager
+    
+    # Determine type by extension
+    ext = file_path.lower()
+    if ext.endswith('.stl'):
+        importOptions = importManager.createSTLImportOptions(file_path)
+    elif ext.endswith('.obj'):
+        importOptions = importManager.createOBJImportOptions(file_path)
+    else:
+        raise Exception(f"Unsupported mesh format for file: {file_path}. Must be .stl or .obj")
+        
+    try:
+        importManager.importToTarget(importOptions, rootComp)
+    except Exception as e:
+        raise Exception(f"Failed to import mesh: {str(e)}")
+        
+    # The import target usually results in a new mesh body or component. 
+    # For simplicity we'll just return success. It takes time in Fusion GUI but via API it adds to root.
+    return {"message": f"Successfully imported mesh from {file_path}."}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()

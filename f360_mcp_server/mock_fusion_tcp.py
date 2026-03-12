@@ -74,7 +74,8 @@ class MockFusionServer:
                     "measure_interference": [{"name": "body_names"}],
                     "create_rib": [{"name": "sketch_name"}, {"name": "thickness"}],
                     "create_web": [{"name": "sketch_name"}, {"name": "thickness"}],
-                    "create_emboss": [{"name": "sketch_name"}, {"name": "body_name"}, {"name": "depth"}]
+                    "create_emboss": [{"name": "sketch_name"}, {"name": "body_name"}, {"name": "depth"}],
+                    "import_mesh": [{"name": "file_path"}]
                 }
                 for cmd, params_list in solid_meta.items():
                     if cmd not in meta:

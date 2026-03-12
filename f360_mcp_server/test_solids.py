@@ -4,7 +4,8 @@ from server import (
     create_hole, create_shell, create_fillet, create_chamfer,
     combine_bodies, feature_mirror, split_body, scale_body,
     create_thread, move_body, measure_interference,
-    create_rib, create_web, create_emboss
+    create_rib, create_web, create_emboss,
+    import_mesh
 )
 
 @pytest.mark.asyncio
@@ -114,3 +115,9 @@ async def test_create_emboss(mock_fusion):
     result = await create_emboss(sketch_name="S1", body_name="Body 1", depth=0.2)
     assert "Successfully" in result["message"]
     assert mock_fusion.last_request["method"] == "create_emboss"
+
+@pytest.mark.asyncio
+async def test_import_mesh(mock_fusion):
+    result = await import_mesh(file_path="/tmp/test.stl")
+    assert "Successfully" in result["message"]
+    assert mock_fusion.last_request["method"] == "import_mesh"
