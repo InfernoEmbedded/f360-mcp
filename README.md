@@ -93,6 +93,24 @@ The server supports native SSE (Server-Sent Events) for direct integration with 
 5.  Set the **Server URL** to `http://your-ip:8000/sse`.
 6.  Click **Save**.
 
+### Running as a Systemd Service (Linux)
+
+For persistent access, you can install the MCP server as a background service:
+
+1.  **Run the install script**:
+    ```bash
+    sudo ./scripts/install_service.sh
+    ```
+2.  **Follow the prompts** to set the host (e.g., `0.0.0.0`) and port (e.g., `8000`).
+3.  **Manage the service**:
+    ```bash
+    # Check status
+    sudo systemctl status fusion360-mcp
+    
+    # Restart
+    sudo systemctl restart fusion360-mcp
+    ```
+
 ### Command Line Arguments
 
 The `server.py` supports several configurations:

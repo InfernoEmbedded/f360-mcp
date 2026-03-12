@@ -1,0 +1,19 @@
+[Unit]
+Description=Fusion 360 MCP Server (SSE)
+After=network.target
+
+[Service]
+User={{USER}}
+Group={{GROUP}}
+WorkingDirectory={{WORKING_DIR}}
+Environment="MCP_TRANSPORT=sse"
+Environment="MCP_HOST={{MCP_HOST}}"
+Environment="MCP_PORT={{MCP_PORT}}"
+Environment="F360_ADDIN_HOST={{F360_ADDIN_HOST}}"
+Environment="F360_ADDIN_PORT={{F360_ADDIN_PORT}}"
+ExecStart={{VENV_PYTHON}} server.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
