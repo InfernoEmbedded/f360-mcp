@@ -323,6 +323,47 @@ def delete_feature(app, feature_name):
     return {"message": f"Deleted feature '{feature_name}'"}
 
 @command()
+def split_body(app, body_name, split_tool_name, is_surface_tool=True):
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    
+    body = _get_body(app, body_name)
+    splitBodyFeats = rootComp.features.splitBodyFeatures
+    
+    # Resolve splitting tool
+    tool = None
+    plane_map = {
+        'xy': rootComp.xYConstructionPlane,
+        'yz': rootComp.yZConstructionPlane,
+        'xz': rootComp.xZConstructionPlane,
+        'zx': rootComp.xZConstructionPlane
+    }
+    
+    if split_tool_name.lower() in plane_map:
+        tool = plane_map[split_tool_name.lower()]
+    
+    if not tool:
+        # Check construction planes
+        for comp in design.allComponents:
+            tool = comp.constructionPlanes.itemByName(split_tool_name)
+            if tool:
+                break
+                
+    if not tool:
+        # Check bodies
+        try:
+            tool = _get_body(app, split_tool_name)
+        except:
+            pass
+            
+    if not tool:
+         raise Exception(f"Splitting tool '{split_tool_name}' not found. Must be a standard plane (XY, YZ, XZ), construction plane, or body.")
+         
+    splitInput = splitBodyFeats.createInput(body, tool, is_surface_tool)
+    split = splitBodyFeats.add(splitInput)
+    return {"message": f"Successfully split body '{body_name}' using '{split_tool_name}'.", "feature_name": split.name}
+
+@command()
 def compute_all(app):
     design = get_active_design(app)
     design.computeAll()

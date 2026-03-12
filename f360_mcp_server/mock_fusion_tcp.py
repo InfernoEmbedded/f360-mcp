@@ -55,7 +55,31 @@ class MockFusionServer:
 
             # Specialize responses first (priority matching)
             if method == '_get_command_metadata':
-                result = FULL_METADATA
+                meta = FULL_METADATA.copy()
+                solid_meta = {
+                    "split_body": [{"name": "body_name"}, {"name": "split_tool_name"}, {"name": "is_surface_tool", "has_default": True, "default": True}],
+                    "create_extrude": [{"name": "sketch_name"}, {"name": "distance"}, {"name": "operation", "has_default": True, "default": "new_body"}, {"name": "profile_index", "has_default": True, "default": 0}],
+                    "create_revolve": [{"name": "sketch_name"}, {"name": "axis_ent_type"}, {"name": "axis_ent_idx"}, {"name": "angle"}],
+                    "create_sweep": [{"name": "profile_sketch_name"}, {"name": "path_sketch_name"}, {"name": "path_ent_type"}, {"name": "path_ent_idx"}],
+                    "create_loft": [{"name": "profiles_info"}],
+                    "create_hole": [{"name": "sketch_name"}, {"name": "point_idx"}, {"name": "diameter"}, {"name": "depth"}],
+                    "create_shell": [{"name": "body_name"}, {"name": "thickness"}],
+                    "create_fillet": [{"name": "body_name"}, {"name": "radius"}],
+                    "create_chamfer": [{"name": "body_name"}, {"name": "distance"}],
+                    "feature_mirror": [{"name": "body_name"}, {"name": "plane_name"}],
+                    "combine_bodies": [{"name": "target_body_name"}, {"name": "tool_body_names"}, {"name": "operation", "has_default": True, "default": "join"}],
+                    "scale_body": [{"name": "body_name"}, {"name": "scale_factor"}],
+                    "create_thread": [{"name": "cylinder_face_name"}, {"name": "is_modeled", "has_default": True, "default": True}],
+                    "move_body": [{"name": "body_name"}, {"name": "dx"}, {"name": "dy"}, {"name": "dz"}],
+                    "measure_interference": [{"name": "body_names"}],
+                    "create_rib": [{"name": "sketch_name"}, {"name": "thickness"}],
+                    "create_web": [{"name": "sketch_name"}, {"name": "thickness"}],
+                    "create_emboss": [{"name": "sketch_name"}, {"name": "body_name"}, {"name": "depth"}]
+                }
+                for cmd, params_list in solid_meta.items():
+                    if cmd not in meta:
+                        meta[cmd] = {"parameters": params_list}
+                result = meta
             elif method == 'start_timeline_group':
                  if params.get('name'):
                      self.current_group_name = params.get('name')
