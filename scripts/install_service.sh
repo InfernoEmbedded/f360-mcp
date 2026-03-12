@@ -28,6 +28,27 @@ echo "Installing for User: $REAL_USER"
 echo "Working Directory:   $WORKING_DIR"
 echo "----------------------------------------------------"
 
+# Ensure venv exists
+if [ ! -d "$WORKING_DIR/venv" ]; then
+    echo "Virtual environment not found. Creating it..."
+    if ! runuser -u "$REAL_USER" -- python3 -m venv "$WORKING_DIR/venv"; then
+        echo "Error: Failed to create virtual environment."
+        exit 1
+    fi
+    echo "Installing dependencies..."
+    if ! runuser -u "$REAL_USER" -- "$VENV_PYTHON" -m pip install --upgrade pip; then
+        echo "Error: Failed to upgrade pip."
+        exit 1
+    fi
+    if ! runuser -u "$REAL_USER" -- "$VENV_PYTHON" -m pip install -r "$WORKING_DIR/requirements.txt"; then
+        echo "Error: Failed to install dependencies."
+        exit 1
+    fi
+    echo "Virtual environment setup complete."
+else
+    echo "Existing virtual environment found."
+fi
+
 # Prompt for settings (optional in non-interactive if needed)
 if [ -z "$NON_INTERACTIVE" ]; then
     read -p "Enter MCP Host [$DEFAULT_HOST]: " MCP_HOST
