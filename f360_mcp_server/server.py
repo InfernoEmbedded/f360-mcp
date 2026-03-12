@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import socket
 import sys
 import uuid
@@ -7,14 +8,15 @@ from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
 
-# Configuration
-ADDIN_HOST = '127.0.0.1'
-ADDIN_PORT = 30011
+def get_addin_host():
+    return os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
+
+def get_addin_port():
+    return int(os.environ.get('F360_ADDIN_PORT', 30011))
 
 mcp = FastMCP("fusion360-mcp")
 
 async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
-    """Helper function to send JSON-RPC to the Fusion 360 Add-In."""
     request = {
         "jsonrpc": "2.0",
         "method": method,
@@ -22,38 +24,43 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         "id": str(uuid.uuid4())
     }
     
-    # We use a blocking socket here but wrap it in an asyncio executor
-    # or just use asyncio sockets. For simplicity, we'll try standard sockets
-    # since these are fast local calls.
+    host = get_addin_host()
+    port = get_addin_port()
     
     def sync_request():
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(60.0) # 60 second timeout for complex operations
-            s.connect((ADDIN_HOST, ADDIN_PORT))
-            s.sendall(json.dumps(request).encode('utf-8') + b'\n')
-            
-            # Read response
-            buffer = ""
-            while True:
-                data = s.recv(4096)
-                if not data:
-                    break
-                buffer += data.decode('utf-8')
-                if '\n' in buffer:
-                    break
-            
-            return buffer.strip()
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(5.0) # 5 second timeout for testing
+                s.connect((host, port))
+                s.sendall(json.dumps(request).encode('utf-8') + b'\n')
+                
+                # Read response
+                buffer = ""
+                while True:
+                    data = s.recv(8192)
+                    if not data:
+                        break
+                    buffer += data.decode('utf-8')
+                    if '\n' in buffer:
+                        break
+                
+                if not buffer.strip():
+                    return {"error": "No response from Add-In"}
+                
+                return json.loads(buffer.strip())
+        except Exception as e:
+            return {"error": str(e)}
 
     try:
-        response_data = await asyncio.to_thread(sync_request)
-        response = json.loads(response_data)
+        response = await asyncio.to_thread(sync_request)
         
+        # Check for errors returned by the Add-In or during socket communication
         if "error" in response:
             raise Exception(f"Fusion 360 Error: {response['error']}")
             
         return response.get("result", {})
     except ConnectionRefusedError:
-        raise Exception(f"Could not connect to Fusion 360 Add-In at {ADDIN_HOST}:{ADDIN_PORT}. Is it running?")
+        raise Exception(f"Could not connect to Fusion 360 Add-In at {host}:{port}. Is it running?")
     except json.JSONDecodeError:
         raise Exception("Invalid response from Fusion 360 Add-In.")
 
