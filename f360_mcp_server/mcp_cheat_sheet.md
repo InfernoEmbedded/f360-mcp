@@ -36,6 +36,12 @@ Avoid "naked" geometry. Use constraints to make models robust:
 - Create components (`create_component`) to logically separate parts.
 - Use `create_joint` to connect them.
 
+### 5. Reverse Engineering / Mesh Workflow
+To reconstruct or modify a parametric solid base from an existing STL/OBJ:
+1. `import_mesh(file_path)` to bring the mesh into the design.
+2. `convert_mesh_to_solid(body_name="Mesh Body 1", method="prismatic")` to natively convert the mesh triangles into an editable BRep/Solid BaseFeature. (Note: Prismatic is preferred for mechanical parts).
+3. Use downstream solid tools like `create_extrude`, `split_body`, or `create_hole` to adjust the now-solid geometry.
+
 ## ⚠️ Common Pitfalls
 
 - **Closed Profiles**: Features like `create_extrude` require a **closed loop** of lines/arcs. If your sketch isn't "water-tight", it will fail or extrude unexpected regions.

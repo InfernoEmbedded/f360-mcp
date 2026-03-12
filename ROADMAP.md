@@ -96,6 +96,10 @@ This document outlines the current status of the Fusion 360 Sketch API exposed v
 - [x] **`create_web`**: Create a web feature from a sketch.
 - [x] **`create_emboss`**: Emboss/deboss a sketch profile onto a face.
 
+### Reverse Engineering / Mesh
+- [x] **`import_mesh`**: Import an STL or OBJ mesh file into the active design.
+- [x] **`convert_mesh_to_solid`**: Convert a mesh body to a BRep solid body (prismatic or faceted).
+
 ### Utilities & Operations (Deferred due to API limits)
 - [ ] Extend Geometry
 - [ ] Mirror Geometry
