@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import os
@@ -939,4 +940,30 @@ async def apply_appearance(body_name: str, appearance_name: str) -> Dict[str, An
 
 
 if __name__ == "__main__":
-    mcp.run(transport='stdio')
+    parser = argparse.ArgumentParser(description="Fusion 360 MCP Server")
+    parser.add_argument(
+        "--transport", 
+        choices=["stdio", "sse"], 
+        default=os.environ.get("MCP_TRANSPORT", "stdio"),
+        help="Transport type (default: stdio)"
+    )
+    parser.add_argument(
+        "--host", 
+        default=os.environ.get("MCP_HOST", "127.0.0.1"),
+        help="Host for SSE transport (default: 127.0.0.1)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=int(os.environ.get("MCP_PORT", 8000)),
+        help="Port for SSE transport (default: 8000)"
+    )
+    
+    args = parser.parse_args()
+    
+    if args.transport == "sse":
+        import uvicorn
+        print(f"Starting SSE server on {args.host}:{args.port}")
+        uvicorn.run(mcp.sse_app, host=args.host, port=args.port)
+    else:
+        mcp.run(transport='stdio')

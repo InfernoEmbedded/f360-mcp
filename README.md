@@ -66,7 +66,8 @@ Add the following to your `claude_desktop_config.json`:
     "fusion360": {
       "command": "/path/to/your/python",
       "args": [
-        "/path/to/f360-mcp/f360_mcp_server/server.py"
+        "/path/to/f360-mcp/f360_mcp_server/server.py",
+        "--transport", "stdio"
       ],
       "env": {
         "F360_ADDIN_HOST": "127.0.0.1",
@@ -77,20 +78,29 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
-### Running with Open WebUI
+### Running with Open WebUI (Native HTTP/SSE)
 
-Open WebUI primarily supports MCP via SSE (HTTP). To use this stdio-based server with Open WebUI, you can use [mcpo](https://github.com/michaelfornaro/mcpo) (MCP to OpenAPI proxy) as a bridge.
+The server supports native SSE (Server-Sent Events) for direct integration with web interfaces like Open WebUI.
 
-1.  Start the MCP server through `mcpo`:
+1.  Start the MCP server in SSE mode:
     ```bash
-    # Using uv (recommended)
-    uvx mcpo --port 8000 -- python /path/to/f360-mcp/f360_mcp_server/server.py
+    # Ensure virtualenv is active
+    python server.py --transport sse --host 0.0.0.0 --port 8000
     ```
 2.  In Open WebUI, go to **Settings** > **External Tools**.
 3.  Click **+** to add a new server.
-4.  Set the **Type** to `OpenAPI`.
-5.  Set the **URL** to `http://localhost:8000/openapi.json`.
+4.  Set the **Type** to `MCP (Streamable HTTP)`.
+5.  Set the **Server URL** to `http://your-ip:8000/sse`.
 6.  Click **Save**.
+
+### Command Line Arguments
+
+The `server.py` supports several configurations:
+-   `--transport`: `stdio` (default) or `sse`.
+-   `--host`: Host for SSE server (default: `127.0.0.1`).
+-   `--port`: Port for SSE server (default: `8000`).
+
+Environment variables can also be used: `MCP_TRANSPORT`, `MCP_HOST`, `MCP_PORT`.
 
 
 ## Development and Testing
