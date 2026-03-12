@@ -10,8 +10,8 @@ logger = logging.getLogger("MockFusion")
 
 class MockFusionServer:
     def __init__(self, host=None, port=None):
-        self.host = host or os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
-        self.port = int(port or os.environ.get('F360_ADDIN_PORT', 30011))
+        self.host = host if host is not None else os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
+        self.port = int(port) if port is not None else int(os.environ.get('F360_ADDIN_PORT', 30011))
         self.server = None
         self.last_request = None
         self.loop = None
