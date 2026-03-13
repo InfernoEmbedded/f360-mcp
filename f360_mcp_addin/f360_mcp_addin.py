@@ -5,6 +5,8 @@ import threading
 import socket
 import json
 import time
+import os
+import sys
 
 from .commands import (
     registry, sketch, solid, construction, assembly, params, data, query, materials, utils, internal
@@ -16,9 +18,74 @@ app = None
 ui  = None
 server_thread = None
 stop_event = threading.Event()
-PORT = 30011
+handlers = []
+
+# Persistent Settings
+SETTINGS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')
+DEFAULT_SETTINGS = {
+    'port': 30011,
+    'interface': '127.0.0.1'
+}
+
+def load_settings():
+    try:
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, 'r') as f:
+                return {**DEFAULT_SETTINGS, **json.load(f)}
+    except:
+        pass
+    return DEFAULT_SETTINGS.copy()
+
+def save_settings(settings):
+    try:
+        with open(SETTINGS_FILE, 'w') as f:
+            json.dump(settings, f, indent=4)
+    except:
+        app.log("Failed to save settings.")
+
+# UI Commands
+class SettingsCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
+    def __init__(self):
+        super().__init__()
+    def notify(self, args):
+        try:
+            cmd = adsk.core.Command.cast(args.command)
+            settings = load_settings()
+            
+            inputs = cmd.commandInputs
+            inputs.addIntegerSliderCommandInput('port', 'TCP Port', 1024, 65535, False)
+            inputs.itemById('port').valueOne = settings.get('port', 30011)
+            
+            interface_input = inputs.addDropDownCommandInput('interface', 'Interface', adsk.core.DropDownStyles.LabeledIconDropDownStyle)
+            interface_input.listItems.add('Local (127.0.0.1)', settings.get('interface') == '127.0.0.1', '')
+            interface_input.listItems.add('All (0.0.0.0)', settings.get('interface') == '0.0.0.0', '')
+            
+            on_execute = SettingsCommandExecuteHandler()
+            cmd.execute.add(on_execute)
+            handlers.append(on_execute)
+        except:
+            ui.messageBox('Failed to create settings dialog:\n{}'.format(traceback.format_exc()))
+
+class SettingsCommandExecuteHandler(adsk.core.CommandEventHandler):
+    def __init__(self):
+        super().__init__()
+    def notify(self, args):
+        try:
+            cmd = args.firingEvent.sender
+            inputs = cmd.commandInputs
+            
+            new_port = inputs.itemById('port').valueOne
+            new_interface = '127.0.0.1' if 'Local' in inputs.itemById('interface').selectedItem.name else '0.0.0.0'
+            
+            settings = load_settings()
+            if settings['port'] != new_port or settings['interface'] != new_interface:
+                save_settings({'port': new_port, 'interface': new_interface})
+                ui.messageBox('Settings saved. Please stop and start the Add-in to apply changes.')
+        except:
+            ui.messageBox('Failed to save settings:\n{}'.format(traceback.format_exc()))
 
 def handle_client(conn, addr):
+    # ... (rest of handle_client remains the same)
     app.log(f'Connected by {addr}')
     try:
         while not stop_event.is_set():
@@ -103,14 +170,17 @@ def handle_client(conn, addr):
 
 def server_loop():
     try:
+        settings = load_settings()
+        port = settings.get('port', 30011)
+        interface = settings.get('interface', '127.0.0.1')
+        
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Bind to 127.0.0.1 so it's only accessible locally
-            s.bind(('127.0.0.1', PORT))
+            s.bind((interface, port))
             s.listen()
             # Set timeout to allow checking stop_event
             s.settimeout(1.0)
-            app.log(f"MCP Add-In TCP Server listening on port {PORT}")
+            app.log(f"MCP Add-In TCP Server listening on {interface}:{port}")
             
             while not stop_event.is_set():
                 try:
@@ -133,26 +203,68 @@ def run(context):
         app = adsk.core.Application.get()
         ui  = app.userInterface
         
+        # 1. Start Server
         stop_event.clear()
         server_thread = threading.Thread(target=server_loop)
-        # Daemon thread makes sure it dies when Fusion exits if stop() fails
         server_thread.daemon = True 
         server_thread.start()
         
-        ui.messageBox('MCP Add-In Started. Listening on TCP 30011.')
+        # 2. Setup UI
+        cmd_defs = ui.commandDefinitions
+        
+        # Check if already exists (avoids errors on reload)
+        mcp_cmd = cmd_defs.itemById('mcp_settings_cmd')
+        if mcp_cmd:
+            mcp_cmd.deleteMe()
+            
+        mcp_cmd = cmd_defs.addButtonDefinition(
+            'mcp_settings_cmd', 
+            'MCP Settings', 
+            'Configure the Model Context Protocol server.',
+            './resources' # Points to resources folder with 16x16.png etc
+        )
+        
+        on_created = SettingsCommandCreatedHandler()
+        mcp_cmd.commandCreated.add(on_created)
+        handlers.append(on_created)
+        
+        # Add to Utility Panel
+        all_toolbars = ui.allToolbarPanels
+        utility_panel = all_toolbars.itemById('SolidScriptsAddinsPanel')
+        if utility_panel:
+            nav_item = utility_panel.controls.itemById('mcp_settings_cmd')
+            if nav_item:
+                nav_item.deleteMe()
+            utility_panel.controls.addCommand(mcp_cmd)
+        
+        settings = load_settings()
+        app.log(f"MCP Add-In Started. Listening on {settings['interface']}:{settings['port']}")
 
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 def stop(context):
+    global handlers
     try:
         stop_event.set()
         if server_thread and server_thread.is_alive():
-            # The server loop will timeout in 1s and see stop_event.is_set()
             server_thread.join(timeout=2.0)
             
-        ui.messageBox('MCP Add-In Stopped.')
+        # UI Cleanup
+        cmd_defs = ui.commandDefinitions
+        mcp_cmd = cmd_defs.itemById('mcp_settings_cmd')
+        if mcp_cmd:
+            mcp_cmd.deleteMe()
+            
+        utility_panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
+        if utility_panel:
+            control = utility_panel.controls.itemById('mcp_settings_cmd')
+            if control:
+                control.deleteMe()
+        
+        handlers = []
+        app.log('MCP Add-In Stopped.')
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
