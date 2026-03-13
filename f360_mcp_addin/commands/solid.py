@@ -677,8 +677,7 @@ def run(context):
                 break
                 
     except:
-        if ui:
-            ui.messageBox('Failed to reload:\\n{}'.format(traceback.format_exc()))
+        add_to_log('Failed to reload:\n{}'.format(traceback.format_exc()))
 """
     
     # Write to a temp file

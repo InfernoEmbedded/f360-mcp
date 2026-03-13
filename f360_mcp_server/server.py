@@ -328,21 +328,33 @@ def __getattr__(name: str) -> Any:
     # Actually, from server import X will bind it.
     return placeholder
 
-# Trigger initialization at module load time so it's ready for both MCP and tests
-try:
-    # We check if there's a running loop, otherwise create one for sync initialization
-    try:
-        loop = asyncio.get_running_loop()
-        # If we're already in a loop, we can't easily run_until_complete another one.
-        # But for FastMCP startup, this part is tricky.
-        # However, for 'import server' in tests, there usually isn't a loop yet.
-        asyncio.ensure_future(initialize_tools())
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(initialize_tools())
-        loop.close()
-except Exception as e:
-    logger.warning(f"Initial tool registration failed (Add-in might not be running): {e}")
+def start_background_discovery():
+    """
+    Starts a background thread to discover tools from the Add-in.
+    This ensures the server stays alive even if the Add-in is not running initially.
+    """
+    import threading
+    import time
+
+    def discovery_loop():
+        logger.info("Background tool discovery thread started.")
+        while True:
+            try:
+                # Use a fresh event loop for discovery to avoid conflicts with the main server loop
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(initialize_tools())
+                loop.close()
+                logger.info("Successfully discovered tools from Add-in.")
+                break # Exit thread on success if we only want one-time discovery
+                # Or keep it alive for periodic refresh? For now, break on first success is safer
+            except Exception as e:
+                logger.warning(f"Tool discovery failed (Add-in might not be running), retrying in 10s: {e}")
+                time.sleep(10)
+
+    thread = threading.Thread(target=discovery_loop, daemon=True)
+    thread.start()
 
 if __name__ == "__main__":
+    start_background_discovery()
     mcp.run()
