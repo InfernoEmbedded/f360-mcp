@@ -369,16 +369,65 @@ if __name__ == "__main__":
         
         if transport_env in ["sse", "streamable-http"]:
             import uvicorn
+            from starlette.applications import Starlette
+            from starlette.routing import Route
+            from starlette.responses import JSONResponse, Response
+            
             # Ensure settings are synced
             mcp.settings.host = host
             mcp.settings.port = int(port)
             
-            # Create the appropriate app
-            if transport_env == "sse":
-                app = mcp.sse_app()
-            else:
-                app = mcp.streamable_http_app()
+            # Create apps for both transports
+            sse_app = mcp.sse_app()
+            http_app = mcp.streamable_http_app()
+            
+            async def unified_handler(request):
+                # Delegate to the appropriate app based on method
+                if request.method == "GET":
+                    await sse_app(request.scope, request.receive, request._send)
+                else:
+                    # OpenWebUI might be hitting /sse with POST, but http_app expects /mcp
+                    # We rewrite the path in the scope to ensure http_app handles it
+                    scope = request.scope.copy()
+                    scope["path"] = mcp.settings.streamable_http_path
+                    await http_app(scope, request.receive, request._send)
                 
+                return Response()
+
+            # Build unified routes
+            routes = []
+            # 1. Add /sse route (combined GET/POST)
+            routes.append(Route(mcp.settings.sse_path, endpoint=unified_handler, methods=["GET", "POST"]))
+            # 2. Add /messages route (from SSE app)
+            for r in sse_app.routes:
+                if hasattr(r, "path") and r.path == mcp.settings.message_path:
+                    routes.append(r)
+            # 3. Add /mcp route (from HTTP app)
+            for r in http_app.routes:
+                if hasattr(r, "path") and r.path == mcp.settings.streamable_http_path:
+                    routes.append(r)
+            
+            # Add a root status route
+            async def status_route(request):
+                return JSONResponse({
+                    "status": "ok",
+                    "transport_config": transport_env,
+                    "supported_endpoints": ["/sse", "/messages", "/mcp"]
+                })
+            routes.append(Route("/", endpoint=status_route))
+            
+            from contextlib import asynccontextmanager
+            @asynccontextmanager
+            async def lifespan(app: Starlette):
+                # Start the session manager background tasks
+                if hasattr(mcp, "_session_manager"):
+                    async with mcp._session_manager.run():
+                        yield
+                else:
+                    yield
+
+            app = Starlette(routes=routes, lifespan=lifespan)
+            
             # Add CORS support for browser-based clients (like OpenWebUI)
             app.add_middleware(
                 CORSMiddleware,
@@ -394,8 +443,6 @@ if __name__ == "__main__":
                 log_level=logging.getLevelName(logger.getEffectiveLevel()).lower(),
             )
             server = uvicorn.Server(config)
-            
-            # Use asyncio.run to start the uvicorn server
             asyncio.run(server.serve())
         else:
             mcp.run(transport="stdio")
