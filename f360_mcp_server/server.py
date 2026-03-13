@@ -208,6 +208,7 @@ async def initialize_tools(module_globals=None):
         logger.info(f"Successfully registered {len(metadata)} tools.")
     except Exception as e:
         logger.error(f"Initialization failed: {str(e)}")
+        raise # Re-raise to allow discovery_loop to catch it
 
 @mcp.tool()
 async def refresh_tools() -> str:
@@ -345,16 +346,31 @@ def start_background_discovery():
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(initialize_tools())
                 loop.close()
-                logger.info("Successfully discovered tools from Add-in.")
-                break # Exit thread on success if we only want one-time discovery
-                # Or keep it alive for periodic refresh? For now, break on first success is safer
+                logger.info("Successfully discovered and registered tools from Add-in.")
+                break 
             except Exception as e:
-                logger.warning(f"Tool discovery failed (Add-in might not be running), retrying in 10s: {e}")
+                logger.warning(f"Tool discovery failed (Add-in might not be started or responding), retrying in 10s: {e}")
                 time.sleep(10)
 
     thread = threading.Thread(target=discovery_loop, daemon=True)
     thread.start()
 
 if __name__ == "__main__":
-    start_background_discovery()
-    mcp.run()
+    try:
+        # Check transport from environment
+        transport_env = os.environ.get("MCP_TRANSPORT", "stdio").lower()
+        host = os.environ.get("MCP_HOST", "0.0.0.0")
+        port = os.environ.get("MCP_PORT", "8000")
+        
+        logger.info(f"Starting MCP Server (transport={transport_env}, host={host}, port={port})")
+        
+        start_background_discovery()
+        
+        # FastMCP.run() picks up MCP_HOST and MCP_PORT from environment automatically
+        if transport_env == "sse":
+            mcp.run(transport="sse")
+        else:
+            mcp.run(transport="stdio")
+    except Exception as e:
+        logger.critical(f"Server failed to start: {e}", exc_info=True)
+        sys.exit(1)
