@@ -65,8 +65,7 @@ class SettingsCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             settings = load_settings()
             
             inputs = cmd.commandInputs
-            inputs.addIntegerSliderCommandInput('port', 'TCP Port', 1024, 65535, False)
-            inputs.itemById('port').valueOne = settings.get('port', 30011)
+            inputs.addIntegerSpinnerCommandInput('port', 'TCP Port', 1024, 65535, 1, settings.get('port', 30011))
             
             interface_input = inputs.addDropDownCommandInput('interface', 'Interface', adsk.core.DropDownStyles.LabeledIconDropDownStyle)
             interface_input.listItems.add('Local (127.0.0.1)', settings.get('interface') == '127.0.0.1', '')
@@ -76,9 +75,7 @@ class SettingsCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             cmd.execute.add(on_execute)
             handlers.append(on_execute)
         except:
-            ui_local = adsk.core.Application.get().userInterface
-            if ui_local:
-                ui_local.messageBox('Failed to create settings dialog:\n{}'.format(traceback.format_exc()))
+            add_to_log('Failed to create settings dialog:\n{}'.format(traceback.format_exc()))
 
 class SettingsCommandExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self):
@@ -94,11 +91,9 @@ class SettingsCommandExecuteHandler(adsk.core.CommandEventHandler):
             settings = load_settings()
             if settings['port'] != new_port or settings['interface'] != new_interface:
                 save_settings({'port': new_port, 'interface': new_interface})
-                ui.messageBox('Settings saved. Please stop and start the Add-in to apply changes.')
+                add_to_log('Settings saved. Please stop and start the Add-in to apply changes.')
         except:
-            ui_local = adsk.core.Application.get().userInterface
-            if ui_local:
-                ui_local.messageBox('Failed to save settings:\n{}'.format(traceback.format_exc()))
+            add_to_log('Failed to save settings:\n{}'.format(traceback.format_exc()))
 
 # Log Viewer Commands
 class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
@@ -116,11 +111,8 @@ class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             content = "\n".join(list(log_buffer))
             if not content:
                 content = "No logs yet."
-            txt_box.formattedText = f"<pre>{content}</pre>"
         except:
-            ui_local = adsk.core.Application.get().userInterface
-            if ui_local:
-                ui_local.messageBox('Failed to create log dialog:\n{}'.format(traceback.format_exc()))
+            add_to_log('Failed to create log dialog:\n{}'.format(traceback.format_exc()))
 
 def handle_client(conn, addr):
     add_to_log(f'Connected by {addr}')
@@ -178,33 +170,34 @@ def handle_client(conn, addr):
                                 except Exception as e:
                                     add_to_log(f"Auto-grouping failed: {str(e)}")
                         
-                        # Compare health
-                        introduced = []
-                        for idx, data in new_issues_map.items():
-                            if idx not in old_issues or old_issues[idx] != data:
-                                name = "Unnamed"
-                                try:
-                                    name = design.timeline.item(idx).entity.name
-                                except: pass
-                                introduced.append({
-                                    "index": idx,
-                                    "name": name,
-                                    "type": data[0],
-                                    "health": data[1],
-                                    "message": data[2]
-                                })
-                        
-                        if isinstance(result, dict):
-                            result["new_issues"] = introduced
-                        else:
-                            result = {"result": result, "new_issues": introduced}
+                        # Compare health (Skip for internal commands to avoid polluting Dict results)
+                        if not method.startswith('_'):
+                            introduced = []
+                            for idx, data in new_issues_map.items():
+                                if idx not in old_issues or old_issues[idx] != data:
+                                    name = "Unnamed"
+                                    try:
+                                        name = design.timeline.item(idx).entity.name
+                                    except: pass
+                                    introduced.append({
+                                        "index": idx,
+                                        "name": name,
+                                        "type": data[0],
+                                        "health": data[1],
+                                        "message": data[2]
+                                    })
+                            
+                            if isinstance(result, dict):
+                                result["new_issues"] = introduced
+                            else:
+                                result = {"result": result, "new_issues": introduced}
                             
                         response['result'] = result
                     else:
                         response['error'] = {"code": -32601, "message": f"Method not found: {method}"}
                 except Exception as e:
                     response['error'] = {"code": -32000, "message": str(e)}
-                    add_to_log(f"Error executing command: {traceback.format_exc()}")
+                    add_to_log(f"Error executing command {method}: {traceback.format_exc()}")
                 
                 # Send response
                 conn.sendall(json.dumps(response).encode('utf-8') + b'\n')
@@ -314,8 +307,7 @@ def run(context):
         add_to_log(f"MCP Add-In Started. Listening on {settings['interface']}:{settings['port']}")
 
     except:
-        if ui:
-            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+        add_to_log('Failed to start Add-in:\n{}'.format(traceback.format_exc()))
 
 def stop(context):
     global handlers
@@ -342,5 +334,4 @@ def stop(context):
         handlers = []
         app.log('MCP Add-In Stopped.')
     except:
-        if ui:
-            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+        add_to_log('Failed to stop Add-in:\n{}'.format(traceback.format_exc()))
