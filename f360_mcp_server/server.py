@@ -366,8 +366,10 @@ if __name__ == "__main__":
         
         start_background_discovery()
         
-        # FastMCP.run() picks up MCP_HOST and MCP_PORT from environment automatically
+        # FastMCP.run() uses internal settings for host and port when running SSE
         if transport_env == "sse":
+            mcp.settings.host = host
+            mcp.settings.port = int(port)
             mcp.run(transport="sse")
         else:
             mcp.run(transport="stdio")
