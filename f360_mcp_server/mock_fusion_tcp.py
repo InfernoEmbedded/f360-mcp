@@ -79,7 +79,8 @@ class MockFusionServer:
                     "import_mesh": [{"name": "file_path"}],
                     "convert_mesh_to_solid": [{"name": "body_name"}, {"name": "method", "has_default": True, "default": "prismatic"}],
                     "create_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}, {"name": "offset_x", "has_default": True, "default": 0}, {"name": "offset_y", "has_default": True, "default": 0}, {"name": "offset_z", "has_default": True, "default": 0}],
-                    "create_as_built_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}]
+                    "create_as_built_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}],
+                    "reload_addin": []
                 }
                 for cmd, params_list in solid_meta.items():
                     if cmd not in meta:
