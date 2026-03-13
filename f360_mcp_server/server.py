@@ -8,6 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
+from starlette.middleware.cors import CORSMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -366,11 +367,36 @@ if __name__ == "__main__":
         
         start_background_discovery()
         
-        # FastMCP.run() uses internal settings for host and port when running SSE
-        if transport_env == "sse":
+        if transport_env in ["sse", "streamable-http"]:
+            import uvicorn
+            # Ensure settings are synced
             mcp.settings.host = host
             mcp.settings.port = int(port)
-            mcp.run(transport="sse")
+            
+            # Create the appropriate app
+            if transport_env == "sse":
+                app = mcp.sse_app()
+            else:
+                app = mcp.streamable_http_app()
+                
+            # Add CORS support for browser-based clients (like OpenWebUI)
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+            
+            config = uvicorn.Config(
+                app,
+                host=host,
+                port=int(port),
+                log_level=logging.getLevelName(logger.getEffectiveLevel()).lower(),
+            )
+            server = uvicorn.Server(config)
+            
+            # Use asyncio.run to start the uvicorn server
+            asyncio.run(server.serve())
         else:
             mcp.run(transport="stdio")
     except Exception as e:
