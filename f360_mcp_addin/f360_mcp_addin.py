@@ -7,6 +7,8 @@ import json
 import time
 import os
 import sys
+import collections
+from datetime import datetime
 
 from .commands import (
     registry, sketch, solid, construction, assembly, params, data, query, materials, utils, internal
@@ -26,6 +28,16 @@ DEFAULT_SETTINGS = {
     'port': 30011,
     'interface': '127.0.0.1'
 }
+
+# Log Buffer
+log_buffer = collections.deque(maxlen=100)
+
+def add_to_log(message):
+    timestamp = datetime.now().strftime('%H:%M:%S')
+    entry = f"[{timestamp}] {message}"
+    log_buffer.append(entry)
+    if app:
+        app.log(entry)
 
 def load_settings():
     try:
@@ -64,7 +76,9 @@ class SettingsCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             cmd.execute.add(on_execute)
             handlers.append(on_execute)
         except:
-            ui.messageBox('Failed to create settings dialog:\n{}'.format(traceback.format_exc()))
+            ui_local = adsk.core.Application.get().userInterface
+            if ui_local:
+                ui_local.messageBox('Failed to create settings dialog:\n{}'.format(traceback.format_exc()))
 
 class SettingsCommandExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self):
@@ -82,33 +96,65 @@ class SettingsCommandExecuteHandler(adsk.core.CommandEventHandler):
                 save_settings({'port': new_port, 'interface': new_interface})
                 ui.messageBox('Settings saved. Please stop and start the Add-in to apply changes.')
         except:
-            ui.messageBox('Failed to save settings:\n{}'.format(traceback.format_exc()))
+            ui_local = adsk.core.Application.get().userInterface
+            if ui_local:
+                ui_local.messageBox('Failed to save settings:\n{}'.format(traceback.format_exc()))
+
+# Log Viewer Commands
+class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
+    def __init__(self):
+        super().__init__()
+    def notify(self, args):
+        try:
+            cmd = adsk.core.Command.cast(args.command)
+            inputs = cmd.commandInputs
+            
+            txt_box = inputs.addTextBoxCommandInput('log_text', 'MCP Server Log', '', 20, True)
+            txt_box.isFullWidth = True
+            
+            # Populate log
+            content = "\n".join(list(log_buffer))
+            if not content:
+                content = "No logs yet."
+            txt_box.formattedText = f"<pre>{content}</pre>"
+        except:
+            ui_local = adsk.core.Application.get().userInterface
+            if ui_local:
+                ui_local.messageBox('Failed to create log dialog:\n{}'.format(traceback.format_exc()))
 
 def handle_client(conn, addr):
-    # ... (rest of handle_client remains the same)
-    app.log(f'Connected by {addr}')
+    add_to_log(f'Connected by {addr}')
     try:
         while not stop_event.is_set():
-            data = conn.recv(8192)
-            if not data:
-                break
-            
             try:
-                request = json.loads(data.decode('utf-8'))
+                data = conn.recv(16384)
+                if not data:
+                    break
+                
+                message = data.decode('utf-8').strip()
+                if not message:
+                    continue
+                    
+                request = json.loads(message)
                 method = request.get('method')
                 params = request.get('params', {})
-                req_id = request.get('id')
+                request_id = request.get('id')
                 
-                app.log(f"Received method: {method}")
+                # Log the request
+                try:
+                    p_str = json.dumps(params)
+                except:
+                    p_str = str(params)
+                params_str = p_str[:100] + ('...' if len(p_str) > 100 else '')
+                add_to_log(f"REQ [{method}] {params_str}")
                 
                 response = {
                     "jsonrpc": "2.0",
-                    "id": req_id,
+                    "id": request_id,
                 }
                 
                 try:
                     dispatch = registry.dispatch_table
-                    
                     if method in dispatch:
                         # Capture state before
                         old_issues = _get_timeline_health_map(app)
@@ -130,7 +176,7 @@ def handle_client(conn, addr):
                                     group = design.timeline.timelineGroups.add(pre_count, post_count - 1)
                                     group.name = group_name
                                 except Exception as e:
-                                    app.log(f"Auto-grouping failed: {str(e)}")
+                                    add_to_log(f"Auto-grouping failed: {str(e)}")
                         
                         # Compare health
                         introduced = []
@@ -158,15 +204,27 @@ def handle_client(conn, addr):
                         response['error'] = {"code": -32601, "message": f"Method not found: {method}"}
                 except Exception as e:
                     response['error'] = {"code": -32000, "message": str(e)}
-                    app.log(f"Error executing command: {traceback.format_exc()}")
+                    add_to_log(f"Error executing command: {traceback.format_exc()}")
                 
+                # Send response
                 conn.sendall(json.dumps(response).encode('utf-8') + b'\n')
+                
+                # Log failure if any
+                if "error" in response:
+                    err = response.get("error", {})
+                    if isinstance(err, dict):
+                        msg = err.get("message", "Unknown error")
+                        add_to_log(f"ERR [{method}] {msg}")
+
+            except socket.timeout:
+                continue
             except json.JSONDecodeError:
                 conn.sendall(json.dumps({"jsonrpc": "2.0", "error": {"code": -32700, "message": "Parse error"}}).encode('utf-8') + b'\n')
     except Exception as e:
-        app.log(f"Client handler exception: {str(e)}")
+        add_to_log(f'Error handling client: {traceback.format_exc()}')
     finally:
         conn.close()
+        add_to_log(f'Disconnected from {addr}')
 
 def server_loop():
     try:
@@ -178,24 +236,22 @@ def server_loop():
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((interface, port))
             s.listen()
-            # Set timeout to allow checking stop_event
             s.settimeout(1.0)
-            app.log(f"MCP Add-In TCP Server listening on {interface}:{port}")
+            add_to_log(f"MCP Add-In TCP Server listening on {interface}:{port}")
             
             while not stop_event.is_set():
                 try:
                     conn, addr = s.accept()
-                    # Start a thread for each client (though usually just one MCP server)
                     client_thread = threading.Thread(target=handle_client, args=(conn, addr))
                     client_thread.daemon = True
                     client_thread.start()
                 except socket.timeout:
                     continue
                 except Exception as e:
-                    app.log(f"Accept error: {str(e)}")
+                    add_to_log(f"Accept error: {str(e)}")
     except Exception as e:
         if app:
-            app.log(f"Server loop error: {traceback.format_exc()}")
+            add_to_log(f"Server loop error: {traceback.format_exc()}")
 
 def run(context):
     global app, ui, server_thread, stop_event
@@ -212,33 +268,50 @@ def run(context):
         # 2. Setup UI
         cmd_defs = ui.commandDefinitions
         
-        # Check if already exists (avoids errors on reload)
-        mcp_cmd = cmd_defs.itemById('mcp_settings_cmd')
-        if mcp_cmd:
-            mcp_cmd.deleteMe()
+        # --- Settings Command ---
+        settings_cmd = cmd_defs.itemById('mcp_settings_cmd')
+        if settings_cmd:
+            settings_cmd.deleteMe()
             
-        mcp_cmd = cmd_defs.addButtonDefinition(
+        settings_cmd = cmd_defs.addButtonDefinition(
             'mcp_settings_cmd', 
             'MCP Settings', 
             'Configure the Model Context Protocol server.',
-            './resources' # Points to resources folder with 16x16.png etc
+            './resources'
         )
         
-        on_created = SettingsCommandCreatedHandler()
-        mcp_cmd.commandCreated.add(on_created)
-        handlers.append(on_created)
+        on_settings_created = SettingsCommandCreatedHandler()
+        settings_cmd.commandCreated.add(on_settings_created)
+        handlers.append(on_settings_created)
+        
+        # --- Log Command ---
+        log_view_cmd = cmd_defs.itemById('mcp_log_view_cmd')
+        if log_view_cmd:
+            log_view_cmd.deleteMe()
+            
+        log_view_cmd = cmd_defs.addButtonDefinition(
+            'mcp_log_view_cmd', 
+            'View MCP Log', 
+            'View the recent MCP server activity log.',
+            './resources' # Using same icon for now
+        )
+        
+        on_log_created = LogCommandCreatedHandler()
+        log_view_cmd.commandCreated.add(on_log_created)
+        handlers.append(on_log_created)
         
         # Add to Utility Panel
-        all_toolbars = ui.allToolbarPanels
-        utility_panel = all_toolbars.itemById('SolidScriptsAddinsPanel')
+        utility_panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
         if utility_panel:
-            nav_item = utility_panel.controls.itemById('mcp_settings_cmd')
-            if nav_item:
-                nav_item.deleteMe()
-            utility_panel.controls.addCommand(mcp_cmd)
+            # Add Settings
+            if not utility_panel.controls.itemById('mcp_settings_cmd'):
+                utility_panel.controls.addCommand(settings_cmd)
+            # Add Log View
+            if not utility_panel.controls.itemById('mcp_log_view_cmd'):
+                utility_panel.controls.addCommand(log_view_cmd)
         
         settings = load_settings()
-        app.log(f"MCP Add-In Started. Listening on {settings['interface']}:{settings['port']}")
+        add_to_log(f"MCP Add-In Started. Listening on {settings['interface']}:{settings['port']}")
 
     except:
         if ui:
@@ -247,21 +320,24 @@ def run(context):
 def stop(context):
     global handlers
     try:
+        add_to_log('Stopping MCP Add-In...')
         stop_event.set()
         if server_thread and server_thread.is_alive():
             server_thread.join(timeout=2.0)
             
         # UI Cleanup
         cmd_defs = ui.commandDefinitions
-        mcp_cmd = cmd_defs.itemById('mcp_settings_cmd')
-        if mcp_cmd:
-            mcp_cmd.deleteMe()
+        for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
+            cmd = cmd_defs.itemById(cid)
+            if cmd:
+                cmd.deleteMe()
             
         utility_panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
         if utility_panel:
-            control = utility_panel.controls.itemById('mcp_settings_cmd')
-            if control:
-                control.deleteMe()
+            for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
+                control = utility_panel.controls.itemById(cid)
+                if control:
+                    control.deleteMe()
         
         handlers = []
         app.log('MCP Add-In Stopped.')
