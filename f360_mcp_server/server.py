@@ -27,6 +27,10 @@ mcp = FastMCP(
     json_response=False,
 )
 
+# Command history for testing/verification
+command_history: List[Dict[str, Any]] = []
+RECORD_COMMANDS = os.environ.get("F360_RECORD_COMMANDS", "false").lower() == "true"
+
 @mcp.resource("fusion360://cheat-sheet.md")
 def get_cheat_sheet() -> str:
     """Returns the Fusion 360 MCP Cheat Sheet for LLMs."""
@@ -40,6 +44,22 @@ def get_cheat_sheet() -> str:
             return f.read()
     except FileNotFoundError:
         return "# Cheat Sheet Not Found\nPlease ensure mcp_cheat_sheet.md is in the server directory."
+
+@mcp.resource("fusion360://command-history.json")
+def get_command_history_json() -> str:
+    """Returns the recorded command history as JSON."""
+    return json.dumps(command_history, indent=2)
+
+@mcp.tool()
+def export_command_history() -> List[Dict[str, Any]]:
+    """Returns the recorded command history."""
+    return command_history
+
+@mcp.tool()
+def clear_command_history() -> str:
+    """Clears the recorded command history."""
+    command_history.clear()
+    return "Command history cleared."
 
 async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     request = {
@@ -81,13 +101,32 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     p_str = json.dumps(params)
     logger.info(f"Arguments: {p_str[:500]}{'...' if len(p_str) > 500 else ''}")
     
+    # Record command if enabled
+    record = None
+    if RECORD_COMMANDS:
+        from datetime import datetime
+        record = {
+            "method": method,
+            "params": params,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "status": "pending"
+        }
+        command_history.append(record)
+
     try:
         response = await asyncio.to_thread(sync_request)
         if "error" in response:
+            if record:
+                record["status"] = "error"
+                record["error"] = response["error"]
             raise Exception(f"Fusion 360 Error: {response['error']}")
         
         result = response.get("result", {})
         
+        if record:
+            record["status"] = "success"
+            record["result"] = result
+
         # Log response result (cleansed of large base64 blobs)
         res_to_log = result.copy() if isinstance(result, dict) else result
         if isinstance(res_to_log, dict) and "file_content_base64" in res_to_log:
@@ -98,6 +137,9 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         
         return result
     except Exception as e:
+        if record and record.get("status") == "pending":
+            record["status"] = "exception"
+            record["error"] = str(e)
         logger.error(f"Error communicating with Add-In: {str(e)}")
         raise
 
