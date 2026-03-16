@@ -453,7 +453,8 @@ def create_starlette_app(mcp, transport_env, host, port):
     from starlette.routing import Route
     from starlette.responses import JSONResponse, Response
     from starlette.middleware.cors import CORSMiddleware
-    from starlette.types import ASGIApp, Receive, Scope, Send
+    from starlette.types import ASGIApp, Receive, Scope, Send, Message
+    from starlette.datastructures import MutableHeaders
     
     # Ensure settings are synced
     mcp.settings.host = host
@@ -520,41 +521,74 @@ def create_starlette_app(mcp, transport_env, host, port):
     from contextlib import asynccontextmanager
     @asynccontextmanager
     async def lifespan(app: Starlette):
-        logger.info("Server lifespan starting, initializing session manager...")
-        # Start the session manager background tasks
-        if hasattr(mcp, "_session_manager"):
-            async with mcp._session_manager.run():
-                logger.info("Streamable HTTP session manager running")
-                yield
+        logger.info("Server lifespan starting...")
+        
+        # Access session manager (triggers lazy init if needed)
+        manager = None
+        try:
+            manager = mcp.session_manager
+        except RuntimeError:
+            logger.warning("Session manager not initialized via streamable_http_app()")
+
+        if manager:
+            try:
+                logger.info("Starting session manager via lifespan...")
+                async with manager.run():
+                    logger.info("Streamable HTTP session manager is now running")
+                    yield
+            except RuntimeError as e:
+                if "can only be called once" in str(e):
+                    yield
+                else:
+                    raise
+            except Exception as e:
+                logger.error(f"Unexpected exception in lifespan: {e}")
+                raise
         else:
-            logger.warning("No session manager found in MCP object")
+            logger.info("No session manager, yielding...")
             yield
+        
         logger.info("Server lifespan ending")
 
     app = Starlette(routes=routes, lifespan=lifespan)
     
-    # ---- MCP Spec: Origin validation (MUST) ----
-    # Servers MUST validate the Origin header on all incoming connections to
-    # prevent DNS rebinding attacks. If the Origin header is present and
-    # invalid, respond with HTTP 403 Forbidden.
-    class OriginValidationMiddleware:
+    # ---- MCP Spec Compliance Middleware (MUST) ----
+    # 1. Header validation: X-MCP-Protocol-Version MUST be in all responses
+    # 2. Origin validation: MUST return 403 for invalid Origins (prevent DNS rebinding)
+    class MCPComplianceMiddleware:
         def __init__(self, app: ASGIApp):
             self.app = app
-        async def __call__(self, scope: Scope, receive: Receive, send: Send):
-            if scope["type"] == "http":
-                headers = dict(scope.get("headers", []))
-                origin = headers.get(b"origin", b"").decode("latin-1")
-                if origin and not _origin_is_allowed(origin, allowed_origins):
-                    logger.warning(f"Rejected request with invalid Origin: {origin}")
-                    response = JSONResponse(
-                        {"jsonrpc": "2.0", "error": {"code": -32600, "message": "Forbidden: invalid Origin"}},
-                        status_code=403
-                    )
-                    await response(scope, receive, send)
-                    return
-            await self.app(scope, receive, send)
 
-    app.add_middleware(OriginValidationMiddleware)
+        async def __call__(self, scope: Scope, receive: Receive, send: Send):
+            if scope["type"] != "http":
+                await self.app(scope, receive, send)
+                return
+
+            # Capture headers to check Origin
+            headers = dict(scope.get("headers", []))
+            origin = headers.get(b"origin", b"").decode("latin-1")
+
+            if origin and not _origin_is_allowed(origin, allowed_origins):
+                logger.warning(f"Rejected request with invalid Origin: {origin}")
+                response = JSONResponse(
+                    {"jsonrpc": "2.0", "error": {"code": -32600, "message": "Forbidden: invalid Origin"}},
+                    status_code=403
+                )
+                # Add version header to error response too
+                response.headers["X-MCP-Protocol-Version"] = "2024-11-05"
+                await response(scope, receive, send)
+                return
+
+            # Wrapper to inject X-MCP-Protocol-Version into all responses
+            async def send_with_compliance_headers(message: Message):
+                if message["type"] == "http.response.start":
+                    headers = MutableHeaders(scope=message)
+                    headers.append("X-MCP-Protocol-Version", "2024-11-05")
+                await send(message)
+
+            await self.app(scope, receive, send_with_compliance_headers)
+
+    app.add_middleware(MCPComplianceMiddleware)
     
     # CORS support for browser-based clients
     # Derive concrete origins from allowed patterns for the CORS middleware.
