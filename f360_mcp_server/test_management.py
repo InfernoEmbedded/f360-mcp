@@ -7,7 +7,7 @@ from server import (
     delete_user_parameter
 )
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_body_management(mock_fusion):
     await list_bodies()
     assert mock_fusion.last_request["method"] == "list_bodies"
@@ -18,7 +18,7 @@ async def test_body_management(mock_fusion):
     await delete_body(body_name="NewBody")
     assert mock_fusion.last_request["method"] == "delete_body"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_feature_management(mock_fusion):
     await list_features()
     assert mock_fusion.last_request["method"] == "list_features"
@@ -29,7 +29,7 @@ async def test_feature_management(mock_fusion):
     await delete_feature(feature_name="F2")
     assert mock_fusion.last_request["method"] == "delete_feature"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_component_management(mock_fusion):
     await list_components()
     assert mock_fusion.last_request["method"] == "list_components"
@@ -40,7 +40,7 @@ async def test_component_management(mock_fusion):
     await delete_component(occurrence_name="C1:1")
     assert mock_fusion.last_request["method"] == "delete_component"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_construction_management(mock_fusion):
     await list_construction()
     assert mock_fusion.last_request["method"] == "list_construction"
@@ -51,7 +51,7 @@ async def test_construction_management(mock_fusion):
     await delete_construction(name="P2", type="plane")
     assert mock_fusion.last_request["method"] == "delete_construction"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_parameter_management(mock_fusion):
     await delete_user_parameter(name="param1")
     assert mock_fusion.last_request["method"] == "delete_user_parameter"

@@ -3,7 +3,7 @@ import os
 import shutil
 import server
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_export_model_mcp(mock_fusion, tmp_path):
     # Test exporting and sending to MCP
     local_path = tmp_path / "test_export.stl"
@@ -17,7 +17,7 @@ async def test_export_model_mcp(mock_fusion, tmp_path):
     with open(local_path, "rb") as f:
         assert f.read() == b"dummy_stl_content"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_execute_script(mock_fusion):
     script = "print('hello')"
     result = await server.execute_script(script_code=script)
@@ -25,7 +25,7 @@ async def test_execute_script(mock_fusion):
     assert mock_fusion.last_request["method"] == "execute_script"
     assert mock_fusion.last_request["params"]["script_code"] == script
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_health_tools(mock_fusion):
     result = await server.get_design_health()
     assert "healthy" in result["message"]

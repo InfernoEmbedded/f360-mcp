@@ -1,7 +1,7 @@
 import pytest
 from f360_mcp_server.server import create_user_parameter, list_parameters, update_parameter
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_refined_parameter_lifecycle(mock_fusion):
     # 1. Create user param with formula and description
     res_create = await create_user_parameter(

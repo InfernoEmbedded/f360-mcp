@@ -1,7 +1,7 @@
 import pytest
 from f360_mcp_server.server import create_joint, create_as_built_joint
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_joint(mock_fusion):
     result = await create_joint(
         component1_name="Comp1",
@@ -12,7 +12,7 @@ async def test_create_joint(mock_fusion):
     assert "Created rigid joint" in result["message"]
     assert "joint_name" in result
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_as_built_joint(mock_fusion):
     result = await create_as_built_joint(
         component1_name="Comp1",
@@ -22,7 +22,7 @@ async def test_create_as_built_joint(mock_fusion):
     assert "Created as-built revolute joint" in result["message"]
     assert "joint_name" in result
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_joint_cylindrical(mock_fusion):
     result = await create_joint(
         component1_name="Comp1",
@@ -32,7 +32,7 @@ async def test_create_joint_cylindrical(mock_fusion):
     assert "Created cylindrical joint" in result["message"]
     assert mock_fusion.last_request["method"] == "create_joint"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_joint_pin_slot(mock_fusion):
     result = await create_joint(
         component1_name="Comp1",
@@ -42,7 +42,7 @@ async def test_create_joint_pin_slot(mock_fusion):
     assert "Created pin_slot joint" in result["message"]
     assert mock_fusion.last_request["method"] == "create_joint"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_joint_planar(mock_fusion):
     result = await create_joint(
         component1_name="Comp1",
@@ -52,7 +52,7 @@ async def test_create_joint_planar(mock_fusion):
     assert "Created planar joint" in result["message"]
     assert mock_fusion.last_request["method"] == "create_joint"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_joint_ball(mock_fusion):
     result = await create_joint(
         component1_name="Comp1",

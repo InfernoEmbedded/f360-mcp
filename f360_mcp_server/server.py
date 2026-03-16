@@ -8,6 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.cors import CORSMiddleware
 
 # Configure logging
@@ -20,7 +21,11 @@ def get_addin_host():
 def get_addin_port():
     return int(os.environ.get('F360_ADDIN_PORT', 30011))
 
-mcp = FastMCP("fusion360-mcp")
+mcp = FastMCP(
+    "fusion360-mcp",
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+    json_response=False,
+)
 
 @mcp.resource("fusion360://cheat-sheet.md")
 def get_cheat_sheet() -> str:
@@ -375,34 +380,26 @@ def create_starlette_app(mcp, transport_env, host, port):
     sse_app = mcp.sse_app()
     http_app = mcp.streamable_http_app()
     
-    async def unified_handler(request):
-        method = request.method
-        path = request.scope.get("path")
-        client = request.scope.get("client")
-        logger.info(f"Unified handler received {method} request on {path} from {client}")
-        
-        if method == "GET":
-            logger.debug("Delegating to SSE app (GET)")
-            await sse_app(request.scope, request.receive, request._send)
-        elif method == "POST":
-            logger.debug(f"Delegating to HTTP app (POST), rewriting path to {mcp.settings.streamable_http_path}")
-            # Rewrite path for http_app which expects /mcp
-            new_scope = dict(request.scope)
-            new_scope["path"] = mcp.settings.streamable_http_path
-            new_scope["raw_path"] = mcp.settings.streamable_http_path.encode()
-            await http_app(new_scope, request.receive, request._send)
-        elif method == "OPTIONS":
-            # Just return 200, CORSMiddleware will handle the actual headers
-            return Response(status_code=200)
-        else:
-            logger.warning(f"Unsupported method {method} in unified handler")
-            return Response("Method Not Allowed", status_code=405)
-
     # Build unified routes
     routes = []
-    # 1. Add /sse route (combined GET/POST/OPTIONS)
-    logger.info(f"Registering unified route: {mcp.settings.sse_path} [GET, POST, OPTIONS]")
-    routes.append(Route(mcp.settings.sse_path, endpoint=unified_handler, methods=["GET", "POST", "OPTIONS"]))
+    
+    # Find the Streamable HTTP handler
+    mcp_handler = None
+    for r in http_app.routes:
+        if isinstance(r, Route) and r.path == mcp.settings.streamable_http_path:
+            mcp_handler = r.app
+            break
+
+    # 1. Add /sse routes
+    logger.info(f"Registering unified routes for {mcp.settings.sse_path}")
+    # GET/HEAD go to SSE app
+    routes.append(Route(mcp.settings.sse_path, endpoint=sse_app, methods=["GET", "HEAD"]))
+    # POST goes directly to the MCP handler (bypassing Starlette routing in http_app)
+    if mcp_handler:
+        routes.append(Route(mcp.settings.sse_path, endpoint=mcp_handler, methods=["POST"]))
+    else:
+        logger.warning("Could not find Streamable HTTP handler for delegation")
+
     
     # 2. Add /messages route (from SSE app)
     for r in sse_app.routes:
@@ -456,6 +453,7 @@ def create_starlette_app(mcp, transport_env, host, port):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
     return app
 
 if __name__ == "__main__":

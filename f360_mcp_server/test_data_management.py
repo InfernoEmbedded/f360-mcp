@@ -1,7 +1,7 @@
 import pytest
 from f360_mcp_server.server import list_projects, create_project, create_folder, create_new_design
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_project_management(mock_fusion):
     # 1. List projects
     res_list = await list_projects()
@@ -14,7 +14,7 @@ async def test_project_management(mock_fusion):
     assert "Created project 'New MCP Project'" in res_create["message"]
     assert res_create["project_id"] == "new_proj_id"
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_folder_management(mock_fusion):
     # 1. Create folder
     res_folder = await create_folder(
@@ -32,7 +32,7 @@ async def test_folder_management(mock_fusion):
     )
     assert "Created folder 'SubDir'" in res_subfolder["message"]
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_design_creation(mock_fusion):
     # 1. Create unsaved design
     res_unsaved = await create_new_design(name="Draft1")
