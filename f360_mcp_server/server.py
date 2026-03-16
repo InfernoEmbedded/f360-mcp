@@ -76,11 +76,27 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         except Exception as e:
             return {"error": str(e)}
 
+    logger.info(f"Command: {method}")
+    # Truncate params string if it's very large
+    p_str = json.dumps(params)
+    logger.info(f"Arguments: {p_str[:500]}{'...' if len(p_str) > 500 else ''}")
+    
     try:
         response = await asyncio.to_thread(sync_request)
         if "error" in response:
             raise Exception(f"Fusion 360 Error: {response['error']}")
-        return response.get("result", {})
+        
+        result = response.get("result", {})
+        
+        # Log response result (cleansed of large base64 blobs)
+        res_to_log = result.copy() if isinstance(result, dict) else result
+        if isinstance(res_to_log, dict) and "file_content_base64" in res_to_log:
+            res_to_log["file_content_base64"] = "[BASE64_BLOB_TRUNCATED]"
+        
+        r_str = json.dumps(res_to_log)
+        logger.info(f"Response: {r_str[:500]}{'...' if len(r_str) > 500 else ''}")
+        
+        return result
     except Exception as e:
         logger.error(f"Error communicating with Add-In: {str(e)}")
         raise
