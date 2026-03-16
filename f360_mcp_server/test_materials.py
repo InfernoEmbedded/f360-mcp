@@ -26,6 +26,20 @@ async def test_list_appearances(mock_fusion):
     assert mock_fusion.last_request["method"] == "list_appearances"
 
 @pytest.mark.anyio
+async def test_material_management(mock_fusion, recorded_commands):
+    await list_materials()
+    await apply_material(body_name="Body 1", material_name="Steel")
+    from test_utils import compare_command_logs
+    compare_command_logs("test_material_management", recorded_commands)
+
+@pytest.mark.anyio
+async def test_appearance_management(mock_fusion, recorded_commands):
+    await list_appearances()
+    await apply_appearance(body_name="Body 1", appearance_name="Paint - Red")
+    from test_utils import compare_command_logs
+    compare_command_logs("test_appearance_management", recorded_commands)
+
+@pytest.mark.anyio
 async def test_apply_appearance(mock_fusion):
     result = await apply_appearance(body_name="Body 1", appearance_name="Chrome")
     assert "Successfully" in result["message"]

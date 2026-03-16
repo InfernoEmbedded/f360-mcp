@@ -1,0 +1,44 @@
+[
+  {
+    "method": "list_projects",
+    "params": {},
+    "status": "success",
+    "result": {
+      "projects": [
+        {
+          "name": "Default Project",
+          "id": "p1"
+        },
+        {
+          "name": "Test Project",
+          "id": "p2"
+        }
+      ],
+      "project_id": "p3"
+    }
+  },
+  {
+    "method": "create_project",
+    "params": {
+      "name": "Project1"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Created project 'Project1'",
+      "project_id": "new_proj_id"
+    }
+  },
+  {
+    "method": "create_folder",
+    "params": {
+      "project_name": "Project1",
+      "folder_name": "Folder1",
+      "parent_folder_path": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Created folder 'Folder1'",
+      "folder_id": "new_folder_id"
+    }
+  }
+]

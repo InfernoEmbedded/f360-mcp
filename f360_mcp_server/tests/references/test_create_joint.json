@@ -1,0 +1,19 @@
+[
+  {
+    "method": "create_joint",
+    "params": {
+      "name": "Joint1",
+      "component1_name": "Comp1",
+      "component2_name": "Comp2",
+      "joint_type": "rigid",
+      "offset_x": 1.0,
+      "offset_y": 0,
+      "offset_z": 0
+    },
+    "status": "success",
+    "result": {
+      "message": "Created rigid joint",
+      "joint_name": "Rigid1"
+    }
+  }
+]

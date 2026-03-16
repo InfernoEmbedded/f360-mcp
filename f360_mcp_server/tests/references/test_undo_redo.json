@@ -1,0 +1,22 @@
+[
+  {
+    "method": "undo",
+    "params": {
+      "steps": 1
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Undid 1 steps"
+    }
+  },
+  {
+    "method": "redo",
+    "params": {
+      "steps": 1
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Redid 1 steps"
+    }
+  }
+]

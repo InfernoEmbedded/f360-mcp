@@ -3,17 +3,17 @@ import os
 from f360_mcp_server.server import undo, redo, save_design, capture_screenshot
 
 @pytest.mark.anyio
-async def test_undo_redo(mock_fusion):
-    res_undo = await undo(steps=1)
-    assert "Undid 1 steps" in res_undo["message"]
-    
-    res_redo = await redo(steps=1)
-    assert "Redid 1 steps" in res_redo["message"]
+async def test_undo_redo(mock_fusion, recorded_commands):
+    await undo(steps=1)
+    await redo(steps=1)
+    from test_utils import compare_command_logs
+    compare_command_logs("test_undo_redo", recorded_commands)
 
 @pytest.mark.anyio
-async def test_save_design(mock_fusion):
-    result = await save_design(description="Test save")
-    assert "Design saved successfully" in result["message"]
+async def test_save_design(mock_fusion, recorded_commands):
+    await save_design(description="Test save")
+    from test_utils import compare_command_logs
+    compare_command_logs("test_save_design", recorded_commands)
 
 @pytest.mark.anyio
 async def test_capture_screenshot(mock_fusion, tmp_path):

@@ -15,6 +15,14 @@ async def test_project_management(mock_fusion):
     assert res_create["project_id"] == "new_proj_id"
 
 @pytest.mark.anyio
+async def test_data_management(mock_fusion, recorded_commands):
+    await list_projects()
+    await create_project(name="Project1")
+    await create_folder(project_name="Project1", folder_name="Folder1")
+    from test_utils import compare_command_logs
+    compare_command_logs("test_data_management", recorded_commands)
+
+@pytest.mark.anyio
 async def test_folder_management(mock_fusion):
     # 1. Create folder
     res_folder = await create_folder(

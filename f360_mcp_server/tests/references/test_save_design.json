@@ -1,0 +1,12 @@
+[
+  {
+    "method": "save_design",
+    "params": {
+      "description": "Test save"
+    },
+    "status": "success",
+    "result": {
+      "message": "Design saved successfully"
+    }
+  }
+]

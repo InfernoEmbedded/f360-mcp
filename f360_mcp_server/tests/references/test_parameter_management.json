@@ -1,0 +1,76 @@
+[
+  {
+    "method": "create_user_parameter",
+    "params": {
+      "name": "width",
+      "expression": "10cm",
+      "unit": "",
+      "description": ""
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Created parameter 'width'",
+      "name": "width",
+      "comment": "",
+      "expression": "10cm"
+    }
+  },
+  {
+    "method": "list_user_parameters",
+    "params": {},
+    "status": "success",
+    "result": {
+      "parameters": [
+        {
+          "name": "width",
+          "expression": "10cm",
+          "value": 10.0,
+          "unit": "cm",
+          "comment": "Base width",
+          "isUserParameter": true
+        },
+        {
+          "name": "d1",
+          "expression": "width * 2",
+          "value": 20.0,
+          "unit": "cm",
+          "comment": "Model parameter",
+          "isUserParameter": false
+        },
+        {
+          "name": "length",
+          "expression": "100mm",
+          "value": 10.0,
+          "unit": "mm",
+          "comment": "Main length",
+          "isUserParameter": true
+        }
+      ]
+    }
+  },
+  {
+    "method": "update_user_parameter",
+    "params": {
+      "name": "width",
+      "expression": "15cm",
+      "description": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Updated parameter 'width'",
+      "name": "width",
+      "comment": null,
+      "expression": "15cm"
+    }
+  },
+  {
+    "method": "delete_user_parameter",
+    "params": {
+      "name": "width"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully deleted parameter width"
+    }
+  }
+]

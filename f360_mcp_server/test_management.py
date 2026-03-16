@@ -8,26 +8,20 @@ from server import (
 )
 
 @pytest.mark.anyio
-async def test_body_management(mock_fusion):
+async def test_body_management(mock_fusion, recorded_commands):
     await list_bodies()
-    assert mock_fusion.last_request["method"] == "list_bodies"
-    
     await rename_body(old_name="Body 1", new_name="NewBody")
-    assert mock_fusion.last_request["method"] == "rename_body"
-    
     await delete_body(body_name="NewBody")
-    assert mock_fusion.last_request["method"] == "delete_body"
+    from test_utils import compare_command_logs
+    compare_command_logs("test_body_management", recorded_commands)
 
 @pytest.mark.anyio
-async def test_feature_management(mock_fusion):
+async def test_feature_management(mock_fusion, recorded_commands):
     await list_features()
-    assert mock_fusion.last_request["method"] == "list_features"
-    
     await rename_feature(old_name="F1", new_name="F2")
-    assert mock_fusion.last_request["method"] == "rename_feature"
-    
     await delete_feature(feature_name="F2")
-    assert mock_fusion.last_request["method"] == "delete_feature"
+    from test_utils import compare_command_logs
+    compare_command_logs("test_feature_management", recorded_commands)
 
 @pytest.mark.anyio
 async def test_component_management(mock_fusion):

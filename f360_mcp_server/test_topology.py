@@ -1,37 +1,17 @@
 import pytest
 import pytest_asyncio
-from f360_mcp_server.server import get_face_info, get_edge_info, get_sketch_info, undo, redo, save_design
+from f360_mcp_server.server import get_face_info, get_edge_info, get_sketch_info, undo, redo, save_design, get_body_properties
+from test_utils import compare_command_logs
 
 @pytest.mark.anyio
-async def test_get_face_info(mock_fusion):
-    result = await get_face_info(body_name="Body 1")
-    assert result["body_name"] == "Body 1"
-    assert len(result["faces"]) > 0
-    assert result["faces"][0]["type"] == "Planar"
-
-@pytest.mark.anyio
-async def test_get_edge_info(mock_fusion):
-    result = await get_edge_info(body_name="Body 1")
-    assert result["body_name"] == "Body 1"
-    assert len(result["edges"]) > 0
-    assert result["edges"][0]["type"] == "Line"
-
-@pytest.mark.anyio
-async def test_get_sketch_info(mock_fusion):
-    result = await get_sketch_info(sketch_name="Sketch 1")
-    assert result["sketch_name"] == "Sketch 1"
-    assert "profiles" in result
-    assert result["curves_summary"][0]["count"] == 4
-
-@pytest.mark.anyio
-async def test_undo_redo(mock_fusion):
-    result_undo = await undo(steps=2)
-    assert "Undid 2 steps" in result_undo["message"]
+async def test_topology_queries(mock_fusion, recorded_commands):
+    # 1. Get properties
+    await get_body_properties(body_name="Body 1")
     
-    result_redo = await redo(steps=1)
-    assert "Redid 1 steps" in result_redo["message"]
-
-@pytest.mark.anyio
-async def test_save_design(mock_fusion):
-    result = await save_design(description="Test Save")
-    assert "saved successfully" in result["message"]
+    # 2. Get face info
+    await get_face_info(body_name="Body 1")
+    
+    # 3. Get edge info
+    await get_edge_info(body_name="Body 1")
+    
+    compare_command_logs("test_topology_queries", recorded_commands)

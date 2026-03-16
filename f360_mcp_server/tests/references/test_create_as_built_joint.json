@@ -1,0 +1,16 @@
+[
+  {
+    "method": "create_as_built_joint",
+    "params": {
+      "name": "AsBuilt1",
+      "component1_name": "Comp1",
+      "component2_name": "Comp2",
+      "joint_type": "revolute"
+    },
+    "status": "success",
+    "result": {
+      "message": "Created as-built revolute joint",
+      "joint_name": "Revolute1"
+    }
+  }
+]

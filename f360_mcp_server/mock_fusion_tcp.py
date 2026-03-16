@@ -10,11 +10,46 @@ logger = logging.getLogger("MockFusion")
 
 # Default metadata for basic tests
 DEFAULT_METADATA = {
-    "create_sketch": {"doc": "Creates a sketch.", "parameters": [{"name": "plane_name", "has_default": True, "default": "XY", "annotation": "Any"}]},
-    "add_circle": {"doc": "Adds a circle.", "parameters": [{"name": "sketch_name", "has_default": False, "default": None, "annotation": "Any"}, {"name": "x", "has_default": False, "default": None, "annotation": "Any"}, {"name": "y", "has_default": False, "default": None, "annotation": "Any"}, {"name": "radius", "has_default": False, "default": None, "annotation": "Any"}]},
-    "export_model": {"parameters": [{"name": "file_path"}, {"name": "send_to_mcp", "has_default": True, "default": False}, {"name": "local_file_path", "has_default": True, "default": None}]},
+    # Sketch
+    "create_sketch": {"doc": "Creates a sketch.", "parameters": [
+        {"name": "name", "has_default": False},
+        {"name": "plane_name", "has_default": True, "default": "XY"},
+        {"name": "body_name", "has_default": True, "default": None},
+        {"name": "face_index", "has_default": True, "default": None}
+    ]},
+    "add_line": {"parameters": [{"name": "sketch_name"}, {"name": "x1"}, {"name": "y1"}, {"name": "x2"}, {"name": "y2"}]},
+    "add_circle": {"doc": "Adds a circle.", "parameters": [{"name": "sketch_name"}, {"name": "x"}, {"name": "y"}, {"name": "radius"}]},
+    "add_rectangle": {"parameters": [{"name": "sketch_name"}, {"name": "x1"}, {"name": "y1"}, {"name": "x2"}, {"name": "y2"}, {"name": "x3", "has_default": True, "default": None}, {"name": "y3", "has_default": True, "default": None}, {"name": "rect_type", "has_default": True, "default": "two_point"}]},
+    "add_arc": {"parameters": [{"name": "sketch_name"}, {"name": "x1"}, {"name": "y1"}, {"name": "x2"}, {"name": "y2"}, {"name": "x3"}, {"name": "y3"}, {"name": "arc_type", "has_default": True, "default": "three_point"}]},
+    "add_slot": {"parameters": [{"name": "sketch_name"}, {"name": "x1"}, {"name": "y1"}, {"name": "x2"}, {"name": "y2"}, {"name": "width"}]},
+    "add_spline": {"parameters": [{"name": "sketch_name"}, {"name": "points"}]},
+    "add_polygon": {"parameters": [{"name": "sketch_name"}, {"name": "center_x"}, {"name": "center_y"}, {"name": "num_sides"}, {"name": "vertex_x"}, {"name": "vertex_y"}, {"name": "poly_type", "has_default": True, "default": "inscribed"}]},
+    "add_ellipse": {"parameters": [{"name": "sketch_name"}, {"name": "center_x"}, {"name": "center_y"}, {"name": "major_x"}, {"name": "major_y"}, {"name": "minor_x"}, {"name": "minor_y"}]},
+    "add_point": {"parameters": [{"name": "sketch_name"}, {"name": "x"}, {"name": "y"}]},
+    "add_text": {"parameters": [{"name": "sketch_name"}, {"name": "text"}, {"name": "x"}, {"name": "y"}, {"name": "height", "has_default": True, "default": 0.5}]},
+    "apply_constraint": {"parameters": [{"name": "sketch_name"}, {"name": "constraint_type"}, {"name": "ent1_type"}, {"name": "ent1_idx"}, {"name": "ent2_type", "has_default": True, "default": None}, {"name": "ent2_idx", "has_default": True, "default": None}]},
+    "add_symmetry_constraint": {"parameters": [{"name": "sketch_name"}, {"name": "ent1_type"}, {"name": "ent1_idx"}, {"name": "ent2_type"}, {"name": "ent2_idx"}, {"name": "sym_line_type"}, {"name": "sym_line_idx"}]},
+    "add_distance_dimension": {"parameters": [{"name": "sketch_name"}, {"name": "ent1_type"}, {"name": "ent1_idx"}, {"name": "ent2_type"}, {"name": "ent2_idx"}, {"name": "text_x"}, {"name": "text_y"}, {"name": "orientation", "has_default": True, "default": "aligned"}]},
+    "add_radial_dimension": {"parameters": [{"name": "sketch_name"}, {"name": "ent_type"}, {"name": "ent_idx"}, {"name": "text_x"}, {"name": "text_y"}]},
+    "add_diameter_dimension": {"parameters": [{"name": "sketch_name"}, {"name": "ent_type"}, {"name": "ent_idx"}, {"name": "text_x"}, {"name": "text_y"}]},
+    "add_angular_dimension": {"parameters": [{"name": "sketch_name"}, {"name": "line1_idx"}, {"name": "line2_idx"}, {"name": "text_x"}, {"name": "text_y"}]},
+    "project_geometry": {"parameters": [{"name": "sketch_name"}, {"name": "ent_type"}, {"name": "ent_idx"}, {"name": "from_sketch_name", "has_default": True, "default": None}]},
+    "offset_geometry": {"parameters": [{"name": "sketch_name"}, {"name": "ent_type"}, {"name": "ent_idx"}, {"name": "offset_distance"}]},
+    "delete_sketch_entity": {"parameters": [{"name": "sketch_name"}, {"name": "ent_type"}, {"name": "ent_idx"}]},
+    "trim_sketch_geometry": {"parameters": [{"name": "sketch_name"}, {"name": "ent_type"}, {"name": "ent_idx"}, {"name": "x"}, {"name": "y"}]},
+    "list_sketches": {"parameters": []},
+    "delete_sketch": {"parameters": [{"name": "sketch_name"}]},
+    "rename_sketch": {"parameters": [{"name": "old_name"}, {"name": "new_name"}]},
+
+    # Utils / Global
+    "undo": {"parameters": [{"name": "steps", "has_default": True, "default": 1}]},
+    "redo": {"parameters": [{"name": "steps", "has_default": True, "default": 1}]},
+    "save_design": {"parameters": [{"name": "description", "has_default": True, "default": "Saved via MCP"}]},
+    "capture_screenshot": {"parameters": [{"name": "file_path"}, {"name": "width", "has_default": True, "default": 1280}, {"name": "height", "has_default": True, "default": 720}, {"name": "send_to_mcp", "has_default": True, "default": False}]},
     "execute_script": {"parameters": [{"name": "script_code"}]},
     "reload_addin": {"parameters": []},
+    "start_timeline_group": {"parameters": [{"name": "name"}]},
+    "stop_timeline_group": {"parameters": []},
     "_get_command_metadata": {"parameters": []}
 }
 
@@ -57,34 +92,100 @@ class MockFusionServer:
             # Specialize responses first (priority matching)
             if method == '_get_command_metadata':
                 meta = FULL_METADATA.copy()
-                solid_meta = {
-                    "split_body": [{"name": "body_name"}, {"name": "split_tool_name"}, {"name": "is_surface_tool", "has_default": True, "default": True}],
-                    "create_extrude": [{"name": "sketch_name"}, {"name": "distance"}, {"name": "operation", "has_default": True, "default": "new_body"}, {"name": "profile_index", "has_default": True, "default": 0}],
-                    "create_revolve": [{"name": "sketch_name"}, {"name": "axis_ent_type"}, {"name": "axis_ent_idx"}, {"name": "angle"}],
-                    "create_sweep": [{"name": "profile_sketch_name"}, {"name": "path_sketch_name"}, {"name": "path_ent_type"}, {"name": "path_ent_idx"}],
-                    "create_loft": [{"name": "profiles_info"}],
-                    "create_hole": [{"name": "sketch_name"}, {"name": "point_idx"}, {"name": "diameter"}, {"name": "depth"}],
-                    "create_shell": [{"name": "body_name"}, {"name": "thickness"}],
-                    "create_fillet": [{"name": "body_name"}, {"name": "radius"}],
-                    "create_chamfer": [{"name": "body_name"}, {"name": "distance"}],
-                    "feature_mirror": [{"name": "body_name"}, {"name": "plane_name"}],
-                    "combine_bodies": [{"name": "target_body_name"}, {"name": "tool_body_names"}, {"name": "operation", "has_default": True, "default": "join"}],
-                    "scale_body": [{"name": "body_name"}, {"name": "scale_factor"}],
-                    "create_thread": [{"name": "body_name"}, {"name": "face_index", "has_default": True, "default": 0}, {"name": "is_modeled", "has_default": True, "default": True}],
-                    "move_body": [{"name": "body_name"}, {"name": "dx"}, {"name": "dy"}, {"name": "dz"}],
+                # Detailed metadata for specialized tests
+                detailed_meta = {
+                    # Solid Features
+                    "split_body": [{"name": "name"}, {"name": "body_name"}, {"name": "split_tool_name"}, {"name": "is_surface_tool", "has_default": True, "default": True}],
+                    "create_extrude": [{"name": "name"}, {"name": "sketch_name"}, {"name": "distance"}, {"name": "operation", "has_default": True, "default": "new_body"}, {"name": "profile_index", "has_default": True, "default": 0}],
+                    "create_revolve": [{"name": "name"}, {"name": "sketch_name"}, {"name": "axis_ent_type"}, {"name": "axis_ent_idx"}, {"name": "angle"}, {"name": "operation", "has_default": True, "default": "new_body"}, {"name": "profile_index", "has_default": True, "default": 0}],
+                    "create_sweep": [{"name": "name"}, {"name": "profile_sketch_name"}, {"name": "path_sketch_name"}, {"name": "path_ent_type"}, {"name": "path_ent_idx"}, {"name": "operation", "has_default": True, "default": "new_body"}, {"name": "profile_index", "has_default": True, "default": 0}],
+                    "create_loft": [{"name": "name"}, {"name": "profiles_info"}],
+                    "create_hole": [{"name": "name"}, {"name": "sketch_name"}, {"name": "point_idx"}, {"name": "diameter"}, {"name": "depth"}],
+                    "create_shell": [{"name": "name"}, {"name": "body_name"}, {"name": "thickness"}],
+                    "create_fillet": [{"name": "name"}, {"name": "body_name"}, {"name": "radius"}],
+                    "create_chamfer": [{"name": "name"}, {"name": "body_name"}, {"name": "distance"}],
+                    "feature_mirror": [{"name": "name"}, {"name": "body_name"}, {"name": "plane_name"}],
+                    "create_rectangular_pattern": [{"name": "name"}, {"name": "body_name"}, {"name": "count_x"}, {"name": "count_y"}, {"name": "distance_x"}, {"name": "distance_y"}],
+                    "create_circular_pattern": [{"name": "name"}, {"name": "body_name"}, {"name": "axis_name"}, {"name": "count"}, {"name": "angle_deg"}],
+                    "combine_bodies": [{"name": "name"}, {"name": "target_body_name"}, {"name": "tool_body_names"}, {"name": "operation", "has_default": True, "default": "join"}],
+                    "rename_body": [{"name": "old_name"}, {"name": "new_name"}],
+                    "delete_body": [{"name": "body_name"}],
+                    "list_bodies": [],
+                    "rename_feature": [{"name": "old_name"}, {"name": "new_name"}],
+                    "delete_feature": [{"name": "feature_name"}],
+                    "list_features": [],
+                    "scale_body": [{"name": "name"}, {"name": "body_name"}, {"name": "scale_factor"}],
+                    "create_thread": [{"name": "name"}, {"name": "body_name"}, {"name": "face_index", "has_default": True, "default": 0}, {"name": "is_modeled", "has_default": True, "default": True}],
+                    "move_body": [{"name": "name"}, {"name": "body_name"}, {"name": "dx"}, {"name": "dy"}, {"name": "dz"}],
+                    "create_rib": [{"name": "name"}, {"name": "sketch_name"}, {"name": "thickness"}],
+                    "create_web": [{"name": "name"}, {"name": "sketch_name"}, {"name": "thickness"}],
+                    "create_emboss": [{"name": "name"}, {"name": "sketch_name"}, {"name": "body_name"}, {"name": "depth"}],
+                    "compute_all": [],
+
+                    # Assembly
+                    "create_component": [{"name": "name"}],
+                    "list_components": [],
+                    "rename_component": [{"name": "old_name"}, {"name": "new_name"}],
+                    "delete_component": [{"name": "occurrence_name"}],
+                    "create_joint": [{"name": "name"}, {"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}, {"name": "offset_x", "has_default": True, "default": 0}, {"name": "offset_y", "has_default": True, "default": 0}, {"name": "offset_z", "has_default": True, "default": 0}],
+                    "create_as_built_joint": [{"name": "name"}, {"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}],
+                    "get_active_component": [],
+
+                    # Data
+                    "list_projects": [],
+                    "create_project": [{"name": "name"}],
+                    "create_folder": [{"name": "project_name"}, {"name": "folder_name"}, {"name": "parent_folder_path", "has_default": True, "default": None}],
+                    "list_designs": [{"name": "project_name"}, {"name": "folder_path", "has_default": True, "default": None}],
+                    "open_design": [{"name": "project_name"}, {"name": "name"}, {"name": "folder_path", "has_default": True, "default": None}],
+                    "create_new_design": [{"name": "name"}, {"name": "project_name", "has_default": True, "default": None}, {"name": "folder_path", "has_default": True, "default": None}],
+                    "export_model": [{"name": "file_path"}, {"name": "file_type", "has_default": True, "default": "step"}, {"name": "body_name", "has_default": True, "default": None}, {"name": "send_to_mcp", "has_default": True, "default": False}],
+
+                    # Materials
+                    "list_materials": [],
+                    "apply_material": [{"name": "body_name"}, {"name": "material_name"}],
+                    "list_appearances": [],
+                    "apply_appearance": [{"name": "body_name"}, {"name": "appearance_name"}],
+
+                    # Parameters
+                    "create_user_parameter": [{"name": "name"}, {"name": "expression"}, {"name": "unit", "has_default": True, "default": ""}, {"name": "description", "has_default": True, "default": ""}],
+                    "list_user_parameters": [],
+                    "list_parameters": [],
+                    "update_parameter": [{"name": "name"}, {"name": "expression", "has_default": True, "default": None}, {"name": "description", "has_default": True, "default": None}],
+                    "update_user_parameter": [{"name": "name"}, {"name": "expression", "has_default": True, "default": None}, {"name": "description", "has_default": True, "default": None}],
+                    "delete_user_parameter": [{"name": "name"}],
+
+                    # Query / Topology / Health
+                    "get_face_info": [{"name": "body_name"}],
+                    "get_edge_info": [{"name": "body_name"}],
+                    "get_sketch_info": [{"name": "sketch_name"}],
+                    "get_body_properties": [{"name": "body_name"}],
                     "measure_interference": [{"name": "body_names"}],
-                    "create_rib": [{"name": "sketch_name"}, {"name": "thickness"}],
-                    "create_web": [{"name": "sketch_name"}, {"name": "thickness"}],
-                    "create_emboss": [{"name": "sketch_name"}, {"name": "body_name"}, {"name": "depth"}],
+                    "get_design_health": [],
+
+                    # Construction
+                    "create_offset_plane": [{"name": "name"}, {"name": "base_plane"}, {"name": "offset"}],
+                    "create_plane_at_angle": [{"name": "name"}, {"name": "axis_name"}, {"name": "angle_deg"}],
+                    "list_construction": [],
+                    "rename_construction": [{"name": "old_name"}, {"name": "new_name"}, {"name": "type", "has_default": True, "default": "plane"}],
+                    "delete_construction": [{"name": "name"}, {"name": "type", "has_default": True, "default": "plane"}],
+
+                    # Mesh
                     "import_mesh": [{"name": "file_path"}],
-                    "convert_mesh_to_solid": [{"name": "body_name"}, {"name": "method", "has_default": True, "default": "prismatic"}],
-                    "create_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}, {"name": "offset_x", "has_default": True, "default": 0}, {"name": "offset_y", "has_default": True, "default": 0}, {"name": "offset_z", "has_default": True, "default": 0}],
-                    "create_as_built_joint": [{"name": "component1_name"}, {"name": "component2_name"}, {"name": "joint_type", "has_default": True, "default": "rigid"}],
-                    "reload_addin": []
+                    "convert_mesh_to_solid": [{"name": "name"}, {"name": "body_name"}, {"name": "method", "has_default": True, "default": "prismatic"}],
                 }
-                for cmd, params_list in solid_meta.items():
+                for cmd, params_list in detailed_meta.items():
                     if cmd not in meta:
-                        meta[cmd] = {"parameters": params_list}
+                        meta[cmd] = {
+                            "doc": f"Mock {cmd}",
+                            "parameters": [
+                                {
+                                    "name": p["name"],
+                                    "has_default": p.get("has_default", False),
+                                    "default": p.get("default"),
+                                    "annotation": "Any"
+                                } for p in params_list
+                            ]
+                        }
                 result = meta
             elif method == 'start_timeline_group':
                  if params.get('name'):
@@ -212,7 +313,15 @@ class MockFusionServer:
                         details.append(f"{k}='{v}'")
                 
                 if "name" in params:
-                    result["message"] = f"Successfully Created {method.replace('create_', '')} '{params['name']}'"
+                    name_val = params['name']
+                    result["message"] = f"Successfully Created {method.replace('create_', '')} '{name_val}'"
+                    if method == "create_sketch":
+                        result["sketch_name"] = name_val
+                    elif method == "create_new_design":
+                        result["design_name"] = name_val
+                    else:
+                        # Default for most solid features
+                        result["feature_name"] = name_val
                 elif "text" in params:
                      result["message"] = f"Successfully Added text '{params['text']}'"
                 elif details:

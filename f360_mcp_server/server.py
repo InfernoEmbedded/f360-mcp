@@ -29,7 +29,8 @@ mcp = FastMCP(
 
 # Command history for testing/verification
 command_history: List[Dict[str, Any]] = []
-RECORD_COMMANDS = os.environ.get("F360_RECORD_COMMANDS", "false").lower() == "true"
+def should_record_commands():
+    return os.environ.get("F360_RECORD_COMMANDS", "false").lower() == "true"
 
 @mcp.resource("fusion360://cheat-sheet.md")
 def get_cheat_sheet() -> str:
@@ -103,12 +104,12 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     
     # Record command if enabled
     record = None
-    if RECORD_COMMANDS:
-        from datetime import datetime
+    if should_record_commands():
+        from datetime import datetime, timezone
         record = {
             "method": method,
             "params": params,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "status": "pending"
         }
         command_history.append(record)
@@ -438,9 +439,6 @@ def create_starlette_app(mcp, transport_env, host, port):
     sse_app = mcp.sse_app()
     http_app = mcp.streamable_http_app()
     
-    # Build unified routes
-    routes = []
-    
     # Find the Streamable HTTP handler
     mcp_handler = None
     for r in http_app.routes:
@@ -448,15 +446,19 @@ def create_starlette_app(mcp, transport_env, host, port):
             mcp_handler = r.app
             break
 
+    # Build unified routes
+    routes = []
+
     # 1. Add /sse routes
     logger.info(f"Registering unified routes for {mcp.settings.sse_path}")
     # GET/HEAD go to SSE app
     routes.append(Route(mcp.settings.sse_path, endpoint=sse_app, methods=["GET", "HEAD"]))
-    # POST goes directly to the MCP handler (bypassing Starlette routing in http_app)
+    
+    # POST /sse delegates to the same Streamable HTTP handler as /mcp
     if mcp_handler:
-        routes.append(Route(mcp.settings.sse_path, endpoint=mcp_handler, methods=["POST"]))
+        routes.append(Route(mcp.settings.sse_path, mcp_handler, methods=["POST"]))
     else:
-        logger.warning("Could not find Streamable HTTP handler for delegation")
+        logger.warning("Could not find Streamable HTTP handler for /sse POST delegation")
 
     
     # 2. Add /messages route (from SSE app)

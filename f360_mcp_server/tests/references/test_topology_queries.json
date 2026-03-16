@@ -1,0 +1,48 @@
+[
+  {
+    "method": "get_body_properties",
+    "params": {
+      "body_name": "Body 1"
+    },
+    "status": "success",
+    "result": {
+      "body_name": "Body 1",
+      "mass_kg": 1.0
+    }
+  },
+  {
+    "method": "get_face_info",
+    "params": {
+      "body_name": "Body 1"
+    },
+    "status": "success",
+    "result": {
+      "faces": [
+        {
+          "id": 0,
+          "area": 1.0,
+          "type": "Planar"
+        }
+      ],
+      "body_name": "Body 1",
+      "faces_count": 1
+    }
+  },
+  {
+    "method": "get_edge_info",
+    "params": {
+      "body_name": "Body 1"
+    },
+    "status": "success",
+    "result": {
+      "body_name": "Body 1",
+      "edges": [
+        {
+          "id": 0,
+          "length": 1.0,
+          "type": "Line"
+        }
+      ]
+    }
+  }
+]
