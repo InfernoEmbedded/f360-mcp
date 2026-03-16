@@ -159,6 +159,7 @@ class MockFusionServer:
                     "get_edge_info": [{"name": "body_name"}],
                     "get_sketch_info": [{"name": "sketch_name"}],
                     "get_body_properties": [{"name": "body_name"}],
+                    "get_object_hierarchy": [],
                     "measure_interference": [{"name": "body_names"}],
                     "get_design_health": [],
 
@@ -233,6 +234,23 @@ class MockFusionServer:
                 }
                 if params.get('local_file_path'):
                     result["message"] = f"Screenshot saved to {params['local_file_path']}"
+            elif method == 'get_object_hierarchy':
+                result = {"hierarchy": {
+                    "name": "Root",
+                    "type": "Component",
+                    "design_name": "Root",
+                    "design_type": "ParametricDesignType",
+                    "bodies": [{"name": "Body 1", "type": "BRepBody", "is_visible": True}],
+                    "sketches": [{"name": "Sketch 1", "type": "Sketch", "profiles_count": 1, "is_visible": True}],
+                    "features": [{"name": "Extrude 1", "type": "ExtrudeFeature", "is_suppressed": False}],
+                    "children": [{
+                        "name": "Component 1",
+                        "type": "Component",
+                        "occurrence": "Component 1:1",
+                        "is_visible": True,
+                        "bodies": [{"name": "Body 1", "type": "BRepBody", "is_visible": True}]
+                    }]
+                }}
             elif method == 'get_design_health':
                 result = {"message": "Design is healthy."}
             elif method == 'get_sketch_info':

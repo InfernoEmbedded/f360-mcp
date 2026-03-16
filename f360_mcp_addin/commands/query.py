@@ -69,3 +69,122 @@ def get_body_properties(app, body_name):
             "max": {"x": round(bbox.maxPoint.x, 3), "y": round(bbox.maxPoint.y, 3), "z": round(bbox.maxPoint.z, 3)}
         }
     }
+
+@command()
+def get_object_hierarchy(app):
+    """Returns the full design object hierarchy showing name and type of every object.
+
+    Recursively traverses the component tree starting from the root component,
+    collecting bodies, sketches, joints, construction planes/axes/points, and
+    features for each component.  Sub-components are listed as children via
+    their occurrences.
+    """
+    design = get_active_design(app)
+    root = design.rootComponent
+
+    def _collect_component(comp, occurrence_name=None):
+        """Build a dict describing one component and its contents."""
+        node = {
+            "name": comp.name,
+            "type": "Component",
+        }
+        if occurrence_name:
+            node["occurrence"] = occurrence_name
+
+        # Bodies
+        bodies = []
+        for i in range(comp.bRepBodies.count):
+            b = comp.bRepBodies.item(i)
+            bodies.append({"name": b.name, "type": "BRepBody", "is_visible": b.isVisible})
+        if bodies:
+            node["bodies"] = bodies
+
+        # Sketches
+        sketches = []
+        for i in range(comp.sketches.count):
+            s = comp.sketches.item(i)
+            sketches.append({
+                "name": s.name,
+                "type": "Sketch",
+                "profiles_count": s.profiles.count,
+                "is_visible": s.isVisible,
+            })
+        if sketches:
+            node["sketches"] = sketches
+
+        # Features (timeline-based operations)
+        features = []
+        try:
+            for i in range(comp.features.count):
+                f = comp.features.item(i)
+                feat_type = f.objectType.split("::")[-1] if hasattr(f, "objectType") else "Feature"
+                feat = {"name": f.name, "type": feat_type}
+                try:
+                    feat["is_suppressed"] = f.isSuppressed
+                except:
+                    pass
+                features.append(feat)
+        except:
+            pass
+        if features:
+            node["features"] = features
+
+        # Joints (only on root component)
+        joints = []
+        try:
+            for i in range(comp.joints.count):
+                j = comp.joints.item(i)
+                jt = j.objectType.split("::")[-1] if hasattr(j, "objectType") else "Joint"
+                joints.append({"name": j.name, "type": jt})
+        except:
+            pass
+        try:
+            for i in range(comp.asBuiltJoints.count):
+                j = comp.asBuiltJoints.item(i)
+                jt = j.objectType.split("::")[-1] if hasattr(j, "objectType") else "AsBuiltJoint"
+                joints.append({"name": j.name, "type": jt})
+        except:
+            pass
+        if joints:
+            node["joints"] = joints
+
+        # Construction geometry
+        construction = []
+        try:
+            for i in range(comp.constructionPlanes.count):
+                cp = comp.constructionPlanes.item(i)
+                construction.append({"name": cp.name, "type": "ConstructionPlane"})
+        except:
+            pass
+        try:
+            for i in range(comp.constructionAxes.count):
+                ca = comp.constructionAxes.item(i)
+                construction.append({"name": ca.name, "type": "ConstructionAxis"})
+        except:
+            pass
+        try:
+            for i in range(comp.constructionPoints.count):
+                cp = comp.constructionPoints.item(i)
+                construction.append({"name": cp.name, "type": "ConstructionPoint"})
+        except:
+            pass
+        if construction:
+            node["construction_geometry"] = construction
+
+        # Child components (via occurrences)
+        children = []
+        for i in range(comp.occurrences.count):
+            occ = comp.occurrences.item(i)
+            child = _collect_component(occ.component, occurrence_name=occ.name)
+            child["is_visible"] = occ.isVisible
+            children.append(child)
+        if children:
+            node["children"] = children
+
+        return node
+
+    hierarchy = _collect_component(root)
+    hierarchy["design_name"] = design.rootComponent.name
+    hierarchy["design_type"] = "DirectDesignType" if design.designType == 0 else "ParametricDesignType"
+
+    return {"hierarchy": hierarchy}

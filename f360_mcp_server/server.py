@@ -1,4 +1,5 @@
 import asyncio
+import fnmatch
 import json
 import os
 import socket
@@ -6,6 +7,7 @@ import sys
 import uuid
 import logging
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
@@ -420,6 +422,27 @@ def start_background_discovery():
     thread = threading.Thread(target=discovery_loop, daemon=True)
     thread.start()
 
+def _get_allowed_origins():
+    """Parse allowed origins from environment variable.
+    
+    Supports glob patterns like 'http://localhost:*' and 'http://127.0.0.1:*'.
+    Returns a list of origin patterns.
+    """
+    env = os.environ.get("MCP_ALLOWED_ORIGINS", "")
+    if env.strip():
+        return [o.strip() for o in env.split(",") if o.strip()]
+    # Default: allow localhost origins on any port
+    return ["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*"]
+
+
+def _origin_is_allowed(origin: str, allowed_patterns: list) -> bool:
+    """Check if an origin matches any of the allowed patterns."""
+    for pattern in allowed_patterns:
+        if fnmatch.fnmatch(origin, pattern):
+            return True
+    return False
+
+
 def create_starlette_app(mcp, transport_env, host, port):
     """
     Creates a unified Starlette application that supports both SSE and Streamable HTTP.
@@ -430,10 +453,14 @@ def create_starlette_app(mcp, transport_env, host, port):
     from starlette.routing import Route
     from starlette.responses import JSONResponse, Response
     from starlette.middleware.cors import CORSMiddleware
+    from starlette.types import ASGIApp, Receive, Scope, Send
     
     # Ensure settings are synced
     mcp.settings.host = host
     mcp.settings.port = int(port)
+    
+    allowed_origins = _get_allowed_origins()
+    logger.info(f"Allowed origins: {allowed_origins}")
     
     # Create apps for both transports
     sse_app = mcp.sse_app()
@@ -451,14 +478,14 @@ def create_starlette_app(mcp, transport_env, host, port):
 
     # 1. Add /sse routes
     logger.info(f"Registering unified routes for {mcp.settings.sse_path}")
-    # GET/HEAD go to SSE app
+    # GET/HEAD go to SSE app (old transport backwards compatibility)
     routes.append(Route(mcp.settings.sse_path, endpoint=sse_app, methods=["GET", "HEAD"]))
     
-    # POST /sse delegates to the same Streamable HTTP handler as /mcp
+    # POST and DELETE /sse delegate to Streamable HTTP handler
     if mcp_handler:
-        routes.append(Route(mcp.settings.sse_path, mcp_handler, methods=["POST"]))
+        routes.append(Route(mcp.settings.sse_path, mcp_handler, methods=["POST", "DELETE"]))
     else:
-        logger.warning("Could not find Streamable HTTP handler for /sse POST delegation")
+        logger.warning("Could not find Streamable HTTP handler for /sse delegation")
 
     
     # 2. Add /messages route (from SSE app)
@@ -506,11 +533,38 @@ def create_starlette_app(mcp, transport_env, host, port):
 
     app = Starlette(routes=routes, lifespan=lifespan)
     
-    # Add CORS support for browser-based clients (like OpenWebUI)
+    # ---- MCP Spec: Origin validation (MUST) ----
+    # Servers MUST validate the Origin header on all incoming connections to
+    # prevent DNS rebinding attacks. If the Origin header is present and
+    # invalid, respond with HTTP 403 Forbidden.
+    class OriginValidationMiddleware:
+        def __init__(self, app: ASGIApp):
+            self.app = app
+        async def __call__(self, scope: Scope, receive: Receive, send: Send):
+            if scope["type"] == "http":
+                headers = dict(scope.get("headers", []))
+                origin = headers.get(b"origin", b"").decode("latin-1")
+                if origin and not _origin_is_allowed(origin, allowed_origins):
+                    logger.warning(f"Rejected request with invalid Origin: {origin}")
+                    response = JSONResponse(
+                        {"jsonrpc": "2.0", "error": {"code": -32600, "message": "Forbidden: invalid Origin"}},
+                        status_code=403
+                    )
+                    await response(scope, receive, send)
+                    return
+            await self.app(scope, receive, send)
+
+    app.add_middleware(OriginValidationMiddleware)
+    
+    # CORS support for browser-based clients
+    # Derive concrete origins from allowed patterns for the CORS middleware.
+    cors_origins = [p for p in allowed_origins if "*" not in p]
+    # If any pattern has wildcards, allow all (CORS middleware needs exact matches)
+    allow_all = any("*" in p for p in allowed_origins)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
+        allow_origins=["*"] if allow_all else cors_origins,
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
     
@@ -520,7 +574,7 @@ if __name__ == "__main__":
     try:
         # Check transport from environment
         transport_env = os.environ.get("MCP_TRANSPORT", "stdio").lower()
-        host = os.environ.get("MCP_HOST", "0.0.0.0")
+        host = os.environ.get("MCP_HOST", "127.0.0.1")
         port = os.environ.get("MCP_PORT", "8000")
         
         logger.info(f"Starting MCP Server (transport={transport_env}, host={host}, port={port})")
