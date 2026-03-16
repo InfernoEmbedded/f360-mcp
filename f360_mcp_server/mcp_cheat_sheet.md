@@ -42,9 +42,16 @@ To reconstruct or modify a parametric solid base from an existing STL/OBJ:
 2. `convert_mesh_to_solid(body_name="Mesh Body 1", method="prismatic")` to natively convert the mesh triangles into an editable BRep/Solid BaseFeature. (Note: Prismatic is preferred for mechanical parts).
 3. Use downstream solid tools like `create_extrude`, `split_body`, or `create_hole` to adjust the now-solid geometry.
 
-### 6. Updating the MCP Server & Add-in
-To natively auto-update the Wrapper to the latest codebase:
-1. `update_and_reload_mcp(git_repo, branch)` to natively pull new code via Git, automatically close the Add-in, reload it with a temporary script, and restart the MCP Server.
+### 6. Design Management
+Keep your work organized and accessible:
+- Use `list_projects` to find where designs are stored.
+- Use `create_folder` to organize by part or assembly.
+- Use `list_designs(project_name)` to see what's available.
+- Use `open_design(project_name, design_name)` to load an existing file.
+- Use `save_design()` (from utils) to commit your changes with a description.
+- Use `create_new_design(name, project_name)` to start fresh in a specific location.
+
+### 7. Updating the MCP Server & Add-in
 
 ## ⚠️ Common Pitfalls
 
