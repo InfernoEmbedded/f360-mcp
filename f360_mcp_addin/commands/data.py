@@ -5,6 +5,22 @@ import os
 from . import command
 from .base import get_active_design, _get_body
 
+def _get_folder_by_path(project, folder_path):
+    """Helper to navigate a project's folder structure."""
+    current_folder = project.rootFolder
+    if folder_path:
+        parts = [p for p in folder_path.split('/') if p]
+        for part in parts:
+            found = False
+            for i in range(current_folder.dataFolders.count):
+                if current_folder.dataFolders.item(i).name == part:
+                    current_folder = current_folder.dataFolders.item(i)
+                    found = True
+                    break
+            if not found:
+                raise Exception(f"Folder path component '{part}' not found.")
+    return current_folder
+
 @command()
 def list_projects(app):
     hubs = app.data.hubs
@@ -42,18 +58,7 @@ def create_folder(app, project_name, folder_name, parent_folder_path=None):
     if not project:
         raise Exception(f"Project '{project_name}' not found.")
     
-    current_folder = project.rootFolder
-    if parent_folder_path:
-        parts = [p for p in parent_folder_path.split('/') if p]
-        for part in parts:
-            found = False
-            for i in range(current_folder.dataFolders.count):
-                if current_folder.dataFolders.item(i).name == part:
-                    current_folder = current_folder.dataFolders.item(i)
-                    found = True
-                    break
-            if not found:
-                raise Exception(f"Parent folder path component '{part}' not found.")
+    current_folder = _get_folder_by_path(project, parent_folder_path)
     
     for i in range(current_folder.dataFolders.count):
         if current_folder.dataFolders.item(i).name == folder_name:
@@ -61,6 +66,76 @@ def create_folder(app, project_name, folder_name, parent_folder_path=None):
             
     folder = current_folder.dataFolders.add(folder_name)
     return {"message": f"Folder '{folder_name}' created successfully.", "folder_id": folder.id}
+
+@command()
+def list_designs(app, project_name, folder_path=None):
+    """
+    Lists designs in a project and folder.
+    
+    Args:
+        project_name: Name of the project.
+        folder_path: Optional path to a subfolder (e.g. "Mechanical/Parts").
+    """
+    hub = app.data.activeHub
+    project = None
+    for i in range(hub.dataProjects.count):
+        if hub.dataProjects.item(i).name == project_name:
+            project = hub.dataProjects.item(i)
+            break
+    if not project:
+        raise Exception(f"Project '{project_name}' not found.")
+    
+    folder = _get_folder_by_path(project, folder_path)
+    
+    data_files = []
+    for i in range(folder.dataFiles.count):
+        df = folder.dataFiles.item(i)
+        # Check if it's a Fusion design (FusionDesignDocumentType doesn't apply to DataFile)
+        # We'll just return everything in the folder, usually they are designs.
+        data_files.append({
+            "name": df.name,
+            "id": df.id,
+            "version": df.versionNumber
+        })
+        
+    return {"designs": data_files}
+
+@command()
+def open_design(app, project_name, name, folder_path=None):
+    """
+    Opens an existing design.
+    
+    Args:
+        project_name: Name of the project.
+        name: Name of the design file.
+        folder_path: Optional path to a subfolder.
+    """
+    hub = app.data.activeHub
+    project = None
+    for i in range(hub.dataProjects.count):
+        if hub.dataProjects.item(i).name == project_name:
+            project = hub.dataProjects.item(i)
+            break
+    if not project:
+        raise Exception(f"Project '{project_name}' not found.")
+    
+    folder = _get_folder_by_path(project, folder_path)
+    
+    data_file = None
+    for i in range(folder.dataFiles.count):
+        df = folder.dataFiles.item(i)
+        if df.name == name:
+            data_file = df
+            break
+            
+    if not data_file:
+        raise Exception(f"Design '{name}' not found in '{project_name}' (folder: {folder_path or 'root'})")
+        
+    doc = app.documents.open(data_file, True)
+    if not doc:
+        raise Exception(f"Failed to open design '{name}'")
+        
+    return {"message": f"Successfully opened design '{name}'", "document_name": doc.name}
 
 @command()
 def create_new_design(app, name, project_name=None, folder_path=None):
@@ -77,14 +152,7 @@ def create_new_design(app, name, project_name=None, folder_path=None):
         if not project:
             return {"message": f"Design created but could not find project '{project_name}' to save.", "status": "unsaved"}
             
-        current_folder = project.rootFolder
-        if folder_path:
-            parts = [p for p in folder_path.split('/') if p]
-            for part in parts:
-                for i in range(current_folder.dataFolders.count):
-                    if current_folder.dataFolders.item(i).name == part:
-                        current_folder = current_folder.dataFolders.item(i)
-                        break
+        current_folder = _get_folder_by_path(project, folder_path)
         
         doc.saveAs(name, current_folder, "", "")
         return {"message": f"Created and saved design '{name}' in project '{project_name}'", "status": "saved"}
