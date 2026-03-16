@@ -6,11 +6,12 @@ from .base import get_active_design, get_sketch_by_name, _get_body
 from .sketch import resolve_entity
 
 @command()
-def create_extrude(app, sketch_name, distance, operation="new_body", profile_index=0):
+def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=0):
     """
     Extrudes a sketch profile.
     
     Arguments:
+        name (str): Mandatory name for the new feature.
         distance (float): Extrusion depth in cm.
         operation (str): new_body, join, cut, intersect.
     """
@@ -34,10 +35,11 @@ def create_extrude(app, sketch_name, distance, operation="new_body", profile_ind
     extrudeInput = extrudes.createInput(profile, fusion_op)
     extrudeInput.setDistanceExtent(False, distance_val)
     extrude = extrudes.add(extrudeInput)
-    return {"message": f"Extruded {distance}cm using operation {operation}.", "feature_name": extrude.name}
+    extrude.name = name
+    return {"message": f"Extruded {distance}cm using operation {operation} as '{name}'.", "feature_name": extrude.name}
 
 @command()
-def create_revolve(app, sketch_name, axis_ent_type, axis_ent_idx, angle, operation="new_body", profile_index=0):
+def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, operation="new_body", profile_index=0):
     design = get_active_design(app)
     rootComp = design.rootComponent
     revolves = rootComp.features.revolveFeatures
@@ -60,10 +62,11 @@ def create_revolve(app, sketch_name, axis_ent_type, axis_ent_idx, angle, operati
     revolveInput = revolves.createInput(profile, axis, fusion_op)
     revolveInput.setAngleExtent(False, angle_val)
     revolve = revolves.add(revolveInput)
-    return {"message": f"Revolved {angle} degrees using operation {operation}.", "feature_name": revolve.name}
+    revolve.name = name
+    return {"message": f"Revolved {angle} degrees using operation {operation} as '{name}'.", "feature_name": revolve.name}
 
 @command()
-def create_sweep(app, profile_sketch_name, path_sketch_name, path_ent_type, path_ent_idx, operation="new_body", profile_index=0):
+def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type, path_ent_idx, operation="new_body", profile_index=0):
     design = get_active_design(app)
     rootComp = design.rootComponent
     sweeps = rootComp.features.sweepFeatures
@@ -85,10 +88,11 @@ def create_sweep(app, profile_sketch_name, path_sketch_name, path_ent_type, path
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
     sweepInput = sweeps.createInput(profile, path, fusion_op)
     sweep = sweeps.add(sweepInput)
-    return {"message": f"Sweep created using operation {operation}.", "feature_name": sweep.name}
+    sweep.name = name
+    return {"message": f"Sweep '{name}' created using operation {operation}.", "feature_name": sweep.name}
 
 @command()
-def create_loft(app, profiles_info):
+def create_loft(app, name, profiles_info):
     design = get_active_design(app)
     rootComp = design.rootComponent
     lofts = rootComp.features.loftFeatures
@@ -103,10 +107,11 @@ def create_loft(app, profiles_info):
         loftSections.add(prof)
     loftInput.isSolid = True
     loft = lofts.add(loftInput)
-    return {"message": f"Created loft from {len(profiles_info)} profiles.", "feature_name": loft.name}
+    loft.name = name
+    return {"message": f"Created loft '{name}' from {len(profiles_info)} profiles.", "feature_name": loft.name}
 
 @command()
-def create_hole(app, sketch_name, point_idx, diameter, depth):
+def create_hole(app, name, sketch_name, point_idx, diameter, depth):
     """Creates a circular hole. Units: cm."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -121,10 +126,11 @@ def create_hole(app, sketch_name, point_idx, diameter, depth):
     holeInput.setPositionBySketchPoint(point)
     holeInput.setDistanceExtent(depth_val)
     hole = holes.add(holeInput)
-    return {"message": f"Hole created with diameter {diameter}cm and depth {depth}cm.", "feature_name": hole.name}
+    hole.name = name
+    return {"message": f"Hole '{name}' created with diameter {diameter}cm and depth {depth}cm.", "feature_name": hole.name}
 
 @command()
-def create_shell(app, body_name, thickness):
+def create_shell(app, name, body_name, thickness):
     """Hollows a body. Units: cm."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -136,10 +142,11 @@ def create_shell(app, body_name, thickness):
     shellInput = shells.createInput(entities, False)
     shellInput.insideThickness = thickness_val
     shell = shells.add(shellInput)
-    return {"message": f"Shell created with {thickness}cm thickness.", "feature_name": shell.name}
+    shell.name = name
+    return {"message": f"Shell '{name}' created with {thickness}cm thickness.", "feature_name": shell.name}
 
 @command()
-def create_fillet(app, body_name, radius):
+def create_fillet(app, name, body_name, radius):
     """Fillets all edges of a body. Units: cm."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -152,10 +159,11 @@ def create_fillet(app, body_name, radius):
     filletInput = fillets.createInput()
     filletInput.addConstantRadiusEdgeSet(edges, radius_val, True)
     fillet = fillets.add(filletInput)
-    return {"message": f"Filleted all edges of body {body_name} with {radius}cm radius.", "feature_name": fillet.name}
+    fillet.name = name
+    return {"message": f"Filleted '{name}' all edges of body {body_name} with {radius}cm radius.", "feature_name": fillet.name}
 
 @command()
-def create_chamfer(app, body_name, distance):
+def create_chamfer(app, name, body_name, distance):
     """Chamfers all edges of a body. Units: cm."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -168,10 +176,11 @@ def create_chamfer(app, body_name, distance):
     chamferInput = chamfers.createInput(edges, True)
     chamferInput.setToEqualDistance(distance_val)
     chamfer = chamfers.add(chamferInput)
-    return {"message": f"Chamfered all edges of body {body_name} with {distance}cm distance.", "feature_name": chamfer.name}
+    chamfer.name = name
+    return {"message": f"Chamfered '{name}' all edges of body {body_name} with {distance}cm distance.", "feature_name": chamfer.name}
 
 @command()
-def feature_mirror(app, body_name, plane_name):
+def feature_mirror(app, name, body_name, plane_name):
     design = get_active_design(app)
     rootComp = design.rootComponent
     mirrors = rootComp.features.mirrorFeatures
@@ -189,10 +198,11 @@ def feature_mirror(app, body_name, plane_name):
     inputEntities.add(body)
     mirrorInput = mirrors.createInput(inputEntities, plane)
     mirror = mirrors.add(mirrorInput)
-    return {"message": f"Mirrored body {body_name} across {plane_name} plane.", "feature_name": mirror.name}
+    mirror.name = name
+    return {"message": f"Mirrored body {body_name} across {plane_name} plane as '{name}'.", "feature_name": mirror.name}
 
 @command()
-def create_rectangular_pattern(app, body_name, count_x, count_y, distance_x, distance_y):
+def create_rectangular_pattern(app, name, body_name, count_x, count_y, distance_x, distance_y):
     design = get_active_design(app)
     rootComp = design.rootComponent
     body = _get_body(app, body_name)
@@ -204,10 +214,11 @@ def create_rectangular_pattern(app, body_name, count_x, count_y, distance_x, dis
     rectPatternInput = rectPatterns.createInput(inputEntities, xAxis, adsk.core.ValueInput.createByReal(count_x), adsk.core.ValueInput.createByReal(distance_x), adsk.fusion.PatternDistanceType.SpacingPatternDistanceType)
     rectPatternInput.setDirectionTwo(yAxis, adsk.core.ValueInput.createByReal(count_y), adsk.core.ValueInput.createByReal(distance_y))
     pattern = rectPatterns.add(rectPatternInput)
-    return {"message": f"Created rectangular pattern for '{body_name}'", "pattern_name": pattern.name}
+    pattern.name = name
+    return {"message": f"Created rectangular pattern '{name}' for '{body_name}'", "pattern_name": pattern.name}
 
 @command()
-def create_circular_pattern(app, body_name, axis_name, count, angle_deg):
+def create_circular_pattern(app, name, body_name, axis_name, count, angle_deg):
     design = get_active_design(app)
     rootComp = design.rootComponent
     body = _get_body(app, body_name)
@@ -230,7 +241,8 @@ def create_circular_pattern(app, body_name, axis_name, count, angle_deg):
     circPatternInput.angle = adsk.core.ValueInput.createByReal(math.radians(angle_deg))
     circPatternInput.isSymmetric = False
     pattern = circPatterns.add(circPatternInput)
-    return {"message": f"Created circular pattern for '{body_name}' around {axis_name}", "pattern_name": pattern.name}
+    pattern.name = name
+    return {"message": f"Created circular pattern '{name}' for '{body_name}' around {axis_name}", "pattern_name": pattern.name}
 
 @command()
 def list_bodies(app):
@@ -244,7 +256,7 @@ def list_bodies(app):
     return {"bodies": bodies_list}
 
 @command()
-def combine_bodies(app, target_body_name, tool_body_names, operation="join"):
+def combine_bodies(app, name, target_body_name, tool_body_names, operation="join"):
     design = get_active_design(app)
     rootComp = design.rootComponent
     combines = rootComp.features.combineFeatures
@@ -260,7 +272,8 @@ def combine_bodies(app, target_body_name, tool_body_names, operation="join"):
     }
     combineInput.operation = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.JoinFeatureOperation)
     combine = combines.add(combineInput)
-    return {"message": f"Combined bodies using {operation}.", "feature_name": combine.name}
+    combine.name = name
+    return {"message": f"Combined bodies as '{name}' using {operation}.", "feature_name": combine.name}
 
 @command()
 def rename_body(app, old_name, new_name):
@@ -323,7 +336,7 @@ def delete_feature(app, feature_name):
     return {"message": f"Deleted feature '{feature_name}'"}
 
 @command()
-def split_body(app, body_name, split_tool_name, is_surface_tool=True):
+def split_body(app, name, body_name, split_tool_name, is_surface_tool=True):
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -361,10 +374,11 @@ def split_body(app, body_name, split_tool_name, is_surface_tool=True):
          
     splitInput = splitBodyFeats.createInput(body, tool, is_surface_tool)
     split = splitBodyFeats.add(splitInput)
-    return {"message": f"Successfully split body '{body_name}' using '{split_tool_name}'.", "feature_name": split.name}
+    split.name = name
+    return {"message": f"Successfully split body '{body_name}' as '{name}' using '{split_tool_name}'.", "feature_name": split.name}
 
 @command()
-def scale_body(app, body_name, scale_factor):
+def scale_body(app, name, body_name, scale_factor):
     """Uniformly scales a body from the component origin."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -379,10 +393,11 @@ def scale_body(app, body_name, scale_factor):
     
     scaleInput = scaleFeats.createInput(inputEntities, basePoint, scale_val)
     scale = scaleFeats.add(scaleInput)
-    return {"message": f"Successfully scaled body '{body_name}' by factor {scale_factor}.", "feature_name": scale.name}
+    scale.name = name
+    return {"message": f"Successfully scaled body '{body_name}' by factor {scale_factor} as '{name}'.", "feature_name": scale.name}
 
 @command()
-def create_thread(app, body_name, face_index=0, is_modeled=True):
+def create_thread(app, name, body_name, face_index=0, is_modeled=True):
     """Adds a thread to a cylindrical face of a body."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -410,10 +425,11 @@ def create_thread(app, body_name, face_index=0, is_modeled=True):
     
     threadInput = threadFeats.createInput(faces, threadInfo)
     thread = threadFeats.add(threadInput)
-    return {"message": f"Successfully created thread on '{body_name}' face {face_index}.", "feature_name": thread.name}
+    thread.name = name
+    return {"message": f"Successfully created thread '{name}' on '{body_name}' face {face_index}.", "feature_name": thread.name}
 
 @command()
-def move_body(app, body_name, dx, dy, dz):
+def move_body(app, name, body_name, dx, dy, dz):
     """Translates a body by (dx, dy, dz) in cm."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -430,8 +446,9 @@ def move_body(app, body_name, dx, dy, dz):
     moveInput = moveFeats.createInput2(entities)
     moveInput.defineAsFreeMove(transform)
     move = moveFeats.add(moveInput)
+    move.name = name
     
-    return {"message": f"Successfully moved '{body_name}' by {dx},{dy},{dz}.", "feature_name": move.name}
+    return {"message": f"Successfully moved '{body_name}' by {dx},{dy},{dz} as '{name}'.", "feature_name": move.name}
 
 @command()
 def measure_interference(app, body_names):
@@ -463,7 +480,7 @@ def measure_interference(app, body_names):
     return {"message": "Successfully executed measure_interference.", "interferences": interferences, "has_interference": len(interferences) > 0}
 
 @command()
-def create_rib(app, sketch_name, thickness):
+def create_rib(app, name, sketch_name, thickness):
     """Creates a rib feature from a sketch profile."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -481,10 +498,11 @@ def create_rib(app, sketch_name, thickness):
     ribInput.isSymmetric = True
     
     rib = ribFeats.add(ribInput)
-    return {"message": f"Successfully created rib from {sketch_name}.", "feature_name": rib.name}
+    rib.name = name
+    return {"message": f"Successfully created rib '{name}' from {sketch_name}.", "feature_name": rib.name}
 
 @command()
-def create_web(app, sketch_name, thickness):
+def create_web(app, name, sketch_name, thickness):
     """Creates a web feature from a sketch profile."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -499,10 +517,11 @@ def create_web(app, sketch_name, thickness):
     webInput = webFeats.createInput(sketch.profiles.item(0), thick)
     
     web = webFeats.add(webInput)
-    return {"message": f"Successfully created web from {sketch_name}.", "feature_name": web.name}
+    web.name = name
+    return {"message": f"Successfully created web '{name}' from {sketch_name}.", "feature_name": web.name}
 
 @command()
-def create_emboss(app, sketch_name, body_name, depth):
+def create_emboss(app, name, sketch_name, body_name, depth):
     """Creates an emboss or deboss feature."""
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -525,7 +544,8 @@ def create_emboss(app, sketch_name, body_name, depth):
     embossInput.depth = adsk.core.ValueInput.createByReal(depth)
     
     emboss = embossFeats.add(embossInput)
-    return {"message": f"Successfully created emboss on {body_name}.", "feature_name": emboss.name}
+    emboss.name = name
+    return {"message": f"Successfully created emboss '{name}' on {body_name}.", "feature_name": emboss.name}
 
 @command()
 def import_mesh(app, file_path):

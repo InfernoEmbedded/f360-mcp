@@ -49,7 +49,7 @@ def delete_component(app, occurrence_name):
     return {"message": f"Deleted component instance '{occurrence_name}'"}
 
 @command()
-def create_joint(app, component1_name, component2_name, joint_type="rigid", offset_x=0, offset_y=0, offset_z=0):
+def create_joint(app, name, component1_name, component2_name, joint_type="rigid", offset_x=0, offset_y=0, offset_z=0):
     design = get_active_design(app)
     root = design.rootComponent
     occ1 = find_occ(app, component1_name)
@@ -83,10 +83,11 @@ def create_joint(app, component1_name, component2_name, joint_type="rigid", offs
         offset = adsk.core.Vector3D.create(offset_x, offset_y, offset_z)
         jointInput.offset = offset
     joint = joints.add(jointInput)
-    return {"message": f"Created {joint_type} joint.", "joint_name": joint.name}
+    joint.name = name
+    return {"message": f"Created {joint_type} joint '{name}'.", "joint_name": joint.name}
 
 @command()
-def create_as_built_joint(app, component1_name, component2_name, joint_type="rigid"):
+def create_as_built_joint(app, name, component1_name, component2_name, joint_type="rigid"):
     design = get_active_design(app)
     root = design.rootComponent
     occ1 = find_occ(app, component1_name)
@@ -113,4 +114,5 @@ def create_as_built_joint(app, component1_name, component2_name, joint_type="rig
         raise ValueError(f"Unsupported joint type: {joint_type}")
         
     joint = joints.add(jointInput)
-    return {"message": f"Created as-built {joint_type} joint.", "joint_name": joint.name}
+    joint.name = name
+    return {"message": f"Created as-built {joint_type} joint '{name}'.", "joint_name": joint.name}
