@@ -38,11 +38,12 @@ def resolve_entity(sketch, entity_type, index):
     raise Exception(f"Unable to resolve entity: {entity_type} at index {index}")
 
 @command()
-def create_sketch(app, plane_name="XY", body_name=None, face_index=None):
+def create_sketch(app, name, plane_name="XY", body_name=None, face_index=None):
     """
     Creates a new sketch on a plane or face.
     
     Arguments:
+        name (str): Mandatory name for the new sketch.
         plane_name (str): "XY", "XZ", "YZ", or construction plane name.
         body_name (str): Optional. Name of the body if sketching on a face.
         face_index (int): Optional. Index of the face on the body.
@@ -56,7 +57,6 @@ def create_sketch(app, plane_name="XY", body_name=None, face_index=None):
         if face_index < 0 or face_index >= body.faces.count:
             raise Exception(f"Face index {face_index} out of bounds.")
         planes = body.faces.item(face_index)
-        name_suffix = f"Face{face_index}"
     else:
         if plane_name.upper() == "XY":
             planes = rootComp.xYConstructionPlane
@@ -68,11 +68,10 @@ def create_sketch(app, plane_name="XY", body_name=None, face_index=None):
             planes = rootComp.constructionPlanes.itemByName(plane_name)
             if not planes:
                 raise Exception(f"Plane '{plane_name}' not found.")
-        name_suffix = plane_name
         
     sketches = rootComp.sketches
     sketch = sketches.add(planes)
-    sketch.name = f"MCP_Sketch_{name_suffix}"
+    sketch.name = name
     
     return {"sketch_name": sketch.name, "message": "Sketch created successfully"}
 

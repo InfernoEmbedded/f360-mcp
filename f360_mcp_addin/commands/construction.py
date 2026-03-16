@@ -5,7 +5,7 @@ from . import command
 from .base import get_active_design
 
 @command()
-def create_offset_plane(app, base_plane, offset):
+def create_offset_plane(app, name, base_plane, offset):
     design = get_active_design(app)
     rootComp = design.rootComponent
     planes = rootComp.constructionPlanes
@@ -23,10 +23,11 @@ def create_offset_plane(app, base_plane, offset):
     offsetValue = adsk.core.ValueInput.createByReal(offset)
     planeInput.setByOffset(base, offsetValue)
     plane = planes.add(planeInput)
-    return {"message": f"Offset plane created from {base_plane} by {offset}cm.", "plane_name": plane.name}
+    plane.name = name
+    return {"message": f"Offset plane '{name}' created from {base_plane} by {offset}cm.", "plane_name": plane.name}
 
 @command()
-def create_plane_at_angle(app, axis_name, angle_deg):
+def create_plane_at_angle(app, name, axis_name, angle_deg):
     design = get_active_design(app)
     rootComp = design.rootComponent
     planes = rootComp.constructionPlanes
@@ -55,7 +56,8 @@ def create_plane_at_angle(app, axis_name, angle_deg):
     else:
         planeInput.setByAngle(axis, angleValue)
     plane = planes.add(planeInput)
-    return {"message": f"Angled plane created around {axis_name} at {angle_deg} degrees.", "plane_name": plane.name}
+    plane.name = name
+    return {"message": f"Angled plane '{name}' created around {axis_name} at {angle_deg} degrees.", "plane_name": plane.name}
 
 @command()
 def list_construction(app):
