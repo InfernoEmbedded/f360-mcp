@@ -140,7 +140,6 @@ def open_design(app, project_name, name, folder_path=None):
 @command()
 def create_new_design(app, name, project_name=None, folder_path=None):
     doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
-    doc.itemByName('Untitled').parent.name = name # This is tricky, usually you just save it
     
     if project_name:
         hub = app.data.activeHub

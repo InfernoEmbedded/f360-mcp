@@ -14,8 +14,9 @@ from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.cors import CORSMiddleware
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("fusion360-mcp-server")
+logger.setLevel(logging.DEBUG)
 
 def get_addin_host():
     return os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
@@ -59,10 +60,9 @@ def export_command_history() -> List[Dict[str, Any]]:
     return command_history
 
 @mcp.tool()
-def clear_command_history() -> str:
-    """Clears the recorded command history."""
-    command_history.clear()
-    return "Command history cleared."
+async def ping_server() -> str:
+    """Simple tool to verify MCP communication."""
+    return "pong"
 
 async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     request = {
@@ -75,31 +75,7 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     host = get_addin_host()
     port = get_addin_port()
     
-    def sync_request():
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(10.0)
-                s.connect((host, port))
-                s.sendall(json.dumps(request).encode('utf-8') + b'\n')
-                
-                # Read response
-                buffer = ""
-                while True:
-                    data = s.recv(16384)
-                    if not data:
-                        break
-                    buffer += data.decode('utf-8')
-                    if '\n' in buffer:
-                        break
-                
-                if not buffer.strip():
-                    return {"error": "No response from Add-In"}
-                
-                return json.loads(buffer.strip())
-        except Exception as e:
-            return {"error": str(e)}
-
-    logger.info(f"Command: {method}")
+    logger.info(f"Command: {method} (to {host}:{port})")
     # Truncate params string if it's very large
     p_str = json.dumps(params)
     logger.info(f"Arguments: {p_str[:500]}{'...' if len(p_str) > 500 else ''}")
@@ -117,7 +93,30 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         command_history.append(record)
 
     try:
-        response = await asyncio.to_thread(sync_request)
+        # Open connection with timeout
+        logger.debug(f"Connecting to Add-In at {host}:{port}...")
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port),
+            timeout=30.0
+        )
+        logger.debug("Connected to Add-In.")
+        
+        # Send request
+        writer.write(json.dumps(request).encode('utf-8') + b'\n')
+        await writer.drain()
+        logger.debug("Request sent to Add-In.")
+        
+        # Read response terminated by newline
+        logger.debug("Waiting for response from Add-In...")
+        data = await asyncio.wait_for(reader.readuntil(b'\n'), timeout=30.0)
+        logger.debug("Response received from Add-In.")
+        
+        # Close connection
+        writer.close()
+        # skip wait_closed() as it can hang in some environments
+        
+        response = json.loads(data.decode('utf-8').strip())
+        
         if "error" in response:
             if record:
                 record["status"] = "error"
@@ -136,9 +135,17 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
             res_to_log["file_content_base64"] = "[BASE64_BLOB_TRUNCATED]"
         
         r_str = json.dumps(res_to_log)
+        logger.debug(f"Full response result: {r_str}")
         logger.info(f"Response: {r_str[:500]}{'...' if len(r_str) > 500 else ''}")
         
         return result
+    except asyncio.TimeoutError:
+        error_msg = f"Timed out communicating with Add-In at {host}:{port}"
+        if record:
+            record["status"] = "timeout"
+            record["error"] = error_msg
+        logger.error(error_msg)
+        raise Exception(error_msg)
     except Exception as e:
         if record and record.get("status") == "pending":
             record["status"] = "exception"
