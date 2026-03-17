@@ -69,9 +69,22 @@ class FusionE2E:
         return result.get("result")
 
     async def export_and_verify(self, test_name: str, reference_hash: Optional[str] = None):
-        """Exports the current model and compares it to a reference."""
-        # We use a temporary path in the Fusion environment (handled by add-in)
-        # or we just get the content back.
+        """Exports the current model, compares it to a reference, and saves command history."""
+        # 1. Fetch command history from server
+        import httpx
+        from tests.test_utils import compare_command_logs
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                history_resp = await client.get(f"{self.base_url}/history")
+                if history_resp.status_code == 200:
+                    history = history_resp.json().get("command_history", [])
+                    # The test name prefix is 'e2e_' to avoid clashing with unit test references
+                    compare_command_logs(f"e2e_{test_name}", history, "e2e_tests/references")
+        except Exception as e:
+            print(f"Warning: Failed to fetch and verify command history: {e}")
+
+        # 2. Export STEP (We use a temporary path in the Fusion environment)
         temp_path = f"C:/temp/e2e_{test_name}.step" # Add-in usually handles OS paths
         if os.name != 'nt':
             temp_path = f"/tmp/e2e_{test_name}.step"

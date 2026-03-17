@@ -553,7 +553,7 @@ def create_starlette_app(mcp, transport_env, host, port):
         return JSONResponse({
             "status": "ok",
             "transport_config": transport_env,
-            "supported_endpoints": ["/sse", "/messages", "/mcp"],
+            "supported_endpoints": ["/sse", "/messages", "/mcp", "/history"],
             "mcp_settings": {
                 "sse_path": mcp.settings.sse_path,
                 "message_path": mcp.settings.message_path,
@@ -561,6 +561,13 @@ def create_starlette_app(mcp, transport_env, host, port):
             }
         })
     routes.append(Route("/", endpoint=status_route))
+    
+    # Add a history route to assist with E2E unit testing command validation
+    async def history_route(request):
+        return JSONResponse({
+            "command_history": command_history
+        })
+    routes.append(Route("/history", endpoint=history_route))
     
     logger.info("Initializing Starlette app with unified routes")
     from contextlib import asynccontextmanager

@@ -22,6 +22,7 @@ def mcp_server():
     env["MCP_TRANSPORT"] = "streamable-http"
     env["MCP_HOST"] = "127.0.0.1"
     env["MCP_PORT"] = "8360"
+    env["F360_RECORD_COMMANDS"] = "true"
     
     # Start the server process
     log_file = open("/tmp/mcp_server.out", "w")
