@@ -43,9 +43,13 @@ async def test_scenario_00_reload(mcp_client):
             # We need a new client because the old one is bound to the old process/loop
             # but mcp_client fixture is function scoped, so it might be okay 
             # if we just retry the call.
-            new_version = await f360.call_tool("get_version")
-            print(f"Verified version after reload: {new_version}")
-            assert new_version == "1.6"
+            new_addin_version = await f360.call_tool("get_version")
+            print(f"Verified addin version after reload: {new_addin_version}")
+            assert new_addin_version == "1.9"
+            
+            new_server_info = await f360.call_tool("get_server_info")
+            print(f"Verified server version after reload: {new_server_info['version']}")
+            assert new_server_info['version'] == "0.3"
             break
         except Exception as e:
             print(f"Retry {i+1} failed: {e}")

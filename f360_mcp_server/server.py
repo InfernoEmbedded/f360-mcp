@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("fusion360-mcp-server")
 logger.setLevel(logging.DEBUG)
 
-SERVER_VERSION = "0.2"
+SERVER_VERSION = "0.3"
 
 def get_addin_host():
     return os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
@@ -364,7 +364,7 @@ async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion
         
         def restart_server():
             time.sleep(1) # Give the add-in a moment to start its reloader script
-            os.execv(sys.executable, ['python'] + sys.argv)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
             
         # Run restart in a background thread so we can return the response first
         import threading
