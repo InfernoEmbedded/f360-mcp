@@ -12,7 +12,7 @@ async def test_scenario_13_rectangular_pattern(mcp_client):
     await f360.call_tool("add_rectangle", {"sketch_name": "PlateSketch", "x1": 0, "y1": 0, "x2": 20, "y2": 20})
     await f360.call_tool("create_extrude", {"name": "PlateBody", "sketch_name": "PlateSketch", "distance": 1.0})
     await f360.call_tool("create_sketch", {"name": "HoleSketch", "plane": "xy"})
-    await f360.call_tool("add_circle", {"sketch_name": "HoleSketch", "center_x": 2, "center_y": 2, "radius": 0.5})
+    await f360.call_tool("add_circle", {"sketch_name": "HoleSketch", "x": 2, "y": 2, "radius": 0.5})
     await f360.call_tool("create_extrude", {"name": "HoleBody", "sketch_name": "HoleSketch", "distance": -2.0, "operation": "cut"})
     await f360.call_tool("create_rectangular_pattern", {
         "name": "RectPattern", 

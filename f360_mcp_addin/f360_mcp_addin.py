@@ -16,7 +16,7 @@ from .commands import (
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
-VERSION = "1.7"
+VERSION = "1.8"
 app = None
 ui  = None
 server_thread = None
@@ -205,6 +205,7 @@ class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             txt_box.isFullWidth = True
         except: add_to_log(f'Failed to create log dialog: {traceback.format_exc()}')
 
+@command(name="get_version")
 def get_version_info(app):
     return VERSION
 
@@ -354,7 +355,7 @@ def run(context):
         except:
             add_to_log(f"Server start failed: {traceback.format_exc()}")
             
-        add_to_log("MCP Add-In Version 1.2 (UI Patch) Initialization Complete.")
+        add_to_log(f"MCP Add-In Version {VERSION} (UI Patch) Initialization Complete.")
     except Exception as fatal_e:
         # We don't have ui yet or it's dead, fall back to file
         with open(LOG_FILE, 'a') as f:

@@ -9,10 +9,10 @@ async def test_scenario_14_circular_pattern(mcp_client):
     f360 = FusionE2E(mcp_client)
     await f360.call_tool("create_new_design", {"name": "E2E_Circ_Pattern"})
     await f360.call_tool("create_sketch", {"name": "DiscSketch", "plane": "xy"})
-    await f360.call_tool("add_circle", {"sketch_name": "DiscSketch", "center_x": 0, "center_y": 0, "radius": 10.0})
+    await f360.call_tool("add_circle", {"sketch_name": "DiscSketch", "x": 0, "y": 0, "radius": 10.0})
     await f360.call_tool("create_extrude", {"name": "DiscBody", "sketch_name": "DiscSketch", "distance": 1.0})
     await f360.call_tool("create_sketch", {"name": "SeedSketch", "plane": "xy"})
-    await f360.call_tool("add_circle", {"sketch_name": "SeedSketch", "center_x": 8, "center_y": 0, "radius": 1.0})
+    await f360.call_tool("add_circle", {"sketch_name": "SeedSketch", "x": 8, "y": 0, "radius": 1.0})
     await f360.call_tool("create_extrude", {"name": "SeedBody", "sketch_name": "SeedSketch", "distance": 5.0})
     await f360.call_tool("create_circular_pattern", {
         "name": "CircPattern", 

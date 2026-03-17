@@ -10,7 +10,7 @@ async def test_scenario_11_rigid_assembly(mcp_client):
     await f360.call_tool("create_new_design", {"name": "E2E_Rigid_Assembly"})
     await f360.call_tool("create_component", {"name": "CompA"})
     await f360.call_tool("create_sketch", {"name": "SketchA", "plane": "xy"})
-    await f360.call_tool("add_circle", {"sketch_name": "SketchA", "center_x": 0, "center_y": 0, "radius": 2.5})
+    await f360.call_tool("add_circle", {"sketch_name": "SketchA", "x": 0, "y": 0, "radius": 2.5})
     await f360.call_tool("create_extrude", {"name": "BodyA", "sketch_name": "SketchA", "distance": 5.0})
     await f360.call_tool("create_component", {"name": "CompB"})
     await f360.call_tool("create_sketch", {"name": "SketchB", "plane": "xy"})
