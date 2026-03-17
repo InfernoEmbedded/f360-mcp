@@ -159,6 +159,23 @@ def create_new_design(app, name, project_name=None, folder_path=None):
     return {"message": f"Created design '{name}' (unsaved).", "status": "unsaved"}
 
 @command()
+def close_document(app, save=False):
+    """
+    Closes the active document.
+    save (bool): True to save changes, False (default) to discard without saving.
+    """
+    doc = app.activeDocument
+    if not doc:
+        return {"message": "No active document to close."}
+    
+    name = doc.name
+    
+    # Close document will prompt if true, but without specifying file path,
+    # if it's new it'll pop up UI. False silently closes without saving.
+    doc.close(save)
+    return {"message": f"Closed document '{name}'."}
+
+@command()
 def export_model(app, file_path, file_type="step", body_name=None, send_to_mcp=False):
     design = get_active_design(app)
     exportMgr = design.exportManager
