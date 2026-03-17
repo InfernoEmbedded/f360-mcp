@@ -1,1 +1,36 @@
-[]
+[
+  {
+    "method": "list_bodies",
+    "params": {},
+    "status": "success",
+    "result": {
+      "bodies": [
+        {
+          "name": "Body 1",
+          "index": 0
+        }
+      ]
+    }
+  },
+  {
+    "method": "rename_body",
+    "params": {
+      "old_name": "Body 1",
+      "new_name": "NewBody"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully executed rename_body with old_name='Body 1', new_name='NewBody'"
+    }
+  },
+  {
+    "method": "delete_body",
+    "params": {
+      "body_name": "NewBody"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully executed delete_body"
+    }
+  }
+]

@@ -1,7 +1,7 @@
 import pytest
 import json
 from test_utils import compare_command_logs
-from server import (
+from f360_mcp_server.server import (
     create_sketch, add_circle, add_line, add_rectangle,
     add_arc, add_spline, add_polygon, add_ellipse, add_point, add_text
 )
@@ -73,7 +73,7 @@ async def test_add_text(mock_fusion):
     assert "Successfully" in result["message"]
     assert mock_fusion.last_request["method"] == "add_text"
 
-from server import (
+from f360_mcp_server.server import (
     apply_constraint, add_symmetry_constraint, add_distance_dimension,
     add_radial_dimension, add_diameter_dimension, add_angular_dimension
 )

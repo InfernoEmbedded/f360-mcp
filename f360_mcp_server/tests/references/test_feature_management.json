@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "method": "list_features",
+    "params": {},
+    "status": "success",
+    "result": {
+      "features": [
+        {
+          "name": "Extrude 1",
+          "type": "Extrude",
+          "index": 0
+        }
+      ]
+    }
+  },
+  {
+    "method": "rename_feature",
+    "params": {
+      "old_name": "F1",
+      "new_name": "F2"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully executed rename_feature with old_name='F1', new_name='F2'"
+    }
+  },
+  {
+    "method": "delete_feature",
+    "params": {
+      "feature_name": "F2"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully executed delete_feature with feature_name='F2'"
+    }
+  }
+]

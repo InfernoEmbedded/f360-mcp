@@ -1,5 +1,5 @@
 import pytest
-from server import list_materials, apply_material, list_appearances, apply_appearance
+from f360_mcp_server.server import list_materials, apply_material, list_appearances, apply_appearance
 
 @pytest.mark.anyio
 async def test_list_materials(mock_fusion):

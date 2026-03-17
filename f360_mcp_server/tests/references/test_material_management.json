@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "method": "list_materials",
+    "params": {},
+    "status": "success",
+    "result": {
+      "materials": [
+        {
+          "name": "Steel",
+          "library": "Design"
+        }
+      ]
+    }
+  },
+  {
+    "method": "apply_material",
+    "params": {
+      "body_name": "Body 1",
+      "material_name": "Steel"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully executed apply_material with material_name='Steel'"
+    }
+  }
+]

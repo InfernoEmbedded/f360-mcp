@@ -1,5 +1,5 @@
 import pytest
-from server import create_sketch, start_timeline_group, stop_timeline_group
+from f360_mcp_server.server import create_sketch, start_timeline_group, stop_timeline_group
 
 @pytest.mark.anyio
 async def test_manual_grouping(mock_fusion, recorded_commands):

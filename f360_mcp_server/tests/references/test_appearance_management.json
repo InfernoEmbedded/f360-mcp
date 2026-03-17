@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "method": "list_appearances",
+    "params": {},
+    "status": "success",
+    "result": {
+      "appearances": [
+        {
+          "name": "Paint - Red",
+          "library": "Design"
+        }
+      ]
+    }
+  },
+  {
+    "method": "apply_appearance",
+    "params": {
+      "body_name": "Body 1",
+      "appearance_name": "Paint - Red"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully executed apply_appearance with appearance_name='Paint - Red'"
+    }
+  }
+]

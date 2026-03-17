@@ -1,7 +1,7 @@
 import pytest
 import json
 from test_utils import compare_command_logs
-from server import (
+from f360_mcp_server.server import (
     create_extrude, create_revolve, create_sweep, create_loft,
     create_hole, create_shell, create_fillet, create_chamfer,
     combine_bodies, feature_mirror, split_body, scale_body,

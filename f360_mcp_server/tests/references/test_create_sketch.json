@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "TestSketch",
+      "plane_name": "XY",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Created sketch 'TestSketch'",
+      "sketch_name": "TestSketch"
+    }
+  }
+]

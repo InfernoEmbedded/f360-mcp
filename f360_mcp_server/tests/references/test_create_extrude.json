@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "method": "create_extrude",
+    "params": {
+      "name": "TestExtrude",
+      "sketch_name": "TestSketch",
+      "distance": 5.0,
+      "operation": "new_body",
+      "profile_index": 0
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Created extrude 'TestExtrude'",
+      "feature_name": "TestExtrude"
+    }
+  }
+]

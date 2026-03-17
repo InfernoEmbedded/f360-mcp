@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "method": "start_timeline_group",
+    "params": {
+      "name": "Test Group"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully started timeline group 'Test Group'"
+    }
+  },
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "Sketch1",
+      "plane_name": "XY",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully Created sketch 'Sketch1'",
+      "sketch_name": "Sketch1"
+    }
+  },
+  {
+    "method": "stop_timeline_group",
+    "params": {},
+    "status": "success",
+    "result": {
+      "message": "Successfully Created timeline group 'Test Group'"
+    }
+  }
+]

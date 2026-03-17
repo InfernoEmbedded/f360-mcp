@@ -1,5 +1,5 @@
 import pytest
-from server import (
+from f360_mcp_server.server import (
     list_bodies, rename_body, delete_body,
     list_features, rename_feature, delete_feature,
     list_components, rename_component, delete_component,
