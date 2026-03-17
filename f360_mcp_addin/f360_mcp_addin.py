@@ -16,7 +16,7 @@ from .commands import (
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
-VERSION = "1.5"
+VERSION = "1.6"
 app = None
 ui  = None
 server_thread = None
@@ -147,7 +147,7 @@ def dispatch_to_main_thread(method, params):
         pending_requests[req_id] = req
     
     if mcp_custom_event:
-        mcp_custom_event.fire(json.dumps({"id": req_id, "method": method, "params": params}))
+        app.fireCustomEvent(mcp_custom_event_id, json.dumps({"id": req_id, "method": method, "params": params}))
     else:
         with request_lock: del pending_requests[req_id]
         raise Exception("MCP Custom Event not registered")
