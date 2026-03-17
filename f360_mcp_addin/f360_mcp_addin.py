@@ -16,7 +16,7 @@ from .commands import (
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
-VERSION = "1.4"
+VERSION = "1.5"
 app = None
 ui  = None
 server_thread = None
@@ -333,10 +333,10 @@ def run(context):
         # 2. Register Custom Event
         try:
             # Unregister if previously orphaned
-            try: ui.unregisterCustomEvent(mcp_custom_event_id)
+            try: app.unregisterCustomEvent(mcp_custom_event_id)
             except: pass
             
-            mcp_custom_event = ui.registerCustomEvent(mcp_custom_event_id)
+            mcp_custom_event = app.registerCustomEvent(mcp_custom_event_id)
             on_mcp_event = MCPCustomEventHandler()
             mcp_custom_event.add(on_mcp_event)
             handlers.append(on_mcp_event)
@@ -382,7 +382,7 @@ def stop(context):
         # Event Cleanup
         try:
             if mcp_custom_event:
-                ui.unregisterCustomEvent(mcp_custom_event_id)
+                app.unregisterCustomEvent(mcp_custom_event_id)
                 mcp_custom_event = None
         except: pass
         
