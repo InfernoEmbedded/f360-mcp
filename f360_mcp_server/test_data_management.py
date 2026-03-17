@@ -1,5 +1,5 @@
 import pytest
-from f360_mcp_server.server import list_projects, create_project, create_folder, create_new_design
+from f360_mcp_server.server import list_projects, create_project, create_folder, create_new_design, close_document
 
 @pytest.mark.anyio
 async def test_project_management(mock_fusion):
@@ -55,3 +55,13 @@ async def test_design_creation(mock_fusion):
     )
     assert "Created and saved design 'EngineV1'" in res_saved["message"]
     assert res_saved["status"] == "saved"
+
+@pytest.mark.anyio
+async def test_close_document(mock_fusion):
+    # Test closing without saving
+    res_close = await close_document(save=False)
+    assert "Closed document" in res_close["message"]
+
+    # Test closing with saving
+    res_close_save = await close_document(save=True)
+    assert "Closed document" in res_close_save["message"]

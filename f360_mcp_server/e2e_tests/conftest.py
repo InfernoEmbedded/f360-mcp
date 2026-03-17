@@ -141,3 +141,23 @@ async def mcp_client(mcp_server):
         # We only surrender the session info, not the client itself
         # to avoid event loop issues with shared httpx clients
         yield {"base_url": base_url, "session_id": session_id}
+        
+        # TEARDOWN: Close active document
+        payload = {
+            "method": "tools/call",
+            "params": {
+                "name": "close_document",
+                "arguments": {"save": False}
+            },
+            "jsonrpc": "2.0",
+            "id": 999
+        }
+        await client.post(
+            "/mcp", 
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "mcp-session-id": session_id
+            }
+        )
