@@ -337,13 +337,22 @@ async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion
         # 1. Update files via Git
         logger.info(f"Updating files in {repo_dir}...")
         
-        # Make sure it's a git repo
+        # Ensure it's a git repo and has origin
+        git_origin = "https://github.com/InfernoEmbedded/f360-mcp.git"
         if not os.path.exists(os.path.join(repo_dir, ".git")):
-            return f"Error: Directory {repo_dir} is not a git repository."
-            
+            logger.info(f"Initializing git repo in {repo_dir}...")
+            subprocess.run(["git", "init"], cwd=repo_dir)
+            subprocess.run(["git", "remote", "add", "origin", git_origin], cwd=repo_dir)
+        else:
+            # Check if origin exists
+            remotes = subprocess.run(["git", "remote"], cwd=repo_dir, capture_output=True, text=True).stdout
+            if "origin" not in remotes:
+                logger.info(f"Adding origin remote {git_origin}...")
+                subprocess.run(["git", "remote", "add", "origin", git_origin], cwd=repo_dir)
+
         cmds = [
             ["git", "fetch", "origin", branch],
-            ["git", "checkout", branch],
+            ["git", "checkout", "-B", branch, f"origin/{branch}"],
             ["git", "reset", "--hard", f"origin/{branch}"]
         ]
         

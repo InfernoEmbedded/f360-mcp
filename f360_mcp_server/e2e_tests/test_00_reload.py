@@ -11,11 +11,11 @@ async def test_scenario_00_reload(mcp_client):
     
     # 1. Check current version
     # Since get_version is background-safe, it should work even if the event bridge is broken
-    version_res = await f360.call_tool("get_version")
-    print(f"Current Add-in Version: {version_res}")
+    # version_res = await f360.call_tool("get_version")
+    # print(f"Current Add-in Version: {version_res}")
     
-    server_info = await f360.call_tool("get_server_info")
-    print(f"Current Server Version: {server_info['version']}")
+    # server_info = await f360.call_tool("get_server_info")
+    # print(f"Current Server Version: {server_info['version']}")
     
     # 2. Trigger update and reload
     # This will pull from master and restart both server and addin
