@@ -204,6 +204,10 @@ class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             txt_box.isFullWidth = True
         except: add_to_log(f'Failed to create log dialog: {traceback.format_exc()}')
 
+def is_background_safe(method):
+    # These tools don't touch the Fusion API or are safe to read from file/memory
+    return method in ['get_addin_logs', '_get_command_metadata']
+
 # --- Server Logic ---
 def handle_client(conn, addr):
     add_to_log(f'Connected by {addr}')
@@ -221,8 +225,19 @@ def handle_client(conn, addr):
                 add_to_log(f"REQ [{method}]")
                 response = {"jsonrpc": "2.0", "id": request_id}
                 try:
-                    result = dispatch_to_main_thread(method, params)
-                    response['result'] = result
+                    if is_background_safe(method):
+                        # Execute directly in the background thread
+                        dispatch = registry.dispatch_table
+                        if method in dispatch:
+                            # Pass None as app, these tools don't use it
+                            result = dispatch[method](None, **params)
+                            response['result'] = result
+                        else:
+                            response['error'] = {"code": -32601, "message": f"Method not found: {method}"}
+                    else:
+                        # Dispatch to main thread
+                        result = dispatch_to_main_thread(method, params)
+                        response['result'] = result
                 except Exception as e:
                     try: response['error'] = json.loads(str(e))
                     except: response['error'] = {"code": -32000, "message": str(e)}
