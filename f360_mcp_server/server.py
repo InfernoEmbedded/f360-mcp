@@ -18,6 +18,8 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("fusion360-mcp-server")
 logger.setLevel(logging.DEBUG)
 
+SERVER_VERSION = "0.2"
+
 def get_addin_host():
     return os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
 
@@ -63,6 +65,15 @@ def export_command_history() -> List[Dict[str, Any]]:
 async def ping_server() -> str:
     """Simple tool to verify MCP communication."""
     return "pong"
+
+@mcp.tool()
+async def get_server_info() -> Dict[str, Any]:
+    """Returns version and configuration info for the MCP server."""
+    return {
+        "version": SERVER_VERSION,
+        "addin_host": get_addin_host(),
+        "addin_port": get_addin_port()
+    }
 
 async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     request = {
@@ -170,6 +181,8 @@ def register_dynamic_tool(name, metadata, module_globals=None):
     # Build the function signature string and collect parameter docs
     arg_strings = []
     param_docs = []
+    addin_param_names = [p["name"] for p in params_list]
+    
     for param in params_list:
         arg_name = param["name"]
         arg_str = arg_name
@@ -199,7 +212,7 @@ def register_dynamic_tool(name, metadata, module_globals=None):
     
     # Add local_file_path for specific tools if they seem to return files
     if name in ["export_model", "capture_screenshot"]:
-        if "local_file_path" not in [p["name"] for p in params_list]:
+        if "local_file_path" not in addin_param_names:
             field = "local_file_path: Optional[str] = None"
             if full_sig:
                 full_sig += f", {field}"
@@ -208,20 +221,25 @@ def register_dynamic_tool(name, metadata, module_globals=None):
             docstring += f"\n\n    Args (MCP Host):\n        local_file_path: Optional path to save the returned file on the host machine."
     
     # Create the function source
-    # We use indent to ensure the docstring is properly formatted in the exec'd string
     doc_lines = docstring.split("\n")
     indented_doc = "\n".join("    " + line for line in doc_lines)
+    
+    # Define a set of names that are valid for the Add-in
+    # We'll pass this into the exec namespace
     
     source = f"""
 async def {name}({full_sig}):
     \"\"\"
 {indented_doc}
     \"\"\"
-    # Collect all local variables (which are the function arguments)
-    args = locals().copy()
+    # Collect all local variables
+    all_vars = locals().copy()
     
     # Strip server-side only arguments before sending to the Add-in
-    local_file_path = args.pop("local_file_path", None)
+    local_file_path = all_vars.pop("local_file_path", None)
+    
+    # Filter for only those arguments the add-in expects
+    args = {{k: v for k, v in all_vars.items() if k in valid_addin_params}}
     
     result = await send_to_addin('{name}', args)
     
@@ -229,9 +247,9 @@ async def {name}({full_sig}):
     if local_file_path and "file_content_base64" in result:
         import base64
         try:
-            with open(args["local_file_path"], "wb") as f:
+            with open(local_file_path, "wb") as f:
                 f.write(base64.b64decode(result["file_content_base64"]))
-            logger.info(f"Saved returned file to {{args['local_file_path']}}")
+            logger.info(f"Saved returned file to {{local_file_path}}")
         except Exception as e:
             logger.error(f"Failed to save file: {{str(e)}}")
             
@@ -245,7 +263,8 @@ async def {name}({full_sig}):
         "List": List,
         "Dict": Dict,
         "Any": Any,
-        "logger": logger
+        "logger": logger,
+        "valid_addin_params": set(addin_param_names)
     }
     
     try:
