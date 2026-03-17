@@ -16,7 +16,7 @@ from .commands import (
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
-VERSION = "1.6"
+VERSION = "1.7"
 app = None
 ui  = None
 server_thread = None
@@ -210,7 +210,8 @@ def get_version_info(app):
 
 def is_background_safe(method):
     # These tools don't touch the Fusion API or are safe to read from file/memory
-    return method in ['get_addin_logs', '_get_command_metadata', 'get_version']
+    # reload_addin is safe because it creates a temp file and fires a text command
+    return method in ['get_addin_logs', '_get_command_metadata', 'get_version', 'reload_addin']
 
 # --- Server Logic ---
 def handle_client(conn, addr):
