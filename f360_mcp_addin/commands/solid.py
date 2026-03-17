@@ -36,6 +36,8 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     extrudeInput.setDistanceExtent(False, distance_val)
     extrude = extrudes.add(extrudeInput)
     extrude.name = name
+    if fusion_op == adsk.fusion.FeatureOperations.NewBodyFeatureOperation and extrude.bodies.count > 0:
+        extrude.bodies.item(0).name = name
     return {"message": f"Extruded {distance}cm using operation {operation} as '{name}'.", "feature_name": extrude.name}
 
 @command()
@@ -63,6 +65,8 @@ def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, o
     revolveInput.setAngleExtent(False, angle_val)
     revolve = revolves.add(revolveInput)
     revolve.name = name
+    if fusion_op == adsk.fusion.FeatureOperations.NewBodyFeatureOperation and revolve.bodies.count > 0:
+        revolve.bodies.item(0).name = name
     return {"message": f"Revolved {angle} degrees using operation {operation} as '{name}'.", "feature_name": revolve.name}
 
 @command()
@@ -89,6 +93,8 @@ def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type
     sweepInput = sweeps.createInput(profile, path, fusion_op)
     sweep = sweeps.add(sweepInput)
     sweep.name = name
+    if fusion_op == adsk.fusion.FeatureOperations.NewBodyFeatureOperation and sweep.bodies.count > 0:
+        sweep.bodies.item(0).name = name
     return {"message": f"Sweep '{name}' created using operation {operation}.", "feature_name": sweep.name}
 
 @command()
@@ -108,6 +114,8 @@ def create_loft(app, name, profiles_info):
     loftInput.isSolid = True
     loft = lofts.add(loftInput)
     loft.name = name
+    if loft.bodies.count > 0:
+        loft.bodies.item(0).name = name
     return {"message": f"Created loft '{name}' from {len(profiles_info)} profiles.", "feature_name": loft.name}
 
 @command()

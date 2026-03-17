@@ -219,10 +219,14 @@ async def {name}({full_sig}):
     \"\"\"
     # Collect all local variables (which are the function arguments)
     args = locals().copy()
+    
+    # Strip server-side only arguments before sending to the Add-in
+    local_file_path = args.pop("local_file_path", None)
+    
     result = await send_to_addin('{name}', args)
     
-    # Special handling for file downloads if local_file_path is provided
-    if "local_file_path" in args and args["local_file_path"] and "file_content_base64" in result:
+    # Special handling for file downloads if local_file_path was provided
+    if local_file_path and "file_content_base64" in result:
         import base64
         try:
             with open(args["local_file_path"], "wb") as f:

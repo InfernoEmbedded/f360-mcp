@@ -16,7 +16,7 @@ from .commands import (
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
-VERSION = "1.8"
+VERSION = "1.9"
 app = None
 ui  = None
 server_thread = None
