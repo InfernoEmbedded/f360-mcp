@@ -212,7 +212,7 @@ def get_version_info(app):
 def is_background_safe(method):
     # These tools don't touch the Fusion API or are safe to read from file/memory
     # reload_addin is safe because it creates a temp file and fires a text command
-    return method in ['get_addin_logs', '_get_command_metadata', 'get_version', 'reload_addin']
+    return method in ['get_addin_logs', '_get_command_metadata', 'get_version', 'reload_addin', 'get_system_info']
 
 # --- Server Logic ---
 def handle_client(conn, addr):

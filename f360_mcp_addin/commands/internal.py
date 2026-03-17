@@ -69,3 +69,18 @@ def run(context):
         return {"message": "Reloader script executed. Add-in should restart momentarily."}
     except Exception as e:
         raise Exception(f"Failed to execute reloader: {str(e)}")
+
+@command()
+def get_system_info(app):
+    """
+    Internal command to get system information (OS, temp dir).
+    """
+    import os
+    import tempfile
+    import platform
+    return {
+        "os": os.name,
+        "platform": platform.platform(),
+        "temp_dir": tempfile.gettempdir(),
+        "addin_path": os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    }
