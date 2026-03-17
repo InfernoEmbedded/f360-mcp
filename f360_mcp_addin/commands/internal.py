@@ -17,8 +17,8 @@ def get_addin_logs(app):
     if os.path.exists(log_file):
         try:
             with open(log_file, 'r', encoding='utf-8') as f:
-                # Return last 1000 lines or 1MB
-                return f.read()[-1000000:]
+                # Return last 100KB
+                return f.read()[-100000:]
         except Exception as e:
             return f"Error reading log file: {str(e)}"
     return "Log file not found."
