@@ -16,6 +16,7 @@ from .commands import (
 from .commands.base import get_active_design, _get_timeline_health_map, _group_stack
 
 # Globals
+VERSION = "1.4"
 app = None
 ui  = None
 server_thread = None
@@ -204,9 +205,12 @@ class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             txt_box.isFullWidth = True
         except: add_to_log(f'Failed to create log dialog: {traceback.format_exc()}')
 
+def get_version_info(app):
+    return VERSION
+
 def is_background_safe(method):
     # These tools don't touch the Fusion API or are safe to read from file/memory
-    return method in ['get_addin_logs', '_get_command_metadata']
+    return method in ['get_addin_logs', '_get_command_metadata', 'get_version']
 
 # --- Server Logic ---
 def handle_client(conn, addr):
@@ -228,7 +232,10 @@ def handle_client(conn, addr):
                     if is_background_safe(method):
                         # Execute directly in the background thread
                         dispatch = registry.dispatch_table
-                        if method in dispatch:
+                        if method == 'get_version':
+                            result = get_version_info(None)
+                            response['result'] = result
+                        elif method in dispatch:
                             # Pass None as app, these tools don't use it
                             result = dispatch[method](None, **params)
                             response['result'] = result
