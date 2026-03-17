@@ -7,7 +7,15 @@
       "appearances": [
         {
           "name": "Paint - Red",
-          "library": "Design"
+          "library": "Design",
+          "is_downloaded": true,
+          "has_texture": false
+        },
+        {
+          "name": "Chrome",
+          "library": "Fusion 360 Appearance Library",
+          "is_downloaded": false,
+          "has_texture": true
         }
       ]
     }

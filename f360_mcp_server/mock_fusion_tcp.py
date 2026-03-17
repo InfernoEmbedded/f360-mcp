@@ -208,9 +208,15 @@ class MockFusionServer:
                     {"name": "length", "expression": "100mm", "value": 10.0, "unit": "mm", "comment": "Main length", "isUserParameter": True}
                 ]}
             elif method == 'list_materials':
-                result = {"materials": [{"name": "Steel", "library": "Design"}]}
+                result = {"materials": [
+                    {"name": "Steel", "library": "Design", "is_downloaded": True},
+                    {"name": "Aluminum", "library": "Fusion 360 Material Library", "is_downloaded": False}
+                ]}
             elif method == 'list_appearances':
-                result = {"appearances": [{"name": "Paint - Red", "library": "Design"}]}
+                result = {"appearances": [
+                    {"name": "Paint - Red", "library": "Design", "is_downloaded": True, "has_texture": False},
+                    {"name": "Chrome", "library": "Fusion 360 Appearance Library", "is_downloaded": False, "has_texture": True}
+                ]}
             elif method == 'list_projects':
                 result = {"projects": [{"name": "Default Project", "id": "p1"}, {"name": "Test Project", "id": "p2"}], "project_id": "p3"}
             elif method == 'list_components':
