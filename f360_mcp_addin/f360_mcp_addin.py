@@ -22,15 +22,18 @@ server_thread = None
 stop_event = threading.Event()
 handlers = []
 
-# Persistent Settings
-SETTINGS_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')
+# Persistent Settings & Files
+ADDIN_PATH = os.path.dirname(os.path.realpath(__file__))
+SETTINGS_FILE = os.path.join(ADDIN_PATH, 'settings.json')
+LOG_FILE = os.path.join(ADDIN_PATH, 'f360_mcp.log')
+RESOURCES_PATH = os.path.join(ADDIN_PATH, 'resources')
+
 DEFAULT_SETTINGS = {
     'port': 30011,
     'interface': '127.0.0.1'
 }
 
-# Log Buffer & File
-LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'f360_mcp.log')
+# Log Buffer
 log_buffer = collections.deque(maxlen=100)
 
 def add_to_log(message):
@@ -45,26 +48,26 @@ def add_to_log(message):
     except:
         pass
 
-    if app:
-        app.log(entry)
+    # Fallback to Fusion's own log (visible in Text Commands)
+    try:
+        if app: app.log(entry)
+    except: pass
 
 def load_settings():
     try:
         if os.path.exists(SETTINGS_FILE):
             with open(SETTINGS_FILE, 'r') as f:
                 return {**DEFAULT_SETTINGS, **json.load(f)}
-    except:
-        pass
+    except: pass
     return DEFAULT_SETTINGS.copy()
 
 def save_settings(settings):
     try:
         with open(SETTINGS_FILE, 'w') as f:
             json.dump(settings, f, indent=4)
-    except:
-        add_to_log("Failed to save settings.")
+    except: add_to_log("Failed to save settings.")
 
-# --- Thread Synchronization for Main Thread Execution ---
+# --- Thread Synchronization ---
 pending_requests = {}
 request_id_counter = 0
 request_lock = threading.Lock()
@@ -80,8 +83,7 @@ class PendingRequest:
         self.error = None
 
 class MCPCustomEventHandler(adsk.core.CustomEventHandler):
-    def __init__(self):
-        super().__init__()
+    def __init__(self): super().__init__()
     def notify(self, args):
         try:
             event_data = json.loads(args.additionalInfo)
@@ -96,31 +98,23 @@ class MCPCustomEventHandler(adsk.core.CustomEventHandler):
             try:
                 dispatch = registry.dispatch_table
                 if method in dispatch:
-                    # Capture state before
                     old_issues = _get_timeline_health_map(app)
                     design = get_active_design(app)
                     pre_count = design.timeline.count if design else 0
                     
-                    # Execute
                     result = dispatch[method](app, **params)
                     
-                    # Capture state after
                     new_issues_map = _get_timeline_health_map(app)
                     post_count = design.timeline.count if design else 0
 
-                    # Automatic grouping
                     if design and post_count > pre_count and not _group_stack:
                         from .commands.base import _is_internal_command
                         if not _is_internal_command(method):
                             try:
-                                group_name = f"Group: {method}"
-                                # Fusion timeline is 0-indexed for items, but add takes start, end
                                 group = design.timeline.timelineGroups.add(pre_count, post_count - 1)
-                                group.name = group_name
-                            except Exception as e:
-                                add_to_log(f"Auto-grouping failed: {str(e)}")
+                                group.name = f"Group: {method}"
+                            except Exception as e: add_to_log(f"Auto-grouping failed: {str(e)}")
                     
-                    # Compare health
                     if not method.startswith('_') and design:
                         introduced = []
                         for idx, data in new_issues_map.items():
@@ -131,12 +125,8 @@ class MCPCustomEventHandler(adsk.core.CustomEventHandler):
                                 introduced.append({
                                     "index": idx, "name": name, "type": data[0], "health": data[1], "message": data[2]
                                 })
-                        
-                        if isinstance(result, dict):
-                            result["new_issues"] = introduced
-                        else:
-                            result = {"result": result, "new_issues": introduced}
-                    
+                        if isinstance(result, dict): result["new_issues"] = introduced
+                        else: result = {"result": result, "new_issues": introduced}
                     req.result = result
                 else:
                     req.error = {"code": -32601, "message": f"Method not found: {method}"}
@@ -145,8 +135,7 @@ class MCPCustomEventHandler(adsk.core.CustomEventHandler):
                 add_to_log(f"Error executing command {method}: {traceback.format_exc()}")
             finally:
                 req.event.set()
-        except:
-            add_to_log(f"Custom event critical error: {traceback.format_exc()}")
+        except: add_to_log(f"Custom event critical error: {traceback.format_exc()}")
 
 def dispatch_to_main_thread(method, params):
     global request_id_counter
@@ -163,10 +152,9 @@ def dispatch_to_main_thread(method, params):
         raise Exception("MCP Custom Event not registered")
         
     if req.event.wait(60.0):
-        with request_lock: del pending_requests[req_id]
-        if req.error:
-            # req.error is already a dict with code/message
-            raise Exception(json.dumps(req.error))
+        with request_lock:
+            if req_id in pending_requests: del pending_requests[req_id]
+        if req.error: raise Exception(json.dumps(req.error))
         return req.result
     else:
         with request_lock:
@@ -207,7 +195,6 @@ class LogCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
     def notify(self, args):
         try:
             cmd = adsk.core.Command.cast(args.command)
-            # Re-read file logs for the viewer
             display_logs = []
             if os.path.exists(LOG_FILE):
                 with open(LOG_FILE, 'r') as f:
@@ -225,42 +212,31 @@ def handle_client(conn, addr):
             try:
                 data = conn.recv(16384)
                 if not data: break
-                
                 message = data.decode('utf-8').strip()
                 if not message: continue
-                
                 request = json.loads(message)
                 method = request.get('method')
                 params = request.get('params', {})
                 request_id = request.get('id')
-                
                 add_to_log(f"REQ [{method}]")
-                
                 response = {"jsonrpc": "2.0", "id": request_id}
-                
                 try:
-                    # Dispatch to main thread
                     result = dispatch_to_main_thread(method, params)
                     response['result'] = result
                 except Exception as e:
-                    # e might be a JSON-encoded error dict
-                    try:
-                        err_data = json.loads(str(e))
-                        response['error'] = err_data
-                    except:
-                        response['error'] = {"code": -32000, "message": str(e)}
+                    try: response['error'] = json.loads(str(e))
+                    except: response['error'] = {"code": -32000, "message": str(e)}
                     add_to_log(f"Command execution error: {str(e)}")
-                
                 conn.sendall(json.dumps(response).encode('utf-8') + b'\n')
                 if "error" in response:
                     add_to_log(f"ERR [{method}] {response['error'].get('message')}")
-
             except socket.timeout: continue
             except json.JSONDecodeError:
                 conn.sendall(json.dumps({"jsonrpc": "2.0", "error": {"code": -32700, "message": "Parse error"}}).encode('utf-8') + b'\n')
     except: add_to_log(f'Client handler error: {traceback.format_exc()}')
     finally:
-        conn.close()
+        try: conn.close()
+        except: pass
         add_to_log(f'Disconnected from {addr}')
 
 def server_loop():
@@ -284,68 +260,112 @@ def server_loop():
     except: add_to_log(f"Server loop fatal: {traceback.format_exc()}")
 
 def run(context):
-    global app, ui, server_thread, stop_event, mcp_custom_event
+    global app, ui, server_thread, stop_event, mcp_custom_event, handlers
+    # Reset handlers list to avoid keeping refs to old UI items on reload
+    handlers = []
+    
     try:
         app = adsk.core.Application.get()
         ui  = app.userInterface
-        
-        # 0. Register Custom Event
-        mcp_custom_event = ui.registerCustomEvent(mcp_custom_event_id)
-        on_mcp_event = MCPCustomEventHandler()
-        mcp_custom_event.add(on_mcp_event)
-        handlers.append(on_mcp_event)
+        add_to_log("run() called. Starting initialization...")
 
-        # 1. Start Server
-        stop_event.clear()
-        server_thread = threading.Thread(target=server_loop)
-        server_thread.start()
-        
-        # 2. Setup UI
-        cmd_defs = ui.commandDefinitions
-        for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
-            old = cmd_defs.itemById(cid)
-            if old: old.deleteMe()
+        # 1. Setup UI (First, so it appears even if other things fail)
+        try:
+            cmd_defs = ui.commandDefinitions
+            panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
+            if not panel:
+                # Try fallback panel if SolidScriptsAddinsPanel is missing (some workspaces)
+                panel = ui.allToolbarPanels.itemById('ScriptsAddinsPanel')
+
+            # Clean up old UI items correctly
+            for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
+                old_def = cmd_defs.itemById(cid)
+                if old_def:
+                    # Remove from panel first
+                    if panel:
+                        old_ctrl = panel.controls.itemById(cid)
+                        if old_ctrl: old_ctrl.deleteMe()
+                    old_def.deleteMe()
+
+            # Create new definitions
+            settings_cmd = cmd_defs.addButtonDefinition('mcp_settings_cmd', 'MCP Settings', 'Configure MCP server.', RESOURCES_PATH)
+            on_settings = SettingsCommandCreatedHandler()
+            settings_cmd.commandCreated.add(on_settings)
+            handlers.append(on_settings)
             
-        settings_cmd = cmd_defs.addButtonDefinition('mcp_settings_cmd', 'MCP Settings', 'Configure MCP server.', './resources')
-        on_settings = SettingsCommandCreatedHandler()
-        settings_cmd.commandCreated.add(on_settings)
-        handlers.append(on_settings)
-        
-        log_cmd = cmd_defs.addButtonDefinition('mcp_log_view_cmd', 'View MCP Log', 'View activity log.', './resources')
-        on_log = LogCommandCreatedHandler()
-        log_cmd.commandCreated.add(on_log)
-        handlers.append(on_log)
-        
-        panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
-        if panel:
-            if not panel.controls.itemById('mcp_settings_cmd'): panel.controls.addCommand(settings_cmd)
-            if not panel.controls.itemById('mcp_log_view_cmd'): panel.controls.addCommand(log_cmd)
-        
-        add_to_log("MCP Add-In Version 1.1 (Stability Patch) Started.")
-    except: add_to_log(f'Failed to start Add-in: {traceback.format_exc()}')
+            log_cmd = cmd_defs.addButtonDefinition('mcp_log_view_cmd', 'View MCP Log', 'View activity log.', RESOURCES_PATH)
+            on_log = LogCommandCreatedHandler()
+            log_cmd.commandCreated.add(on_log)
+            handlers.append(on_log)
+            
+            # Add to panel
+            if panel:
+                panel.controls.addCommand(settings_cmd)
+                panel.controls.addCommand(log_cmd)
+                add_to_log("UI Menu items added successfully.")
+            else:
+                add_to_log("Warning: Could not find a suitable toolbar panel for UI.")
+        except Exception as ui_err:
+            add_to_log(f"UI Initialization failed: {traceback.format_exc()}")
+
+        # 2. Register Custom Event
+        try:
+            # Unregister if previously orphaned
+            try: ui.unregisterCustomEvent(mcp_custom_event_id)
+            except: pass
+            
+            mcp_custom_event = ui.registerCustomEvent(mcp_custom_event_id)
+            on_mcp_event = MCPCustomEventHandler()
+            mcp_custom_event.add(on_mcp_event)
+            handlers.append(on_mcp_event)
+            add_to_log("Custom Event registered.")
+        except:
+            add_to_log(f"Custom Event registration failed: {traceback.format_exc()}")
+
+        # 3. Start Server
+        try:
+            stop_event.clear()
+            server_thread = threading.Thread(target=server_loop, daemon=True)
+            server_thread.start()
+            add_to_log("Server thread started.")
+        except:
+            add_to_log(f"Server start failed: {traceback.format_exc()}")
+            
+        add_to_log("MCP Add-In Version 1.2 (UI Patch) Initialization Complete.")
+    except Exception as fatal_e:
+        # We don't have ui yet or it's dead, fall back to file
+        with open(LOG_FILE, 'a') as f:
+            f.write(f"FATAL ERROR in run(): {traceback.format_exc()}\n")
 
 def stop(context):
-    global handlers, mcp_custom_event
+    global handlers, mcp_custom_event, server_thread
     try:
         add_to_log('Stopping MCP Add-In...')
         stop_event.set()
-        if server_thread: server_thread.join(timeout=2.0)
         
-        if mcp_custom_event:
-            mcp_custom_event.unregisterCustomEvent()
-            mcp_custom_event = None
-
-        cmd_defs = ui.commandDefinitions
-        for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
-            cmd = cmd_defs.itemById(cid)
-            if cmd: cmd.deleteMe()
+        # UI Cleanup
+        try:
+            cmd_defs = ui.commandDefinitions
+            panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
+            if not panel: panel = ui.allToolbarPanels.itemById('ScriptsAddinsPanel')
             
-        panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
-        if panel:
             for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
-                ctrl = panel.controls.itemById(cid)
-                if ctrl: ctrl.deleteMe()
+                if panel:
+                    ctrl = panel.controls.itemById(cid)
+                    if ctrl: ctrl.deleteMe()
+                cmd = cmd_defs.itemById(cid)
+                if cmd: cmd.deleteMe()
+        except: pass
+
+        # Event Cleanup
+        try:
+            if mcp_custom_event:
+                ui.unregisterCustomEvent(mcp_custom_event_id)
+                mcp_custom_event = None
+        except: pass
         
         handlers = []
-        app.log('MCP Add-In Stopped.')
-    except: add_to_log(f'Failed to stop Add-in: {traceback.format_exc()}')
+        add_to_log('MCP Add-In Stopped.')
+    except:
+        with open(LOG_FILE, 'a') as f:
+            f.write(f"ERROR in stop(): {traceback.format_exc()}\n")
