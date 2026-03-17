@@ -347,11 +347,17 @@ async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion
             ["git", "reset", "--hard", f"origin/{branch}"]
         ]
         
+        full_results = []
         for cmd in cmds:
             result = subprocess.run(cmd, cwd=repo_dir, capture_output=True, text=True)
+            full_results.append(f"Command: {' '.join(cmd)}\nStdout: {result.stdout}\nStderr: {result.stderr}")
             if result.returncode != 0:
                 logger.error(f"Git command failed: {' '.join(cmd)}\n{result.stderr}")
-                return f"Error during git update: {result.stderr}"
+                return f"Error during git update:\n" + "\n".join(full_results)
+                
+        # Get head commit info
+        status_res = subprocess.run(["git", "log", "-1", "--oneline"], cwd=repo_dir, capture_output=True, text=True)
+        full_results.append(f"HEAD: {status_res.stdout}")
                 
         logger.info("Files updated successfully. Telling Add-in to reload...")
                 
@@ -370,7 +376,7 @@ async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion
         import threading
         threading.Thread(target=restart_server, daemon=True).start()
         
-        return f"Successfully pulled latest code from {branch}. The Fusion 360 Add-in and MCP Server are now restarting."
+        return f"Successfully updated code from {branch}. Logs:\n" + "\n".join(full_results)
         
     except Exception as e:
         logger.error(f"Auto-update failed: {str(e)}")
