@@ -5,6 +5,7 @@ import json
 import base64
 import hashlib
 import re
+from pathlib import Path
 from typing import Dict, Any, Optional
 
 class FusionE2E:
@@ -73,6 +74,9 @@ class FusionE2E:
         # 1. Fetch command history from server
         import httpx
         from tests.test_utils import compare_command_logs
+        reference_dir = Path(__file__).with_name("references")
+        reference_step_path = reference_dir / f"e2e_{test_name}.step"
+        update_references = os.environ.get("UPDATE_REFERENCES", "false").lower() == "true"
         
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -101,9 +105,33 @@ class FusionE2E:
             
         content_bytes = base64.b64decode(content_b64)
         current_hash = hashlib.sha256(content_bytes).hexdigest()
-        
-        # In a real scenario, we'd compare against reference_hash.
-        # For now, we'll print it to help establish references.
+
+        if update_references:
+            reference_dir.mkdir(parents=True, exist_ok=True)
+            reference_step_path.write_bytes(content_bytes)
+            print(f"[STABILITY] Updated STEP reference for {test_name} at {reference_step_path}")
+        elif reference_step_path.exists():
+            reference_bytes = reference_step_path.read_bytes()
+            reference_step_hash = hashlib.sha256(reference_bytes).hexdigest()
+            if current_hash != reference_step_hash:
+                raise AssertionError(
+                    f"STEP stability check failed for {test_name}: "
+                    f"expected {reference_step_hash}, got {current_hash}. "
+                    f"If this change is intentional, run with UPDATE_REFERENCES=true "
+                    f"to update {reference_step_path.name}."
+                )
+        elif reference_hash:
+            if current_hash != reference_hash:
+                raise AssertionError(
+                    f"STEP stability check failed for {test_name}: "
+                    f"expected {reference_hash}, got {current_hash}."
+                )
+        else:
+            raise FileNotFoundError(
+                f"Reference STEP file not found for {test_name} at {reference_step_path}. "
+                "Run tests with UPDATE_REFERENCES=true to generate it."
+            )
+
         print(f"Test {test_name} STEP Hash: {current_hash}")
         
         return current_hash
