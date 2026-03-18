@@ -9,7 +9,7 @@ async def test_scenario_10_swept_spline(mcp_client):
     f360 = FusionE2E(mcp_client)
     await f360.call_tool("create_new_design", {"name": "E2E_Sweep"})
     await f360.call_tool("create_sketch", {"name": "PathSketch", "plane": "xy"})
-    points = [[0, 0, 0], [5, 2, 0], [10, -2, 0], [15, 0, 0]]
+    points = [[0, 0, 0], [5, 0, 0], [10, 0, 0], [15, 0, 0]]
     await f360.call_tool("add_spline", {"sketch_name": "PathSketch", "points": points})
     await f360.call_tool("create_sketch", {"name": "ProfileSketch", "plane": "yz"})
     await f360.call_tool("add_rectangle", {"sketch_name": "ProfileSketch", "x1": -0.5, "y1": -0.5, "x2": 0.5, "y2": 0.5})

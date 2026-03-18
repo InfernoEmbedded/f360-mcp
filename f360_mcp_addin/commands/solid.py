@@ -33,17 +33,6 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
     extrudeInput = extrudes.createInput(profile, fusion_op)
-    if fusion_op in (
-        adsk.fusion.FeatureOperations.CutFeatureOperation,
-        adsk.fusion.FeatureOperations.IntersectFeatureOperation,
-        adsk.fusion.FeatureOperations.JoinFeatureOperation,
-    ):
-        participants = adsk.core.ObjectCollection.create()
-        for comp in design.allComponents:
-            for i in range(comp.bRepBodies.count):
-                participants.add(comp.bRepBodies.item(i))
-        if participants.count > 0:
-            extrudeInput.participantBodies = participants
     extrudeInput.setDistanceExtent(False, distance_val)
     extrude = extrudes.add(extrudeInput)
     extrude.name = name
@@ -93,7 +82,7 @@ def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type
     profile = prof_sketch.profiles.item(profile_index)
     path_sketch = get_sketch_by_name(app, path_sketch_name)
     path_ent = resolve_entity(path_sketch, path_ent_type, path_ent_idx)
-    path = rootComp.features.createPath(path_ent)
+    path = adsk.fusion.Path.create(path_ent, adsk.fusion.ChainedCurveOptions.tangentChainedCurves)
     op_map = {
         "new_body": adsk.fusion.FeatureOperations.NewBodyFeatureOperation,
         "join": adsk.fusion.FeatureOperations.JoinFeatureOperation,
@@ -102,6 +91,7 @@ def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
     sweepInput = sweeps.createInput(profile, path, fusion_op)
+    sweepInput.orientation = adsk.fusion.SweepOrientationTypes.PerpendicularOrientationType
     sweep = sweeps.add(sweepInput)
     sweep.name = name
     if fusion_op == adsk.fusion.FeatureOperations.NewBodyFeatureOperation and sweep.bodies.count > 0:
