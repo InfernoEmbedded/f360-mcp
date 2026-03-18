@@ -5,6 +5,32 @@ from . import command
 from .base import get_active_design, get_sketch_by_name, _get_body, _get_feature, logger
 from .sketch import resolve_entity
 
+def _add_all_profiles_filtered(sketch, collection):
+    """Adds all profiles from a sketch to a collection, filtering out 'holes' of nested profiles."""
+    all_profs = [sketch.profiles.item(i) for i in range(sketch.profiles.count)]
+    if not all_profs:
+        return
+        
+    excluded_indices = set()
+    for i, p in enumerate(all_profs):
+        if p.profileLoops.count > 1:
+            # This profile has internal loops (holes). 
+            # Find and exclude any other profiles that represent those holes.
+            for j, other in enumerate(all_profs):
+                if i == j: 
+                    continue
+                # If 'other' is smaller and inside 'p', it's likely a hole profile
+                if other.profileLoops.count < p.profileLoops.count:
+                    b1 = other.boundingBox
+                    b2 = p.boundingBox
+                    if b2.minPoint.x <= b1.minPoint.x and b2.maxPoint.x >= b1.maxPoint.x and \
+                       b2.minPoint.y <= b1.minPoint.y and b2.maxPoint.y >= b1.maxPoint.y:
+                        excluded_indices.add(j)
+    
+    for i, p in enumerate(all_profs):
+        if i not in excluded_indices:
+            collection.add(p)
+
 @command()
 def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=-1, target_body_name=None):
     """
@@ -25,8 +51,7 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     
     profiles = adsk.core.ObjectCollection.create()
     if profile_index == -1:
-        for i in range(sketch.profiles.count):
-            profiles.add(sketch.profiles.item(i))
+        _add_all_profiles_filtered(sketch, profiles)
     else:
         if profile_index >= sketch.profiles.count:
             raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
@@ -81,8 +106,7 @@ def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, o
     
     profiles = adsk.core.ObjectCollection.create()
     if profile_index == -1:
-        for i in range(sketch.profiles.count):
-            profiles.add(sketch.profiles.item(i))
+        _add_all_profiles_filtered(sketch, profiles)
     else:
         if profile_index >= sketch.profiles.count:
             raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
@@ -117,8 +141,7 @@ def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type
     
     profiles = adsk.core.ObjectCollection.create()
     if profile_index == -1:
-        for i in range(prof_sketch.profiles.count):
-            profiles.add(prof_sketch.profiles.item(i))
+        _add_all_profiles_filtered(prof_sketch, profiles)
     else:
         if profile_index >= prof_sketch.profiles.count:
             raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{profile_sketch_name}'.")
