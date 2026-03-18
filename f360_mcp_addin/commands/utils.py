@@ -6,6 +6,15 @@ from .base import get_active_design, _start_group, _stop_group
 
 @command()
 def undo(app, steps=1):
+    """
+    Performs global undo steps in the active document.
+
+    Args:
+        steps (int): Number of steps to undo. Default: 1.
+
+    Examples:
+        call_addin("undo", {"steps": 1})
+    """
     design = get_active_design(app)
     for _ in range(steps):
         app.activeDocument.undo()
@@ -13,6 +22,15 @@ def undo(app, steps=1):
 
 @command()
 def redo(app, steps=1):
+    """
+    Performs global redo steps in the active document.
+
+    Args:
+        steps (int): Number of steps to redo. Default: 1.
+
+    Examples:
+        call_addin("redo", {"steps": 1})
+    """
     design = get_active_design(app)
     for _ in range(steps):
         app.activeDocument.redo()
@@ -20,6 +38,17 @@ def redo(app, steps=1):
 
 @command()
 def save_design(app, description="Saved via MCP"):
+    """
+    Saves the currently active Fusion document.
+    
+    Note: Requires the document to already have a file location (not new).
+
+    Args:
+        description (str): Version description for the save event.
+
+    Examples:
+        call_addin("save_design", {"description": "Milestone check-in"})
+    """
     design = get_active_design(app)
     if design.isNew:
         raise Exception("Document is new. Use 'create_new_design' with save parameters or save manually first.")
@@ -28,6 +57,18 @@ def save_design(app, description="Saved via MCP"):
 
 @command()
 def capture_screenshot(app, file_path, width=1280, height=720, send_to_mcp=False):
+    """
+    Captures an image of the active viewport.
+
+    Args:
+        file_path (str): Local path to save the image.
+        width (int): Pixel width. Default: 1280.
+        height (int): Pixel height. Default: 720.
+        send_to_mcp (bool): If True, returns the image data as base64.
+
+    Examples:
+        call_addin("capture_screenshot", {"file_path": "C:/Temp/View.png", "send_to_mcp": True})
+    """
     import base64
     import os
     app.activeViewport.refresh()
@@ -44,6 +85,20 @@ def capture_screenshot(app, file_path, width=1280, height=720, send_to_mcp=False
 
 @command()
 def execute_script(app, script_code):
+    """
+    Executes raw Python code within the Fusion 360 environment.
+    
+    HAZARDOUS: Provides full access to the Fusion 360 API. Use with caution.
+
+    Args:
+        script_code (str): The Python code string to execute.
+
+    Returns:
+        dict: {"message": str, "result": obj}
+
+    Examples:
+        call_addin("execute_script", {"script_code": "result = app.name"})
+    """
     import adsk.core
     ui = app.userInterface
     exec_globals = {
@@ -61,16 +116,43 @@ def execute_script(app, script_code):
 
 @command()
 def start_timeline_group(app, name):
+    """
+    Starts a new group in the design timeline.
+    
+    Grouping subsequent features keeps the timeline organized.
+
+    Args:
+        name (str): Name for the group.
+
+    Examples:
+        call_addin("start_timeline_group", {"name": "WheelAssembly"})
+    """
     _start_group(app)
     return {"message": f"Started timeline group: {name}"}
 
 @command()
 def stop_timeline_group(app):
+    """
+    Closes the currently active timeline group.
+
+    Examples:
+        call_addin("stop_timeline_group", {})
+    """
     _stop_group()
     return {"message": "Stopped timeline group."}
 
 @command()
 def rename_sketch(app, old_name, new_name):
+    """
+    Renames a sketch.
+
+    Args:
+        old_name (str): Current name.
+        new_name (str): New name.
+
+    Examples:
+        call_addin("rename_sketch", {"old_name": "Sketch1", "new_name": "MainProfile"})
+    """
     from .base import get_sketch_by_name
     sketch = get_sketch_by_name(app, old_name)
     sketch.name = new_name

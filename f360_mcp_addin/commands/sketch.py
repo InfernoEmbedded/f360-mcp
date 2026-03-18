@@ -55,13 +55,22 @@ def resolve_entity(sketch, entity_type, index):
 @command()
 def create_sketch(app, name, plane_name="XY", body_name=None, face_index=None):
     """
-    Creates a new sketch on a plane or face.
+    Creates a new sketch on a construction plane or a body face.
     
-    Arguments:
-        name (str): Mandatory name for the new sketch.
-        plane_name (str): "XY", "XZ", "YZ", or construction plane name.
-        body_name (str): Optional. Name of the body if sketching on a face.
-        face_index (int): Optional. Index of the face on the body.
+    The sketch is the foundation for all 2D geometry.
+
+    Args:
+        name (str): Mandatory unique name for the new sketch.
+        plane_name (str): "XY", "XZ", "YZ", or a named construction plane. Default: "XY".
+        body_name (str, optional): Name of a body if sketching on a face.
+        face_index (int, optional): Index of the face on the specified body.
+
+    Examples:
+        # Create a sketch on the XY plane
+        call_addin("create_sketch", {"name": "BaseSketch", "plane_name": "XY"})
+        
+        # Create a sketch on a specific face of 'BracketBody'
+        call_addin("create_sketch", {"name": "FaceSketch", "body_name": "BracketBody", "face_index": 1})
     """
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -92,12 +101,34 @@ def create_sketch(app, name, plane_name="XY", body_name=None, face_index=None):
 
 @command()
 def create_sketch_on_plane(app, name, plane_name):
-    """Compatibility wrapper for explicit plane-name sketch creation."""
+    """
+    Creates a new sketch on a named construction plane.
+
+    Args:
+        name (str): Name for the new sketch.
+        plane_name (str): Name of an existing construction plane.
+
+    Examples:
+        call_addin("create_sketch_on_plane", {"name": "SideSketch", "plane_name": "Offset Plane 1"})
+    """
     return create_sketch(app, name, plane_name=plane_name)
 
 @command()
 def add_circle(app, sketch_name, x, y, radius):
-    """Adds a circle. Units: cm."""
+    """
+    Adds a circle to a sketch.
+    
+    Units: centimeters (cm).
+
+    Args:
+        sketch_name (str): The sketch to add the circle to.
+        x (float): X-coordinate of the center (cm).
+        y (float): Y-coordinate of the center (cm).
+        radius (float): Radius of the circle (cm).
+
+    Examples:
+        call_addin("add_circle", {"sketch_name": "BaseSketch", "x": 0, "y": 0, "radius": 2.5})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     circles = sketch.sketchCurves.sketchCircles
     center = adsk.core.Point3D.create(x, y, 0)
@@ -106,7 +137,19 @@ def add_circle(app, sketch_name, x, y, radius):
 
 @command()
 def add_line(app, sketch_name, x1, y1, x2, y2):
-    """Adds a line. Units: cm."""
+    """
+    Adds a line segment between two points in a sketch.
+    
+    Units: centimeters (cm).
+
+    Args:
+        sketch_name (str): The sketch to add the line to.
+        x1, y1 (float): Start point coordinates.
+        x2, y2 (float): End point coordinates.
+
+    Examples:
+        call_addin("add_line", {"sketch_name": "BaseSketch", "x1": 0, "y1": 0, "x2": 10, "y2": 0})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     lines = sketch.sketchCurves.sketchLines
     p1 = adsk.core.Point3D.create(x1, y1, 0)
@@ -116,6 +159,22 @@ def add_line(app, sketch_name, x1, y1, x2, y2):
 
 @command()
 def add_rectangle(app, sketch_name, x1, y1, x2, y2, x3=None, y3=None, rect_type="two_point"):
+    """
+    Adds a rectangle to a sketch.
+    
+    Supports two-point, three-point, and center-point rectangles.
+
+    Args:
+        sketch_name (str): Target sketch.
+        x1, y1 (float): First point (e.g., Corner 1 or Center).
+        x2, y2 (float): Second point (e.g., Corner 2).
+        x3, y3 (float, optional): Third point for 'three_point' rectangles.
+        rect_type (str): 'two_point', 'three_point', 'center'. Default: 'two_point'.
+
+    Examples:
+        # Simple 5x5 square from origin
+        call_addin("add_rectangle", {"sketch_name": "BaseSketch", "x1": 0, "y1": 0, "x2": 5, "y2": 5})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     lines = sketch.sketchCurves.sketchLines
     p1 = adsk.core.Point3D.create(x1, y1, 0)
@@ -134,6 +193,28 @@ def add_rectangle(app, sketch_name, x1, y1, x2, y2, x3=None, y3=None, rect_type=
 
 @command()
 def add_arc(app, sketch_name, x1, y1, x2, y2, x3, y3, arc_type="three_point"):
+    """
+    Adds an arc to a sketch.
+    
+    Supports three-point arcs and center-start-sweep arcs.
+
+    Args:
+        sketch_name (str): Target sketch.
+        x1, y1 (float): Contextual Point 1.
+        x2, y2 (float): Contextual Point 2.
+        x3, y3 (float): Contextual Point 3 (or sweep angle for center type).
+        arc_type (str): 'three_point' or 'center_start_sweep'.
+
+    Examples:
+        # Create a 90-degree arc around origin
+        call_addin("add_arc", {
+            "sketch_name": "Profile", 
+            "x1": 0, "y1": 0, 
+            "x2": 2, "y2": 0, 
+            "x3": 1.57, # ~PI/2 radians
+            "arc_type": "center_start_sweep"
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     arcs = sketch.sketchCurves.sketchArcs
     if arc_type == "center_start_sweep":
@@ -151,6 +232,19 @@ def add_arc(app, sketch_name, x1, y1, x2, y2, x3, y3, arc_type="three_point"):
 
 @command()
 def add_spline(app, sketch_name, points):
+    """
+    Adds a fitted spline through a set of points.
+
+    Args:
+        sketch_name (str): Target sketch.
+        points (list[list[float]]): List of [x, y] coordinates.
+
+    Examples:
+        call_addin("add_spline", {
+            "sketch_name": "CurveSketch", 
+            "points": [[0,0], [1,2], [3,1], [4,4]]
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     splines = sketch.sketchCurves.sketchFittedSplines
     points_collection = adsk.core.ObjectCollection.create()
@@ -161,7 +255,25 @@ def add_spline(app, sketch_name, points):
 
 @command()
 def add_polygon(app, sketch_name, center_x, center_y, num_sides, vertex_x, vertex_y, poly_type="inscribed"):
-    """Adds a regular polygon. Units: cm."""
+    """
+    Adds a regular polygon to a sketch.
+
+    Args:
+        sketch_name (str): Target sketch.
+        center_x, center_y (float): Coordinates of the polygon center (cm).
+        num_sides (int): Number of sides.
+        vertex_x, vertex_y (float): Coordinates of one vertex (defines size/rotation).
+        poly_type (str): 'inscribed' or 'circumscribed'. Default: 'inscribed'.
+
+    Examples:
+        # Create a hexagon centered at origin
+        call_addin("add_polygon", {
+            "sketch_name": "Base", 
+            "center_x": 0, "center_y": 0, 
+            "num_sides": 6, 
+            "vertex_x": 2, "vertex_y": 0
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     polygons = sketch.sketchPolygons
     center = adsk.core.Point3D.create(center_x, center_y, 0)
@@ -174,6 +286,23 @@ def add_polygon(app, sketch_name, center_x, center_y, num_sides, vertex_x, verte
 
 @command()
 def add_ellipse(app, sketch_name, center_x, center_y, major_x, major_y, minor_x, minor_y):
+    """
+    Adds an ellipse to a sketch.
+
+    Args:
+        sketch_name (str): Target sketch.
+        center_x, center_y (float): Center point.
+        major_x, major_y (float): Point on the major axis.
+        minor_x, minor_y (float): Point on the minor axis.
+
+    Examples:
+        call_addin("add_ellipse", {
+            "sketch_name": "Base", 
+            "center_x": 0, "center_y": 0, 
+            "major_x": 5, "major_y": 0, 
+            "minor_x": 0, "minor_y": 2
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     ellipses = sketch.sketchCurves.sketchEllipses
     center = adsk.core.Point3D.create(center_x, center_y, 0)
@@ -184,6 +313,16 @@ def add_ellipse(app, sketch_name, center_x, center_y, major_x, major_y, minor_x,
 
 @command()
 def add_point(app, sketch_name, x, y):
+    """
+    Adds a single sketch point.
+
+    Args:
+        sketch_name (str): Target sketch.
+        x, y (float): Point coordinates (cm).
+
+    Examples:
+        call_addin("add_point", {"sketch_name": "Base", "x": 1.5, "y": 2.5})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     points = sketch.sketchPoints
     p = adsk.core.Point3D.create(x, y, 0)
@@ -192,6 +331,21 @@ def add_point(app, sketch_name, x, y):
 
 @command()
 def add_text(app, sketch_name, text, x, y, height=0.5):
+    """
+    Adds text to a sketch and explodes it into geometry.
+    
+    Exploding text allows it to be used for features like extrusion or engraving.
+
+    Args:
+        sketch_name (str): Target sketch.
+        text (str): The string to add.
+        x, y (float): Insertion point (bottom-left).
+        height (float): Text height in cm. Default: 0.5.
+
+    Examples:
+        # Add 'F360' text for engraving
+        call_addin("add_text", {"sketch_name": "EngraveSketch", "text": "F360", "x": 0, "y": 0, "height": 1.0})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     texts = sketch.sketchTexts
     position = adsk.core.Point3D.create(x, y, 0)
@@ -206,10 +360,27 @@ def add_text(app, sketch_name, text, x, y, height=0.5):
 @command()
 def apply_constraint(app, sketch_name, constraint_type, ent1_type, ent1_idx, ent2_type=None, ent2_idx=None):
     """
-    Applies a geometric constraint.
+    Applies a geometric constraint between one or two entities.
     
-    Types: coincident, collinear, concentric, midpoint, parallel, perpendicular, 
-           horizontal, vertical, tangent, equal.
+    Entity types follow the format: 'line_0_start', 'circle_1_center', etc.
+
+    Args:
+        sketch_name (str): Target sketch.
+        constraint_type (str): coincident, collinear, concentric, midpoint, parallel, 
+                               perpendicular, horizontal, vertical, tangent, equal.
+        ent1_type (str): Type and optional sub-type of the first entity.
+        ent1_idx (int): Index of the first entity.
+        ent2_type (str, optional): Type of the second entity (if required).
+        ent2_idx (int, optional): Index of the second entity.
+
+    Examples:
+        # Make a line's start point coincident with the origin (point 0)
+        call_addin("apply_constraint", {
+            "sketch_name": "Base", 
+            "constraint_type": "coincident", 
+            "ent1_type": "line_start", "ent1_idx": 0, 
+            "ent2_type": "point", "ent2_idx": 0
+        })
     """
     sketch = get_sketch_by_name(app, sketch_name)
     constraints = sketch.geometricConstraints
@@ -244,6 +415,24 @@ def apply_constraint(app, sketch_name, constraint_type, ent1_type, ent1_idx, ent
 
 @command()
 def add_symmetry_constraint(app, sketch_name, ent1_type, ent1_idx, ent2_type, ent2_idx, sym_line_type, sym_line_idx):
+    """
+    Applies a symmetry constraint between two entities relative to a line.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent1_type, ent1_idx: First symmetrical entity.
+        ent2_type, ent2_idx: Second symmetrical entity.
+        sym_line_type, sym_line_idx: The line of symmetry.
+
+    Examples:
+        # Make two lines symmetrical across a construction axis
+        call_addin("add_symmetry_constraint", {
+            "sketch_name": "Base",
+            "ent1_type": "line", "ent1_idx": 0,
+            "ent2_type": "line", "ent2_idx": 1,
+            "sym_line_type": "line", "sym_line_idx": 2
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     constraints = sketch.geometricConstraints
     e1 = resolve_entity(sketch, ent1_type, ent1_idx)
@@ -254,6 +443,25 @@ def add_symmetry_constraint(app, sketch_name, ent1_type, ent1_idx, ent2_type, en
 
 @command()
 def add_distance_dimension(app, sketch_name, ent1_type, ent1_idx, ent2_type, ent2_idx, text_x, text_y, orientation="aligned"):
+    """
+    Adds a linear distance dimension between two entities.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent1_type, ent1_idx: First entity (point or line).
+        ent2_type, ent2_idx: Second entity (point or line).
+        text_x, text_y (float): Position to place the dimension text (cm).
+        orientation (str): 'aligned', 'horizontal', 'vertical'. Default: 'aligned'.
+
+    Examples:
+        # Dimension the length of line 0
+        call_addin("add_distance_dimension", {
+            "sketch_name": "Base",
+            "ent1_type": "line_start", "ent1_idx": 0,
+            "ent2_type": "line_end", "ent2_idx": 0,
+            "text_x": 5, "text_y": -2
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     dims = sketch.sketchDimensions
     e1 = resolve_entity(sketch, ent1_type, ent1_idx)
@@ -269,6 +477,21 @@ def add_distance_dimension(app, sketch_name, ent1_type, ent1_idx, ent2_type, ent
 
 @command()
 def add_radial_dimension(app, sketch_name, ent_type, ent_idx, text_x, text_y):
+    """
+    Adds a radial dimension to a circle or arc.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent_type, ent_idx: The circle or arc to dimension.
+        text_x, text_y (float): Position for the dimension text.
+
+    Examples:
+        call_addin("add_radial_dimension", {
+            "sketch_name": "Base",
+            "ent_type": "circle", "ent_idx": 0,
+            "text_x": 10, "text_y": 10
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     dims = sketch.sketchDimensions
     e1 = resolve_entity(sketch, ent_type, ent_idx)
@@ -278,6 +501,21 @@ def add_radial_dimension(app, sketch_name, ent_type, ent_idx, text_x, text_y):
 
 @command()
 def add_diameter_dimension(app, sketch_name, ent_type, ent_idx, text_x, text_y):
+    """
+    Adds a diameter dimension to a circle.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent_type, ent_idx: The circle to dimension.
+        text_x, text_y (float): Position for the dimension text.
+
+    Examples:
+        call_addin("add_diameter_dimension", {
+            "sketch_name": "Base",
+            "ent_type": "circle", "ent_idx": 0,
+            "text_x": 5, "text_y": 5
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     dims = sketch.sketchDimensions
     e1 = resolve_entity(sketch, ent_type, ent_idx)
@@ -287,6 +525,22 @@ def add_diameter_dimension(app, sketch_name, ent_type, ent_idx, text_x, text_y):
 
 @command()
 def add_angular_dimension(app, sketch_name, line1_idx, line2_idx, text_x, text_y):
+    """
+    Adds an angular dimension between two lines.
+
+    Args:
+        sketch_name (str): Target sketch.
+        line1_idx (int): Index of the first line.
+        line2_idx (int): Index of the second line.
+        text_x, text_y (float): Position for the dimension text.
+
+    Examples:
+        call_addin("add_angular_dimension", {
+            "sketch_name": "Base",
+            "line1_idx": 0, "line2_idx": 1,
+            "text_x": 2, "text_y": 2
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     dims = sketch.sketchDimensions
     line1 = resolve_entity(sketch, "line", line1_idx)
@@ -297,6 +551,15 @@ def add_angular_dimension(app, sketch_name, line1_idx, line2_idx, text_x, text_y
 
 @command()
 def list_sketches(app):
+    """
+    Lists all sketches in the active design.
+
+    Returns:
+        dict: {"sketches": [{"name": str, "component": str}, ...]}
+
+    Examples:
+        call_addin("list_sketches", {})
+    """
     design = get_active_design(app)
     # Search all components for sketches
     sketch_list = []
@@ -307,12 +570,37 @@ def list_sketches(app):
 
 @command()
 def delete_sketch(app, sketch_name):
+    """
+    Deletes a sketch by name.
+
+    Args:
+        sketch_name (str): The name of the sketch to delete.
+
+    Examples:
+        call_addin("delete_sketch", {"sketch_name": "TempSketch"})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     sketch.deleteMe()
     return {"message": f"Sketch '{sketch_name}' deleted."}
 
 @command()
 def project_geometry(app, sketch_name, ent_type, ent_idx, from_sketch_name=None):
+    """
+    Projects geometry from one sketch (or face) onto the target sketch.
+
+    Args:
+        sketch_name (str): The sketch to project INTO.
+        ent_type, ent_idx: The entity to project.
+        from_sketch_name (str, optional): The source sketch. Defaults to target_sketch.
+
+    Examples:
+        # Project a line from 'BaseSketch' into 'FeatureSketch'
+        call_addin("project_geometry", {
+            "sketch_name": "FeatureSketch",
+            "ent_type": "line", "ent_idx": 0,
+            "from_sketch_name": "BaseSketch"
+        })
+    """
     target_sketch = get_sketch_by_name(app, sketch_name)
     source_sketch = get_sketch_by_name(app, from_sketch_name) if from_sketch_name else target_sketch
     ent = resolve_entity(source_sketch, ent_type, ent_idx)
@@ -321,6 +609,22 @@ def project_geometry(app, sketch_name, ent_type, ent_idx, from_sketch_name=None)
 
 @command()
 def offset_geometry(app, sketch_name, ent_type, ent_idx, offset_distance):
+    """
+    Creates an offset of a sketch entity.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent_type, ent_idx: Entity to offset.
+        offset_distance (float): Distance to offset (cm). Positive/Negative defines direction.
+
+    Examples:
+        # Create an concentric circle 1cm larger than circle 0
+        call_addin("offset_geometry", {
+            "sketch_name": "Base",
+            "ent_type": "circle", "ent_idx": 0,
+            "offset_distance": 1.0
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     ent = resolve_entity(sketch, ent_type, ent_idx)
     curves = adsk.core.ObjectCollection.create()
@@ -331,6 +635,16 @@ def offset_geometry(app, sketch_name, ent_type, ent_idx, offset_distance):
 
 @command()
 def delete_sketch_entity(app, sketch_name, ent_type, ent_idx):
+    """
+    Deletes a specific entity (line, circle, point) from a sketch.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent_type, ent_idx: Entity to delete.
+
+    Examples:
+        call_addin("delete_sketch_entity", {"sketch_name": "Base", "ent_type": "line", "ent_idx": 5})
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     ent = resolve_entity(sketch, ent_type, ent_idx)
     ent.deleteMe()
@@ -338,6 +652,21 @@ def delete_sketch_entity(app, sketch_name, ent_type, ent_idx):
 
 @command()
 def trim_sketch_geometry(app, sketch_name, ent_type, ent_idx, x, y):
+    """
+    Trims a sketch curve at the approximate selection point.
+
+    Args:
+        sketch_name (str): Target sketch.
+        ent_type, ent_idx: Curve to trim.
+        x, y (float): Point near the segment to be removed.
+
+    Examples:
+        call_addin("trim_sketch_geometry", {
+            "sketch_name": "Base",
+            "ent_type": "line", "ent_idx": 0,
+            "x": 1.2, "y": 0.5
+        })
+    """
     sketch = get_sketch_by_name(app, sketch_name)
     ent = resolve_entity(sketch, ent_type, ent_idx)
     pt = adsk.core.Point3D.create(x, y, 0)

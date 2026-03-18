@@ -23,6 +23,15 @@ def _get_folder_by_path(project, folder_path):
 
 @command()
 def list_projects(app):
+    """
+    Lists all available Fusion 360 data projects across all hubs.
+
+    Returns:
+        dict: {"projects": [{"name": str, "id": str, "hub": str}, ...]}
+
+    Examples:
+        call_addin("list_projects", {})
+    """
     hubs = app.data.hubs
     projects_list = []
     for h_idx in range(hubs.count):
@@ -39,6 +48,15 @@ def list_projects(app):
 
 @command()
 def create_project(app, name):
+    """
+    Creates a new data project in the active hub.
+
+    Args:
+        name (str): Unique name for the project.
+
+    Examples:
+        call_addin("create_project", {"name": "Robot_V2"})
+    """
     hub = app.data.activeHub
     projects = hub.dataProjects
     for i in range(projects.count):
@@ -49,6 +67,17 @@ def create_project(app, name):
 
 @command()
 def create_folder(app, project_name, folder_name, parent_folder_path=None):
+    """
+    Creates a new folder within a project.
+
+    Args:
+        project_name (str): Target project.
+        folder_name (str): Name for the new folder.
+        parent_folder_path (str, optional): Slash-delimited path (e.g. "Mechanical/Parts").
+
+    Examples:
+        call_addin("create_folder", {"project_name": "Robot_V2", "folder_name": "Actuators"})
+    """
     hub = app.data.activeHub
     project = None
     for i in range(hub.dataProjects.count):
@@ -70,11 +99,17 @@ def create_folder(app, project_name, folder_name, parent_folder_path=None):
 @command()
 def list_designs(app, project_name, folder_path=None):
     """
-    Lists designs in a project and folder.
-    
+    Lists designs within a specific project and folder.
+
     Args:
-        project_name: Name of the project.
-        folder_path: Optional path to a subfolder (e.g. "Mechanical/Parts").
+        project_name (str): Target project.
+        folder_path (str, optional): Path to a subfolder.
+
+    Returns:
+        dict: {"designs": [{"name": str, "id": str, "version": int}, ...]}
+
+    Examples:
+        call_addin("list_designs", {"project_name": "Robot_V2", "folder_path": "Actuators"})
     """
     hub = app.data.activeHub
     project = None
@@ -103,12 +138,18 @@ def list_designs(app, project_name, folder_path=None):
 @command()
 def open_design(app, project_name, name, folder_path=None):
     """
-    Opens an existing design.
-    
+    Opens an existing design from the data management environment.
+
     Args:
-        project_name: Name of the project.
-        name: Name of the design file.
-        folder_path: Optional path to a subfolder.
+        project_name (str): Source project.
+        name (str): Design name.
+        folder_path (str, optional): Path to the subfolder.
+
+    Returns:
+        dict: {"message": str, "document_name": str}
+
+    Examples:
+        call_addin("open_design", {"project_name": "Robot_V2", "name": "LegAssembly"})
     """
     hub = app.data.activeHub
     project = None
@@ -139,6 +180,22 @@ def open_design(app, project_name, name, folder_path=None):
 
 @command()
 def create_new_design(app, name, project_name=None, folder_path=None):
+    """
+    Creates a fresh Fusion design document.
+    
+    If project_name is provided, it performs an immediate 'Save As'.
+
+    Args:
+        name (str): Title for the new design.
+        project_name (str, optional): Target project for saving.
+        folder_path (str, optional): Path to the subfolder.
+
+    Returns:
+        dict: {"message": str, "status": "saved"|"unsaved"}
+
+    Examples:
+        call_addin("create_new_design", {"name": "NewBracket", "project_name": "Robot_V2"})
+    """
     import time
     # Mitigation for InternalValidationError during rapid test execution
     doc = None
@@ -174,8 +231,13 @@ def create_new_design(app, name, project_name=None, folder_path=None):
 @command()
 def close_document(app, save=False):
     """
-    Closes the active document.
-    save (bool): True to save changes, False (default) to discard without saving.
+    Closes the active Fusion document.
+
+    Args:
+        save (bool): True to save changes, False (default) to discard.
+
+    Examples:
+        call_addin("close_document", {"save": True})
     """
     doc = app.activeDocument
     if not doc:
@@ -191,8 +253,13 @@ def close_document(app, save=False):
 @command()
 def close_all_documents(app, save=False):
     """
-    Closes all open documents.
-    save (bool): True to save changes, False (default) to discard without saving.
+    Closes all currently open documents.
+
+    Args:
+        save (bool): True to save changes, False to discard.
+
+    Examples:
+        call_addin("close_all_documents", {"save": False})
     """
     closed = []
     warnings = []
@@ -228,6 +295,21 @@ def close_all_documents(app, save=False):
 
 @command()
 def export_model(app, file_path, file_type="step", body_name=None, send_to_mcp=False):
+    """
+    Exports the current design or a specific body to an external file.
+    
+    Supported formats: STEP (full component only), STL, 3MF.
+
+    Args:
+        file_path (str): Full local path for the exported file.
+        file_type (str): 'step', 'stl', or '3mf'. Default: 'step'.
+        body_name (str, optional): Specific body to export (STL/3MF only).
+        send_to_mcp (bool): If True, returns the file content as base64.
+
+    Examples:
+        # Export full model to STEP
+        call_addin("export_model", {"file_path": "C:/Temp/Part.step", "file_type": "step"})
+    """
     design = get_active_design(app)
     exportMgr = design.exportManager
     rootComp = design.rootComponent

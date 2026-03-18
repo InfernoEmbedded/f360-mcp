@@ -6,28 +6,35 @@ from .base import get_active_design
 
 @command()
 def create_offset_plane(app, name, base_plane, offset):
-    design = get_active_design(app)
-    rootComp = design.rootComponent
-    planes = rootComp.constructionPlanes
-    if base_plane.upper() == "XY":
-        base = rootComp.xYConstructionPlane
-    elif base_plane.upper() == "XZ":
-        base = rootComp.xZConstructionPlane
-    elif base_plane.upper() == "YZ":
-        base = rootComp.yZConstructionPlane
-    else:
-        base = planes.itemByName(base_plane)
-        if not base:
-            raise Exception(f"Base plane '{base_plane}' not found.")
-    planeInput = planes.createInput()
-    offsetValue = adsk.core.ValueInput.createByReal(offset)
-    planeInput.setByOffset(base, offsetValue)
-    plane = planes.add(planeInput)
-    plane.name = name
-    return {"message": f"Offset plane '{name}' created from {base_plane} by {offset}cm.", "plane_name": plane.name}
+    """
+    Creates a construction plane offset from an existing plane or face.
+    
+    Offset planes are essential for sketching in 3D space.
+
+    Args:
+        name (str): Name for the new plane.
+        base_plane (str): "XY", "XZ", "YZ", or a named construction plane/face.
+        offset (float): Offset distance in centimeters (cm).
+
+    Examples:
+        # Create a plane 10cm above the XY floor
+        call_addin("create_offset_plane", {"name": "TopPlane", "base_plane": "XY", "offset": 10.0})
+    """
 
 @command()
 def create_plane_at_angle(app, name, axis_name, angle_deg):
+    """
+    Creates a construction plane at an angle relative to an axis.
+
+    Args:
+        name (str): Name for the new plane.
+        axis_name (str): The axis to rotate around ('X', 'Y', 'Z' or named axis).
+        angle_deg (float): Rotation angle in degrees.
+
+    Examples:
+        # Create a 45-degree slanted plane around the X axis
+        call_addin("create_plane_at_angle", {"name": "SlantPlane", "axis_name": "X", "angle_deg": 45})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     planes = rootComp.constructionPlanes
@@ -61,6 +68,15 @@ def create_plane_at_angle(app, name, axis_name, angle_deg):
 
 @command()
 def list_construction(app):
+    """
+    Lists all construction planes, axes, and points in the design.
+
+    Returns:
+        dict: {"planes": [...], "axes": [...], "points": [...]}
+
+    Examples:
+        call_addin("list_construction", {})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     planes = [{"name": p.name, "type": "plane", "is_visible": p.isVisible} for p in rootComp.constructionPlanes]
@@ -70,6 +86,17 @@ def list_construction(app):
 
 @command()
 def rename_construction(app, old_name, new_name, type="plane"):
+    """
+    Renames a construction entity.
+
+    Args:
+        old_name (str): Current name.
+        new_name (str): New name.
+        type (str): 'plane', 'axis', or 'point'. Default: 'plane'.
+
+    Examples:
+        call_addin("rename_construction", {"old_name": "Plane1", "new_name": "MirrorPlane"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     item = None
@@ -86,6 +113,16 @@ def rename_construction(app, old_name, new_name, type="plane"):
 
 @command()
 def delete_construction(app, name, type="plane"):
+    """
+    Deletes a construction entity.
+
+    Args:
+        name (str): Name of the entity to delete.
+        type (str): 'plane', 'axis', or 'point'. Default: 'plane'.
+
+    Examples:
+        call_addin("delete_construction", {"name": "Plane1"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     item = None

@@ -4,14 +4,30 @@ from . import registry, command
 @command(name="_get_command_metadata")
 def get_command_metadata(app):
     """
-    Internal command to export all registered command metadata (signatures, docstrings).
+    Internal command to export all registered command signatures and docstrings.
+    
+    Used by the MCP server for tool discovery and schema generation.
+
+    Returns:
+        dict: A mapping of command names to their metadata (args, doc, etc.).
+
+    Examples:
+        call_addin("_get_command_metadata", {})
     """
     return registry.get_metadata()
 
 @command(name="get_addin_logs")
 def get_addin_logs(app):
     """
-    Internal command to read the Add-in's persistent log file.
+    Internal command to read the Add-in's persistent log file (last 100KB).
+    
+    Useful for remote debugging and troubleshooting add-in issues.
+
+    Returns:
+        str: Recent log entries.
+
+    Examples:
+        call_addin("get_addin_logs", {})
     """
     log_file = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'f360_mcp.log')
     if os.path.exists(log_file):
@@ -27,6 +43,9 @@ def reload_addin(app):
     """
     Creates a temporary script to stop and restart this Add-in.
     This safely allows the Add-in to reload its own code after an update.
+
+    Examples:
+        call_addin("reload_addin", {})
     """
     import os
     import tempfile
@@ -83,7 +102,13 @@ def run(context):
 @command()
 def get_system_info(app):
     """
-    Internal command to get system information (OS, temp dir).
+    Internal command to retrieve system and environment information.
+
+    Returns:
+        dict: {"os": str, "platform": str, "temp_dir": str, "addin_path": str}
+
+    Examples:
+        call_addin("get_system_info", {})
     """
     import os
     import tempfile

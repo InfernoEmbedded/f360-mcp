@@ -34,13 +34,26 @@ def _add_all_profiles_filtered(sketch, collection):
 @command()
 def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=-1, target_body_name=None):
     """
-    Extrudes a sketch profile.
+    Extrudes a sketch profile by a specified distance.
     
-    Arguments:
-        name (str): Mandatory name for the new feature.
-        distance (float): Extrusion depth in cm.
-        operation (str): new_body, join, cut, intersect.
-        profile_index (int): Index of the profile to extrude, -1 for all profiles (default).
+    This command performs a linear extrusion of one or more profiles from a sketch.
+    It supports multiple operations including creating new bodies, joining existing ones, 
+    cutting, or intersecting.
+
+    Args:
+        name (str): Mandatory unique name for the new feature or body.
+        sketch_name (str): The name of the sketch containing the profiles.
+        distance (float): The extrusion depth in centimeters. Positive values go from the sketch plane.
+        operation (str): The operation type: 'new_body', 'join', 'cut', 'intersect'. Default: 'new_body'.
+        profile_index (int): Index of the profile to extrude (0-based). -1 to select all relevant profiles. Default: -1.
+        target_body_name (str, optional): The name of the body to target for boolean operations (cut/intersect).
+
+    Examples:
+        # Create a 5cm tall cylinder from 'CircleSketch'
+        call_addin("create_extrude", {"name": "Cylinder", "sketch_name": "CircleSketch", "distance": 5.0})
+        
+        # Cut a hole through a plate using 'HoleSketch'
+        call_addin("create_extrude", {"name": "SlotCut", "sketch_name": "HoleSketch", "distance": -2.0, "operation": "cut"})
     """
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -97,6 +110,31 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
 
 @command()
 def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, operation="new_body", profile_index=-1):
+    """
+    Revolves a sketch profile around an axis.
+    
+    Creates a 3D feature by revolving one or more sketch profiles around a selected axis 
+    (like a sketch line or construction axis).
+
+    Args:
+        name (str): Mandatory unique name for the new feature or body.
+        sketch_name (str): The name of the sketch containing the profiles.
+        axis_ent_type (str): The type of entity to use as an axis (e.g., 'sketch_line').
+        axis_ent_idx (int): The index of the axis entity within the sketch.
+        angle (float): The angle of revolution in degrees.
+        operation (str): The operation type: 'new_body', 'join', 'cut', 'intersect'. Default: 'new_body'.
+        profile_index (int): Index of the profile (0-based). -1 to select all relevant profiles. Default: -1.
+
+    Examples:
+        # Create a sphere-like shape by revolving a semi-circle 360 degrees
+        call_addin("create_revolve", {
+            "name": "RevolveBody", 
+            "sketch_name": "ArchSketch", 
+            "axis_ent_type": "sketch_line", 
+            "axis_ent_idx": 0, 
+            "angle": 360
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     revolves = rootComp.features.revolveFeatures
@@ -132,6 +170,31 @@ def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, o
 
 @command()
 def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type, path_ent_idx, operation="new_body", profile_index=-1):
+    """
+    Sweeps a sketch profile along a path.
+    
+    Creates a 3D feature by sliding a profile along a trajectory (path). The profile
+    is usually perpendicular to the path at the start.
+
+    Args:
+        name (str): Mandatory unique name for the new feature or body.
+        profile_sketch_name (str): The sketch containing the cross-section profile.
+        path_sketch_name (str): The sketch containing the path trajectory.
+        path_ent_type (str): The type of entity to use as the path (e.g., 'sketch_line', 'sketch_spline').
+        path_ent_idx (int): The index of the path entity within its sketch.
+        operation (str): The operation type: 'new_body', 'join', 'cut', 'intersect'. Default: 'new_body'.
+        profile_index (int): Index of the profile (0-based). -1 for all. Default: -1.
+
+    Examples:
+        # Create a pipe along a path
+        call_addin("create_sweep", {
+            "name": "Handle",
+            "profile_sketch_name": "CircleSketch",
+            "path_sketch_name": "CurveSketch",
+            "path_ent_type": "sketch_spline",
+            "path_ent_idx": 0
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     sweeps = rootComp.features.sweepFeatures
@@ -167,6 +230,27 @@ def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type
 
 @command()
 def create_loft(app, name, profiles_info):
+    """
+    Creates a loft feature between multiple sketch profiles.
+    
+    A loft blends multiple shapes together to create a smooth transition between 
+    different cross-sections.
+
+    Args:
+        name (str): Mandatory name for the new feature.
+        profiles_info (list[dict]): A list of dicts specifying profiles.
+            Each dict should have: 'sketch_name' (str) and 'profile_idx' (int, optional).
+
+    Examples:
+        # Loft between two squares at different heights
+        call_addin("create_loft", {
+            "name": "Adapter",
+            "profiles_info": [
+                {"sketch_name": "BaseSquare", "profile_idx": 0},
+                {"sketch_name": "TopSquare", "profile_idx": 0}
+            ]
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     lofts = rootComp.features.loftFeatures
@@ -188,7 +272,28 @@ def create_loft(app, name, profiles_info):
 
 @command()
 def create_hole(app, name, sketch_name, point_idx, diameter, depth):
-    """Creates a circular hole. Units: cm."""
+    """
+    Creates a simple circular hole at a sketch point.
+    
+    The hole is created perpendicular to the sketch plane at the specified point index.
+
+    Args:
+        name (str): Mandatory unique name for the hole feature.
+        sketch_name (str): The name of the sketch containing the centers.
+        point_idx (int): The index of the sketch point to use as the center.
+        diameter (float): The diameter of the hole in centimeters.
+        depth (float): The depth of the hole in centimeters.
+
+    Examples:
+        # Create a 1cm diameter, 2cm deep hole at the first point of 'HoleLayout'
+        call_addin("create_hole", {
+            "name": "M10_Hole", 
+            "sketch_name": "HoleLayout", 
+            "point_idx": 0, 
+            "diameter": 1.0, 
+            "depth": 2.0
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     holes = rootComp.features.holeFeatures
@@ -207,7 +312,21 @@ def create_hole(app, name, sketch_name, point_idx, diameter, depth):
 
 @command()
 def create_shell(app, name, body_name, thickness):
-    """Hollows a body. Units: cm."""
+    """
+    Hollows out a solid body to create a thin-walled shell.
+    
+    This command creates an internal cavity by offsetting all faces of the body
+    inwards by the specified thickness.
+
+    Args:
+        name (str): Name for the shell feature.
+        body_name (str): Name of the body to shell.
+        thickness (float): Wall thickness in centimeters.
+
+    Examples:
+        # Turn a box into a container with 0.2cm walls
+        call_addin("create_shell", {"name": "CaseShell", "body_name": "CaseBody", "thickness": 0.2})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     shells = rootComp.features.shellFeatures
@@ -223,7 +342,20 @@ def create_shell(app, name, body_name, thickness):
 
 @command()
 def create_fillet(app, name, body_name, radius):
-    """Fillets all edges of a body. Units: cm."""
+    """
+    Applies a rounded fillet to all edges of a body.
+    
+    This is a convenience command that rounds every sharp edge on the target body.
+
+    Args:
+        name (str): Name for the fillet feature.
+        body_name (str): Name of the body to fillet.
+        radius (float): Fillet radius in centimeters.
+
+    Examples:
+        # Round over all edges of a bracket
+        call_addin("create_fillet", {"name": "BracketFillet", "body_name": "Bracket", "radius": 0.1})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     fillets = rootComp.features.filletFeatures
@@ -240,7 +372,20 @@ def create_fillet(app, name, body_name, radius):
 
 @command()
 def create_chamfer(app, name, body_name, distance):
-    """Chamfers all edges of a body. Units: cm."""
+    """
+    Applies a flat chamfer (bevel) to all edges of a body.
+    
+    This creates an equal-distance bevel on every edge of the target body.
+
+    Args:
+        name (str): Name for the chamfer feature.
+        body_name (str): Name of the body to chamfer.
+        distance (float): Chamfer distance (offset) in centimeters.
+
+    Examples:
+        # Bevel all edges of a plate
+        call_addin("create_chamfer", {"name": "PlateEdge", "body_name": "Plate", "distance": 0.05})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     chamfers = rootComp.features.chamferFeatures
@@ -257,6 +402,20 @@ def create_chamfer(app, name, body_name, distance):
 
 @command()
 def feature_mirror(app, name, body_name, plane_name):
+    """
+    Mirrors a body or feature across a construction plane.
+    
+    Creates a symmetrical copy of the target entity.
+
+    Args:
+        name (str): Name for the mirror feature.
+        body_name (str): Name of the body or feature to mirror.
+        plane_name (str): Suffix of the plane to mirror across ('xy', 'yz', 'xz').
+
+    Examples:
+        # Mirror the left side of a chassis to the right across the YZ plane
+        call_addin("feature_mirror", {"name": "RightSide", "body_name": "LeftSide", "plane_name": "yz"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     mirrors = rootComp.features.mirrorFeatures
@@ -284,6 +443,28 @@ def feature_mirror(app, name, body_name, plane_name):
 
 @command()
 def create_rectangular_pattern(app, name, body_name, count_x, count_y, distance_x, distance_y):
+    """
+    Creates a rectangular pattern of a body or feature.
+    
+    Duplicates the target entity along the X and Y axes with specified spacing.
+
+    Args:
+        name (str): Name for the pattern feature.
+        body_name (str): Name of the body or feature to pattern.
+        count_x (int): Number of instances along the X axis.
+        count_y (int): Number of instances along the Y axis.
+        distance_x (float): Spacing between instances in x (cm).
+        distance_y (float): Spacing between instances in y (cm).
+
+    Examples:
+        # Create a 2x3 grid of a 'Bolt' body
+        call_addin("create_rectangular_pattern", {
+            "name": "BoltGrid", 
+            "body_name": "Bolt", 
+            "count_x": 2, "count_y": 3, 
+            "distance_x": 2.0, "distance_y": 2.0
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     # Try body then feature
@@ -312,6 +493,28 @@ def create_rectangular_pattern(app, name, body_name, count_x, count_y, distance_
 
 @command()
 def create_circular_pattern(app, name, body_name, axis_name, count, angle_deg):
+    """
+    Creates a circular pattern of a body or feature around an axis.
+    
+    Duplicates the target entity around a specified axis (X, Y, Z or named line).
+
+    Args:
+        name (str): Name for the pattern feature.
+        body_name (str): Name of the body or feature to pattern.
+        axis_name (str): Axis to rotate around ('X', 'Y', 'Z' or a named sketch line).
+        count (int): Total number of instances (including the original).
+        angle_deg (float): Total angle to fill in degrees.
+
+    Examples:
+        # Create a 6-bolt circular pattern around the Z axis
+        call_addin("create_circular_pattern", {
+            "name": "BoltCircle", 
+            "body_name": "Bolt", 
+            "axis_name": "Z", 
+            "count": 6, 
+            "angle_deg": 360
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     # Try body then feature
@@ -344,6 +547,12 @@ def create_circular_pattern(app, name, body_name, axis_name, count, angle_deg):
 
 @command()
 def list_bodies(app):
+    """
+    Lists all solid bodies in the design.
+
+    Examples:
+        call_addin("list_bodies", {})
+    """
     design = get_active_design(app)
     bodies_list = []
     # Include all bodies from all components
@@ -355,6 +564,26 @@ def list_bodies(app):
 
 @command()
 def combine_bodies(app, name, target_body_name, tool_body_names, operation="join"):
+    """
+    Combines multiple bodies using boolean operations.
+    
+    Joins, cuts, or intersects a 'target' body using one or more 'tool' bodies.
+
+    Args:
+        name (str): Name for the combine feature.
+        target_body_name (str): The body that will be modified.
+        tool_body_names (list[str]): List of bodies to use as tools.
+        operation (str): 'join', 'cut', or 'intersect'. Default: 'join'.
+
+    Examples:
+        # Join 'Head' and 'Handle' into one body
+        call_addin("combine_bodies", {
+            "name": "HammerCombine",
+            "target_body_name": "Head",
+            "tool_body_names": ["Handle"],
+            "operation": "join"
+        })
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     combines = rootComp.features.combineFeatures
@@ -375,18 +604,43 @@ def combine_bodies(app, name, target_body_name, tool_body_names, operation="join
 
 @command()
 def rename_body(app, old_name, new_name):
+    """
+    Renames an existing BRep body.
+
+    Args:
+        old_name (str): Current name of the body.
+        new_name (str): Desired new name.
+
+    Examples:
+        call_addin("rename_body", {"old_name": "Body1", "new_name": "MainChassis"})
+    """
     body = _get_body(app, old_name)
     body.name = new_name
     return {"message": f"Renamed body '{old_name}' to '{new_name}'", "new_name": body.name}
 
 @command()
 def delete_body(app, body_name):
+    """
+    Permanently deletes a body from the design.
+
+    Args:
+        body_name (str): The name of the body to remove.
+
+    Examples:
+        call_addin("delete_body", {"body_name": "ScrapMaterial"})
+    """
     body = _get_body(app, body_name)
     body.deleteMe()
     return {"message": f"Deleted body '{body_name}'"}
 
 @command()
 def list_features(app):
+    """
+    Lists all modeling features in the design timeline.
+
+    Examples:
+        call_addin("list_features", {})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     features = rootComp.features
@@ -403,6 +657,16 @@ def list_features(app):
 
 @command()
 def rename_feature(app, old_name, new_name):
+    """
+    Renames a timeline feature.
+
+    Args:
+        old_name (str): Current name of the feature.
+        new_name (str): New name for the feature.
+
+    Examples:
+        call_addin("rename_feature", {"old_name": "Extrude1", "new_name": "BasePlateExtrude"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     feat = rootComp.features.itemByName(old_name)
@@ -419,6 +683,17 @@ def rename_feature(app, old_name, new_name):
 
 @command()
 def delete_feature(app, feature_name):
+    """
+    Deletes a feature from the timeline.
+    
+    WARNING: This may cause downstream failures if other features depend on this one.
+
+    Args:
+        feature_name (str): The name of the feature to delete.
+
+    Examples:
+        call_addin("delete_feature", {"feature_name": "TemporaryCut"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     feat = rootComp.features.itemByName(feature_name)
@@ -435,6 +710,21 @@ def delete_feature(app, feature_name):
 
 @command()
 def split_body(app, name, body_name, split_tool_name, is_surface_tool=True):
+    """
+    Splits a body into multiple pieces using a tool.
+    
+    The tool can be a construction plane or another body.
+
+    Args:
+        name (str): Name for the split feature.
+        body_name (str): Name of the body to split.
+        split_tool_name (str): Name of the plane ('xy', 'yz', 'xz') or construction plane or body.
+        is_surface_tool (bool): Whether the tool should be treated as a surface. Default: True.
+
+    Examples:
+        # Split a body in half using the XY plane
+        call_addin("split_body", {"name": "HalfSplit", "body_name": "Egg", "split_tool_name": "xy"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -477,7 +767,17 @@ def split_body(app, name, body_name, split_tool_name, is_surface_tool=True):
 
 @command()
 def scale_body(app, name, body_name, scale_factor):
-    """Uniformly scales a body from the component origin."""
+    """
+    Uniformly scales a body from the component origin.
+
+    Args:
+        name (str): Name for the scale feature.
+        body_name (str): Target body.
+        scale_factor (float): Multiplier (e.g. 1.5 for 150%).
+
+    Examples:
+        call_addin("scale_body", {"name": "ScaleUp", "body_name": "Part", "scale_factor": 1.5})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     scaleFeats = rootComp.features.scaleFeatures
@@ -496,7 +796,18 @@ def scale_body(app, name, body_name, scale_factor):
 
 @command()
 def create_thread(app, name, body_name, face_index=0, is_modeled=True):
-    """Adds a thread to a cylindrical face of a body."""
+    """
+    Adds a thread to a cylindrical face of a body.
+
+    Args:
+        name (str): Name for the thread feature.
+        body_name (str): Target body.
+        face_index (int): Index of the cylindrical face.
+        is_modeled (bool): If True, physical geometry is created.
+
+    Examples:
+        call_addin("create_thread", {"name": "M10Thread", "body_name": "Bolt", "face_index": 0})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -528,7 +839,19 @@ def create_thread(app, name, body_name, face_index=0, is_modeled=True):
 
 @command()
 def move_body(app, name, body_name, dx, dy, dz):
-    """Translates a body by (dx, dy, dz) in cm."""
+    """
+    Translates a body by (dx, dy, dz) in cm.
+
+    Args:
+        name (str): Name for the move feature.
+        body_name (str): Target body.
+        dx (float): Delta X.
+        dy (float): Delta Y.
+        dz (float): Delta Z.
+
+    Examples:
+        call_addin("move_body", {"name": "ShiftBox", "body_name": "Box", "dx": 5.0})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -550,7 +873,18 @@ def move_body(app, name, body_name, dx, dy, dz):
 
 @command()
 def measure_interference(app, body_names):
-    """Checks for interference between a list of bodies."""
+    """
+    Checks for interference between a list of bodies.
+
+    Args:
+        body_names (list[str]): Names of bodies to check.
+
+    Returns:
+        dict: List of interference events.
+
+    Examples:
+        call_addin("measure_interference", {"body_names": ["A", "B"]})
+    """
     design = get_active_design(app)
     
     entities = adsk.core.ObjectCollection.create()
@@ -579,7 +913,21 @@ def measure_interference(app, body_names):
 
 @command()
 def create_rib(app, name, sketch_name, thickness):
-    """Creates a rib feature from a sketch profile."""
+    """
+    Creates a rib feature from a sketch profile.
+    
+    A rib is a thin-walled reinforcement feature that extends from a sketch curve
+    to the next available face on a solid body.
+
+    Args:
+        name (str): Name for the rib feature.
+        sketch_name (str): The sketch containing the reinforcement line.
+        thickness (float): Rib thickness in centimeters.
+
+    Examples:
+        # Add a 0.2cm structural rib
+        call_addin("create_rib", {"name": "Gusset", "sketch_name": "RibSketch", "thickness": 0.2})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -601,7 +949,21 @@ def create_rib(app, name, sketch_name, thickness):
 
 @command()
 def create_web(app, name, sketch_name, thickness):
-    """Creates a web feature from a sketch profile."""
+    """
+    Creates a web feature from a sketch profile.
+    
+    Similar to a rib, a web creates internal partitions or reinforcements
+    within a cavity, usually extending in multiple directions.
+
+    Args:
+        name (str): Name for the web feature.
+        sketch_name (str): The sketch containing the web layout.
+        thickness (float): Web thickness in centimeters.
+
+    Examples:
+        # Create a grid of internal webs
+        call_addin("create_web", {"name": "InternalGrid", "sketch_name": "GridLayout", "thickness": 0.1})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -620,7 +982,22 @@ def create_web(app, name, sketch_name, thickness):
 
 @command()
 def create_emboss(app, name, sketch_name, body_name, depth):
-    """Creates an emboss or deboss feature."""
+    """
+    Creates an emboss or deboss feature on a body face.
+    
+    Projects a sketch profile onto a face and either raises (emboss) or 
+    depresses (deboss) it.
+
+    Args:
+        name (str): Name for the emboss feature.
+        sketch_name (str): The sketch containing the text or logo to emboss.
+        body_name (str): The target body to emboss onto.
+        depth (float): The emboss depth (positive) or deboss depth (negative) in cm.
+
+    Examples:
+        # Emboss a logo 0.1cm out from a surface
+        call_addin("create_emboss", {"name": "ProductLogo", "sketch_name": "LogoSketch", "body_name": "Chassis", "depth": 0.1})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -647,7 +1024,17 @@ def create_emboss(app, name, sketch_name, body_name, depth):
 
 @command()
 def import_mesh(app, file_path):
-    """Imports an STL or OBJ mesh file into the active design."""
+    """
+    Imports an STL or OBJ mesh file into the active design.
+    
+    Supports .stl and .obj formats. The mesh is imported into the root component.
+
+    Args:
+        file_path (str): The absolute path to the mesh file.
+
+    Examples:
+        call_addin("import_mesh", {"file_path": "C:/Models/bracket.stl"})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     
@@ -674,11 +1061,18 @@ def import_mesh(app, file_path):
 @command()
 def convert_mesh_to_solid(app, body_name, method="prismatic"):
     """
-    Converts a mesh body to a solid (BRep) body using Fusion's native conversion tool.
+    Converts a mesh body to a solid (BRep) body.
     
-    Arguments:
-        body_name (str): The name of the mesh body to convert.
-        method (str): 'faceted' (each triangle becomes a face) or 'prismatic' (attempts to merge planar/cylindrical faces). Prismatic is best for mechanical parts.
+    Uses Fusion's native conversion engine. 'Prismatic' is recommended for 
+    mechanical parts to merge planar faces.
+
+    Args:
+        body_name (str): The name of the mesh body in the design.
+        method (str): 'faceted' or 'prismatic'. Default: 'prismatic'.
+
+    Examples:
+        # Convert an imported STL to a usable solid body
+        call_addin("convert_mesh_to_solid", {"body_name": "Mesh1", "method": "prismatic"})
     """
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -738,12 +1132,27 @@ def convert_mesh_to_solid(app, body_name, method="prismatic"):
 
 @command()
 def compute_all(app):
-    design = get_active_design(app)
-    design.computeAll()
-    return {"message": "Computed all features (forced rebuild)."}
+    """
+    Forces a full rebuild (compute all) of the design timeline.
+    
+    Useful to resolve transient errors or ensure the model is up to date after
+    parameter changes.
+
+    Examples:
+        call_addin("compute_all", {})
+    """
 
 @command()
 def get_design_health(app):
+    """
+    Returns a summary of errors and warnings in the design timeline.
+
+    Returns:
+        dict: {design_name, total_features, errors, warnings, is_healthy}
+
+    Examples:
+        call_addin("get_design_health", {})
+    """
     design = get_active_design(app)
     rootComp = design.rootComponent
     features = rootComp.features

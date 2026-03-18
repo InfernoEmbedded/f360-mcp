@@ -5,6 +5,18 @@ from .base import get_active_design, _get_body
 
 @command()
 def list_materials(app, include_downloadable=True):
+    """
+    Lists physical materials available in the design or library.
+
+    Args:
+        include_downloadable (bool): If True, includes materials not yet downloaded.
+
+    Returns:
+        dict: {"materials": [{"name": str, "library": str, "is_downloaded": bool}, ...]}
+
+    Examples:
+        call_addin("list_materials", {"include_downloadable": False})
+    """
     design = get_active_design(app)
     materials = []
     
@@ -37,6 +49,16 @@ def list_materials(app, include_downloadable=True):
 
 @command()
 def apply_material(app, body_name, material_name):
+    """
+    Assigns a physical material to a solid body.
+
+    Args:
+        body_name (str): Target body.
+        material_name (str): Material name (e.g., "Steel", "Aluminum").
+
+    Examples:
+        call_addin("apply_material", {"body_name": "BracketBody", "material_name": "Steel"})
+    """
     design = get_active_design(app)
     body = _get_body(app, body_name)
     
@@ -61,6 +83,18 @@ def apply_material(app, body_name, material_name):
 
 @command()
 def list_appearances(app, include_downloadable=True):
+    """
+    Lists appearances (visual styles) available in the design or library.
+
+    Args:
+        include_downloadable (bool): If True, includes appearances not yet downloaded.
+
+    Returns:
+        dict: {"appearances": [{"name": str, "library": str, "has_texture": bool, ...}, ...]}
+
+    Examples:
+        call_addin("list_appearances", {})
+    """
     design = get_active_design(app)
     appearances = []
     
@@ -96,6 +130,16 @@ def list_appearances(app, include_downloadable=True):
 
 @command()
 def apply_appearance(app, body_name, appearance_name):
+    """
+    Assigns a visual appearance to a solid body.
+
+    Args:
+        body_name (str): Target body.
+        appearance_name (str): Appearance name (e.g., "Paint - Glossy (Black)").
+
+    Examples:
+        call_addin("apply_appearance", {"body_name": "BracketBody", "appearance_name": "Chrome"})
+    """
     design = get_active_design(app)
     body = _get_body(app, body_name)
     

@@ -3,8 +3,21 @@ import adsk.fusion
 from . import command
 from .base import get_active_design, _get_body
 
-@command(name='get_face_info')
 def get_face_info(app, body_name):
+    """
+    Retrieves detailed geometric information about all faces of a body.
+    
+    Useful for identifying planar faces for sketching or features.
+
+    Args:
+        body_name (str): The name of the solid body.
+
+    Returns:
+        dict: {"body_name": str, "faces": [{"face_index": int, "area_cm2": float, "geometry_type": str, "is_planar": bool, "center_point": dict, "normal": dict}, ...]}
+
+    Examples:
+        call_addin("get_face_info", {"body_name": "BracketBody"})
+    """
     body = _get_body(app, body_name)
     faces_info = []
     for i in range(body.faces.count):
@@ -29,6 +42,18 @@ def get_face_info(app, body_name):
 
 @command()
 def get_edge_info(app, body_name):
+    """
+    Retrieves geometric information about all edges of a body.
+
+    Args:
+        body_name (str): The name of the solid body.
+
+    Returns:
+        dict: {"body_name": str, "edges": [{"edge_index": int, "length_cm": float, "geometry_type": str}, ...]}
+
+    Examples:
+        call_addin("get_edge_info", {"body_name": "BracketBody"})
+    """
     body = _get_body(app, body_name)
     edges_info = []
     for i in range(body.edges.count):
@@ -43,6 +68,18 @@ def get_edge_info(app, body_name):
 
 @command()
 def get_sketch_info(app, sketch_name):
+    """
+    Retrieves metadata about a specific sketch.
+
+    Args:
+        sketch_name (str): The name of the sketch.
+
+    Returns:
+        dict: {"name": str, "profiles_count": int, "curves_count": int, "points_count": int, "is_visible": bool}
+
+    Examples:
+        call_addin("get_sketch_info", {"sketch_name": "BaseSketch"})
+    """
     from .base import get_sketch_by_name
     sketch = get_sketch_by_name(app, sketch_name)
     return {
@@ -55,6 +92,18 @@ def get_sketch_info(app, sketch_name):
 
 @command()
 def get_body_properties(app, body_name):
+    """
+    Retrieves physical and bounding box properties of a body.
+
+    Args:
+        body_name (str): The name of the solid body.
+
+    Returns:
+        dict: {"body_name": str, "volume_cm3": float, "mass_kg": float, "area_cm2": float, "center_of_mass_cm": dict, "bounding_box_cm": dict}
+
+    Examples:
+        call_addin("get_body_properties", {"body_name": "BracketBody"})
+    """
     body = _get_body(app, body_name)
     phys = body.physicalProperties
     bbox = body.boundingBox
