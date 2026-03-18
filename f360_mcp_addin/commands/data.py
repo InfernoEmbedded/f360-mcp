@@ -184,25 +184,29 @@ def close_all_documents(app, save=False):
     closed = []
     warnings = []
 
-    # Fusion can transiently raise InternalValidationError when no valid
-    # active document is available, especially during teardown/reload.
-    while True:
+    try:
+        docs_to_close = [app.documents.item(i) for i in range(app.documents.count)]
+    except RuntimeError as err:
+        return {
+            "message": "Closed 0 document(s).",
+            "closed": [],
+            "warnings": [f"Unable to enumerate open documents: {err}"],
+        }
+
+    # Close only the documents that were open when the command started.
+    # Fusion may auto-create a fresh untitled document after the last close.
+    for doc in docs_to_close:
         try:
-            doc = app.activeDocument
+            name = doc.name
         except RuntimeError as err:
-            warnings.append(f"Stopping close_all_documents: {err}")
-            break
+            warnings.append(f"Skipping invalid document reference: {err}")
+            continue
 
-        if not doc:
-            break
-
-        name = doc.name
         try:
             doc.close(save)
             closed.append(name)
         except RuntimeError as err:
             warnings.append(f"Failed to close '{name}': {err}")
-            break
 
     result = {"message": f"Closed {len(closed)} document(s).", "closed": closed}
     if warnings:
