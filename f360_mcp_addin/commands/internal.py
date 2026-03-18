@@ -68,7 +68,17 @@ def run(context):
         actual_app.executeTextCommand(f'TextCommands.RunPythonScript "{script_path}"')
         return {"message": "Reloader script executed. Add-in should restart momentarily."}
     except Exception as e:
-        raise Exception(f"Failed to execute reloader: {str(e)}")
+        error_message = str(e)
+        if "There is no command TextCommands.RunPythonScript" in error_message:
+            return {
+                "message": (
+                    "This Fusion 360 build does not support TextCommands.RunPythonScript. "
+                    "Skipping in-process add-in reload and leaving the current add-in running."
+                ),
+                "reloaded": False,
+                "reason": error_message,
+            }
+        raise Exception(f"Failed to execute reloader: {error_message}")
 
 @command()
 def get_system_info(app):

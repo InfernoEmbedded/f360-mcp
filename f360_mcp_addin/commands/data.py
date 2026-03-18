@@ -182,12 +182,32 @@ def close_all_documents(app, save=False):
     save (bool): True to save changes, False (default) to discard without saving.
     """
     closed = []
-    # Keep closing the active document until there are none left
-    while app.activeDocument:
-        name = app.activeDocument.name
-        app.activeDocument.close(save)
-        closed.append(name)
-    return {"message": f"Closed {len(closed)} document(s).", "closed": closed}
+    warnings = []
+
+    # Fusion can transiently raise InternalValidationError when no valid
+    # active document is available, especially during teardown/reload.
+    while True:
+        try:
+            doc = app.activeDocument
+        except RuntimeError as err:
+            warnings.append(f"Stopping close_all_documents: {err}")
+            break
+
+        if not doc:
+            break
+
+        name = doc.name
+        try:
+            doc.close(save)
+            closed.append(name)
+        except RuntimeError as err:
+            warnings.append(f"Failed to close '{name}': {err}")
+            break
+
+    result = {"message": f"Closed {len(closed)} document(s).", "closed": closed}
+    if warnings:
+        result["warnings"] = warnings
+    return result
 
 @command()
 def export_model(app, file_path, file_type="step", body_name=None, send_to_mcp=False):
