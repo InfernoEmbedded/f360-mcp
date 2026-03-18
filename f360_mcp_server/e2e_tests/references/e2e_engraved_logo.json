@@ -875,7 +875,7 @@
         ]
       },
       "create_extrude": {
-        "doc": "\nExtrudes a sketch profile.\n\nArguments:\n    name (str): Mandatory name for the new feature.\n    distance (float): Extrusion depth in cm.\n    operation (str): new_body, join, cut, intersect.\n",
+        "doc": "\nExtrudes a sketch profile.\n\nArguments:\n    name (str): Mandatory name for the new feature.\n    distance (float): Extrusion depth in cm.\n    operation (str): new_body, join, cut, intersect.\n    profile_index (int): Index of the profile to extrude, -1 for all profiles (default).\n",
         "parameters": [
           {
             "name": "name",
@@ -907,9 +907,9 @@
           },
           {
             "name": "profile_index",
-            "description": "",
+            "description": "Index of the profile to extrude, -1 for all profiles (default).",
             "has_default": true,
-            "default": 0,
+            "default": -1,
             "annotation": "Any"
           },
           {
@@ -970,7 +970,7 @@
             "name": "profile_index",
             "description": "",
             "has_default": true,
-            "default": 0,
+            "default": -1,
             "annotation": "Any"
           }
         ]
@@ -1024,7 +1024,7 @@
             "name": "profile_index",
             "description": "",
             "has_default": true,
-            "default": 0,
+            "default": -1,
             "annotation": "Any"
           }
         ]
@@ -2492,7 +2492,7 @@
       "sketch_name": "PlateSketch",
       "distance": -1.0,
       "operation": "new_body",
-      "profile_index": 0,
+      "profile_index": -1,
       "target_body_name": null
     },
     "status": "success",
@@ -2547,7 +2547,7 @@
       "sketch_name": "TextSketch",
       "distance": -0.2,
       "operation": "cut",
-      "profile_index": 0,
+      "profile_index": -1,
       "target_body_name": "PlateBody"
     },
     "status": "success",
