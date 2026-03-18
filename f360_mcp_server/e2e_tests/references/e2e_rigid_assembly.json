@@ -2468,7 +2468,7 @@
     "method": "create_sketch",
     "params": {
       "name": "SketchA",
-      "plane_name": "XY",
+      "plane_name": "xy",
       "body_name": null,
       "face_index": null
     },
@@ -2526,7 +2526,7 @@
     "method": "create_sketch",
     "params": {
       "name": "SketchB",
-      "plane_name": "XY",
+      "plane_name": "xy",
       "body_name": null,
       "face_index": null
     },

@@ -8,14 +8,7 @@ FILE_DESCRIPTION(
 /* description */ (''),
 /* implementation_level */ '2;1');
 
-FILE_NAME(
-/* name */ 'e2e_sliding_mechanism.step',
-/* time_stamp */ '2026-03-18T22:06:00+11:00',
-/* author */ (''),
-/* organization */ (''),
-/* preprocessor_version */ 'ST-DEVELOPER v20.1',
-/* originating_system */ 'Autodesk Translation Framework v14.24.0.0',
-/* authorisation */ '');
+FILE_NAME('normalized.step', '2026-03-18T00:00:00Z', (''), (''), 'normalized', 'normalized', '');
 
 FILE_SCHEMA (('AUTOMOTIVE_DESIGN { 1 0 10303 214 3 1 1 }'));
 ENDSEC;
@@ -161,9 +154,9 @@ SOLID_ANGLE_UNIT()
 #83=SHAPE_REPRESENTATION('',(#43),#67);
 #84=SHAPE_REPRESENTATION('',(#44),#68);
 #85=PRODUCT_DEFINITION_CONTEXT('part definition',#96,'design');
-#86=PRODUCT_DEFINITION('2026-03-18-22-05-59-710','(Unsaved)',#89,#85);
-#87=PRODUCT_DEFINITION('2026-03-18-22-06-00-054','Base',#90,#85);
-#88=PRODUCT_DEFINITION('2026-03-18-22-06-00-137','Slider',#91,#85);
+#86=PRODUCT_DEFINITION('normalized-id','(Unsaved)',#89,#85);
+#87=PRODUCT_DEFINITION('normalized-id','Base',#90,#85);
+#88=PRODUCT_DEFINITION('normalized-id','Slider',#91,#85);
 #89=PRODUCT_DEFINITION_FORMATION('',$,#98);
 #90=PRODUCT_DEFINITION_FORMATION('',$,#99);
 #91=PRODUCT_DEFINITION_FORMATION('',$,#100);
@@ -175,9 +168,9 @@ SOLID_ANGLE_UNIT()
 #96=APPLICATION_CONTEXT(
 'Core Data for Automotive Mechanical Design Process');
 #97=PRODUCT_CONTEXT('part definition',#96,'mechanical');
-#98=PRODUCT('2026-03-18-22-05-59-710','(Unsaved)',$,(#97));
-#99=PRODUCT('2026-03-18-22-06-00-054','Base',$,(#97));
-#100=PRODUCT('2026-03-18-22-06-00-137','Slider',$,(#97));
+#98=PRODUCT('normalized-id','(Unsaved)',$,(#97));
+#99=PRODUCT('normalized-id','Base',$,(#97));
+#100=PRODUCT('normalized-id','Slider',$,(#97));
 #101=PRESENTATION_STYLE_ASSIGNMENT((#102));
 #102=SURFACE_STYLE_USAGE(.BOTH.,#103);
 #103=SURFACE_SIDE_STYLE('',(#104));

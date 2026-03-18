@@ -118,7 +118,7 @@ class MCPCustomEventHandler(adsk.core.CustomEventHandler):
                         try: post_count = design.timeline.count
                         except: pass
 
-                    if design and design.isValid and post_count > pre_count and not _group_stack:
+                    if design and design.isValid and post_count >= pre_count + 2 and not _group_stack:
                         from .commands.base import _is_internal_command
                         if not _is_internal_command(method):
                             try:

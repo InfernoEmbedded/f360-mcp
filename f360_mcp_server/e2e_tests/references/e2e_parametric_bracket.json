@@ -2488,7 +2488,7 @@
     "method": "create_sketch",
     "params": {
       "name": "BracketSketch",
-      "plane_name": "XY",
+      "plane_name": "xy",
       "body_name": null,
       "face_index": null
     },

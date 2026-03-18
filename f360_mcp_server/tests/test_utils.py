@@ -16,8 +16,10 @@ def compare_command_logs(test_name: str, history: List[Dict[str, Any]], referenc
     for entry in history:
         clean_entry = entry.copy()
         clean_entry.pop("timestamp", None)
-        # Also clean inner results if they contain volatile data like IDs or handles
-        # For now, we'll keep it simple and see if we need more granular cleaning
+        # Ignore volatile command_metadata (docstrings/help text)
+        res = clean_entry.get("result")
+        if isinstance(res, dict):
+            res.pop("command_metadata", None)
         clean_history.append(clean_entry)
 
     if os.environ.get("UPDATE_REFERENCES", "false").lower() == "true":

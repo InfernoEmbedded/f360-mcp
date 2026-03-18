@@ -8,14 +8,7 @@ FILE_DESCRIPTION(
 /* description */ (''),
 /* implementation_level */ '2;1');
 
-FILE_NAME(
-/* name */ 'e2e_rigid_assembly.step',
-/* time_stamp */ '2026-03-18T22:05:58+11:00',
-/* author */ (''),
-/* organization */ (''),
-/* preprocessor_version */ 'ST-DEVELOPER v20.1',
-/* originating_system */ 'Autodesk Translation Framework v14.24.0.0',
-/* authorisation */ '');
+FILE_NAME('normalized.step', '2026-03-18T00:00:00Z', (''), (''), 'normalized', 'normalized', '');
 
 FILE_SCHEMA (('AUTOMOTIVE_DESIGN { 1 0 10303 214 3 1 1 }'));
 ENDSEC;
@@ -369,9 +362,9 @@ SOLID_ANGLE_UNIT()
 #290=SHAPE_REPRESENTATION('',(#170),#274);
 #291=SHAPE_REPRESENTATION('',(#171),#275);
 #292=PRODUCT_DEFINITION_CONTEXT('part definition',#303,'design');
-#293=PRODUCT_DEFINITION('2026-03-18-22-05-57-541','(Unsaved)',#296,#292);
-#294=PRODUCT_DEFINITION('2026-03-18-22-05-57-865','CompA',#297,#292);
-#295=PRODUCT_DEFINITION('2026-03-18-22-05-58-152','CompB',#298,#292);
+#293=PRODUCT_DEFINITION('normalized-id','(Unsaved)',#296,#292);
+#294=PRODUCT_DEFINITION('normalized-id','CompA',#297,#292);
+#295=PRODUCT_DEFINITION('normalized-id','CompB',#298,#292);
 #296=PRODUCT_DEFINITION_FORMATION('',$,#305);
 #297=PRODUCT_DEFINITION_FORMATION('',$,#306);
 #298=PRODUCT_DEFINITION_FORMATION('',$,#307);
@@ -383,9 +376,9 @@ SOLID_ANGLE_UNIT()
 #303=APPLICATION_CONTEXT(
 'Core Data for Automotive Mechanical Design Process');
 #304=PRODUCT_CONTEXT('part definition',#303,'mechanical');
-#305=PRODUCT('2026-03-18-22-05-57-541','(Unsaved)',$,(#304));
-#306=PRODUCT('2026-03-18-22-05-57-865','CompA',$,(#304));
-#307=PRODUCT('2026-03-18-22-05-58-152','CompB',$,(#304));
+#305=PRODUCT('normalized-id','(Unsaved)',$,(#304));
+#306=PRODUCT('normalized-id','CompA',$,(#304));
+#307=PRODUCT('normalized-id','CompB',$,(#304));
 #308=PRESENTATION_STYLE_ASSIGNMENT((#309));
 #309=SURFACE_STYLE_USAGE(.BOTH.,#310);
 #310=SURFACE_SIDE_STYLE('',(#311));

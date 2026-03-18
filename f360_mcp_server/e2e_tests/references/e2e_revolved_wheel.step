@@ -8,14 +8,7 @@ FILE_DESCRIPTION(
 /* description */ (''),
 /* implementation_level */ '2;1');
 
-FILE_NAME(
-/* name */ 'e2e_revolved_wheel.step',
-/* time_stamp */ '2026-03-18T22:05:50+11:00',
-/* author */ (''),
-/* organization */ (''),
-/* preprocessor_version */ 'ST-DEVELOPER v20.1',
-/* originating_system */ 'Autodesk Translation Framework v14.24.0.0',
-/* authorisation */ '');
+FILE_NAME('normalized.step', '2026-03-18T00:00:00Z', (''), (''), 'normalized', 'normalized', '');
 
 FILE_SCHEMA (('AUTOMOTIVE_DESIGN { 1 0 10303 214 3 1 1 }'));
 ENDSEC;
@@ -105,39 +98,39 @@ POSITIVE_RATIO_MEASURE(7850.),#69);
 #86=AXIS2_PLACEMENT_3D('',#120,#104,#105);
 #87=DIRECTION('axis',(0.,0.,1.));
 #88=DIRECTION('refdir',(1.,0.,0.));
-#89=DIRECTION('center_axis',(0.,1.,0.));
-#90=DIRECTION('ref_axis',(0.,0.,1.));
-#91=DIRECTION('center_axis',(0.,-1.,0.));
+#89=DIRECTION('center_axis',(0.,0.,-1.));
+#90=DIRECTION('ref_axis',(-1.,0.,0.));
+#91=DIRECTION('center_axis',(0.,0.,1.));
 #92=DIRECTION('ref_axis',(1.,0.,0.));
-#93=DIRECTION('center_axis',(0.,-1.,0.));
+#93=DIRECTION('center_axis',(0.,0.,1.));
 #94=DIRECTION('ref_axis',(1.,0.,0.));
-#95=DIRECTION('center_axis',(0.,-1.,0.));
+#95=DIRECTION('center_axis',(0.,0.,1.));
 #96=DIRECTION('ref_axis',(1.,0.,0.));
-#97=DIRECTION('center_axis',(0.,-1.,0.));
+#97=DIRECTION('center_axis',(0.,0.,1.));
 #98=DIRECTION('ref_axis',(1.,0.,0.));
-#99=DIRECTION('',(0.,1.,0.));
-#100=DIRECTION('center_axis',(0.,-1.,0.));
-#101=DIRECTION('ref_axis',(0.,0.,-1.));
-#102=DIRECTION('center_axis',(0.,-1.,0.));
+#99=DIRECTION('',(0.,0.,-1.));
+#100=DIRECTION('center_axis',(0.,0.,1.));
+#101=DIRECTION('ref_axis',(1.,0.,0.));
+#102=DIRECTION('center_axis',(0.,0.,1.));
 #103=DIRECTION('ref_axis',(1.,0.,0.));
-#104=DIRECTION('center_axis',(0.,-1.,0.));
+#104=DIRECTION('center_axis',(0.,0.,1.));
 #105=DIRECTION('ref_axis',(1.,0.,0.));
-#106=DIRECTION('',(0.,1.,0.));
+#106=DIRECTION('',(0.,0.,-1.));
 #107=CARTESIAN_POINT('',(0.,0.,0.));
-#108=CARTESIAN_POINT('Origin',(30.,20.,0.));
-#109=CARTESIAN_POINT('',(-30.,20.,-3.67394039744206E-15));
-#110=CARTESIAN_POINT('Origin',(0.,20.,0.));
-#111=CARTESIAN_POINT('',(-10.,20.,-1.22464679914735E-15));
-#112=CARTESIAN_POINT('Origin',(0.,20.,0.));
+#108=CARTESIAN_POINT('Origin',(30.,0.,-20.));
+#109=CARTESIAN_POINT('',(-30.,-3.67394039744206E-15,-20.));
+#110=CARTESIAN_POINT('Origin',(0.,0.,-20.));
+#111=CARTESIAN_POINT('',(-10.,-1.22464679914735E-15,-20.));
+#112=CARTESIAN_POINT('Origin',(0.,0.,-20.));
 #113=CARTESIAN_POINT('Origin',(0.,0.,0.));
-#114=CARTESIAN_POINT('',(-30.,-20.,-3.67394039744206E-15));
-#115=CARTESIAN_POINT('Origin',(0.,-20.,0.));
-#116=CARTESIAN_POINT('',(-30.,0.,-3.67394039744206E-15));
-#117=CARTESIAN_POINT('Origin',(10.,-20.,0.));
-#118=CARTESIAN_POINT('',(-10.,-20.,-1.22464679914735E-15));
-#119=CARTESIAN_POINT('Origin',(0.,-20.,0.));
+#114=CARTESIAN_POINT('',(-30.,-3.67394039744206E-15,20.));
+#115=CARTESIAN_POINT('Origin',(0.,0.,20.));
+#116=CARTESIAN_POINT('',(-30.,-3.67394039744206E-15,0.));
+#117=CARTESIAN_POINT('Origin',(10.,0.,20.));
+#118=CARTESIAN_POINT('',(-10.,-1.22464679914735E-15,20.));
+#119=CARTESIAN_POINT('Origin',(0.,0.,20.));
 #120=CARTESIAN_POINT('Origin',(0.,0.,0.));
-#121=CARTESIAN_POINT('',(-10.,0.,-1.22464679914735E-15));
+#121=CARTESIAN_POINT('',(-10.,-1.22464679914735E-15,0.));
 #122=UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(0.01),#126,
 'DISTANCE_ACCURACY_VALUE',
 'Maximum model space distance between geometric entities at asserted c
@@ -182,7 +175,7 @@ SOLID_ANGLE_UNIT()
 #131=PRODUCT_DEFINITION_SHAPE('',$,#134);
 #132=SHAPE_REPRESENTATION('',(#78),#124);
 #133=PRODUCT_DEFINITION_CONTEXT('part definition',#138,'design');
-#134=PRODUCT_DEFINITION('2026-03-18-22-05-50-020','(Unsaved)',#135,#133);
+#134=PRODUCT_DEFINITION('normalized-id','(Unsaved)',#135,#133);
 #135=PRODUCT_DEFINITION_FORMATION('',$,#140);
 #136=PRODUCT_RELATED_PRODUCT_CATEGORY('(Unsaved)','(Unsaved)',(#140));
 #137=APPLICATION_PROTOCOL_DEFINITION('international standard',
@@ -190,7 +183,7 @@ SOLID_ANGLE_UNIT()
 #138=APPLICATION_CONTEXT(
 'Core Data for Automotive Mechanical Design Process');
 #139=PRODUCT_CONTEXT('part definition',#138,'mechanical');
-#140=PRODUCT('2026-03-18-22-05-50-020','(Unsaved)',$,(#139));
+#140=PRODUCT('normalized-id','(Unsaved)',$,(#139));
 #141=PRESENTATION_STYLE_ASSIGNMENT((#142));
 #142=SURFACE_STYLE_USAGE(.BOTH.,#143);
 #143=SURFACE_SIDE_STYLE('',(#144));

@@ -8,14 +8,7 @@ FILE_DESCRIPTION(
 /* description */ (''),
 /* implementation_level */ '2;1');
 
-FILE_NAME(
-/* name */ 'e2e_cylinder_z.step',
-/* time_stamp */ '2026-03-18T22:05:43+11:00',
-/* author */ (''),
-/* organization */ (''),
-/* preprocessor_version */ 'ST-DEVELOPER v20.1',
-/* originating_system */ 'Autodesk Translation Framework v14.24.0.0',
-/* authorisation */ '');
+FILE_NAME('normalized.step', '2026-03-18T00:00:00Z', (''), (''), 'normalized', 'normalized', '');
 
 FILE_SCHEMA (('AUTOMOTIVE_DESIGN { 1 0 10303 214 3 1 1 }'));
 ENDSEC;
@@ -143,7 +136,7 @@ SOLID_ANGLE_UNIT()
 #92=PRODUCT_DEFINITION_SHAPE('',$,#95);
 #93=SHAPE_REPRESENTATION('',(#55),#85);
 #94=PRODUCT_DEFINITION_CONTEXT('part definition',#99,'design');
-#95=PRODUCT_DEFINITION('2026-03-18-22-05-42-660','(Unsaved)',#96,#94);
+#95=PRODUCT_DEFINITION('normalized-id','(Unsaved)',#96,#94);
 #96=PRODUCT_DEFINITION_FORMATION('',$,#101);
 #97=PRODUCT_RELATED_PRODUCT_CATEGORY('(Unsaved)','(Unsaved)',(#101));
 #98=APPLICATION_PROTOCOL_DEFINITION('international standard',
@@ -151,7 +144,7 @@ SOLID_ANGLE_UNIT()
 #99=APPLICATION_CONTEXT(
 'Core Data for Automotive Mechanical Design Process');
 #100=PRODUCT_CONTEXT('part definition',#99,'mechanical');
-#101=PRODUCT('2026-03-18-22-05-42-660','(Unsaved)',$,(#100));
+#101=PRODUCT('normalized-id','(Unsaved)',$,(#100));
 #102=PRESENTATION_STYLE_ASSIGNMENT((#103));
 #103=SURFACE_STYLE_USAGE(.BOTH.,#104);
 #104=SURFACE_SIDE_STYLE('',(#105));

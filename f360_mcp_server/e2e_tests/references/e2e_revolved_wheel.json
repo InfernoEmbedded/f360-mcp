@@ -2456,7 +2456,7 @@
     "method": "create_sketch",
     "params": {
       "name": "WheelSketch",
-      "plane_name": "XY",
+      "plane_name": "xz",
       "body_name": null,
       "face_index": null
     },

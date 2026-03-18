@@ -151,8 +151,9 @@ class FusionE2E:
                     tofile="current",
                     lineterm=""
                 )
+                diff_list = list(diff)
                 print(f"\n[STABILITY] STEP mismatch for {test_name}:")
-                for line in list(diff)[:50]: # Show first 50 lines of diff
+                for line in diff_list[:50]: # Show first 50 lines of diff
                     print(line)
                 
                 raise AssertionError(

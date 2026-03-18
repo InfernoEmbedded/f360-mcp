@@ -8,17 +8,23 @@ import uuid
 import logging
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+from contextlib import asynccontextmanager
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.cors import CORSMiddleware
+from starlette.applications import Starlette
+from starlette.routing import Route
+from starlette.responses import JSONResponse
+from starlette.types import ASGIApp, Receive, Scope, Send, Message
+from starlette.datastructures import MutableHeaders
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("fusion360-mcp-server")
 logger.setLevel(logging.DEBUG)
 
-SERVER_VERSION = "0.3"
+SERVER_VERSION = "0.3.1"
 
 def get_addin_host():
     return os.environ.get('F360_ADDIN_HOST', '127.0.0.1')
@@ -75,7 +81,72 @@ async def get_server_info() -> Dict[str, Any]:
         "addin_port": get_addin_port()
     }
 
-async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+# Global state for persistent connection to the Add-in
+_addin_connection = None  # (reader, writer, host, port)
+_conn_lock: Optional[asyncio.Lock] = None
+
+async def get_addin_connection():
+    """
+    Returns a persistent reader/writer pair for the Add-in connection.
+    Reconnects if the host/port has changed or if the connection is dead.
+    """
+    global _addin_connection, _conn_lock
+    host = get_addin_host()
+    port = get_addin_port()
+    
+    if _conn_lock is None:
+        _conn_lock = asyncio.Lock()
+    
+    async with _conn_lock:
+        if _addin_connection:
+            prev_reader, prev_writer, prev_host, prev_port = _addin_connection
+            if prev_host == host and prev_port == port:
+                # Basic check for dead connection (transport closing)
+                if not prev_writer.is_closing():
+                    return prev_reader, prev_writer
+            
+            # Host/Port changed or writer closing, clean up
+            try:
+                prev_writer.close()
+                await prev_writer.wait_closed()
+            except:
+                pass
+            _addin_connection = None
+
+        # Create new connection
+        logger.info(f"Establishing persistent connection to Add-In at {host}:{port}...")
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port, limit=50 * 1024 * 1024),
+            timeout=30.0
+        )
+        _addin_connection = (reader, writer, host, port)
+        logger.info("Persistent connection established.")
+        return reader, writer
+
+async def drop_addin_connection():
+    """Drops the current persistent connection."""
+    global _addin_connection, _conn_lock
+    if _conn_lock is None:
+        _conn_lock = asyncio.Lock()
+        
+    async with _conn_lock:
+        if _addin_connection:
+            _, writer, _, _ = _addin_connection
+            try:
+                writer.close()
+                # don't wait_closed here to avoid hangs in callback threads
+            except:
+                pass
+            _addin_connection = None
+
+async def call_addin(method: str, params: Optional[Dict[str, Any]] = None):
+    """
+    Calls a method on the Fusion 360 Add-in via persistent TCP socket.
+    Handles automatic reconnection and one retry on failure.
+    """
+    if params is None:
+        params = {}
+        
     request = {
         "jsonrpc": "2.0",
         "method": method,
@@ -87,7 +158,6 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     port = get_addin_port()
     
     logger.info(f"Command: {method} (to {host}:{port})")
-    # Truncate params string if it's very large
     p_str = json.dumps(params)
     logger.info(f"Arguments: {p_str[:500]}{'...' if len(p_str) > 500 else ''}")
     
@@ -103,66 +173,60 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         }
         command_history.append(record)
 
-    try:
-        # Open connection with timeout
-        logger.debug(f"Connecting to Add-In at {host}:{port}...")
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(host, port, limit=50 * 1024 * 1024),
-            timeout=30.0
-        )
-        logger.debug("Connected to Add-In.")
-        
-        # Send request
-        writer.write(json.dumps(request).encode('utf-8') + b'\n')
-        await writer.drain()
-        logger.debug("Request sent to Add-In.")
-        
-        # Read response terminated by newline
-        logger.debug("Waiting for response from Add-In...")
-        data = await asyncio.wait_for(reader.readuntil(b'\n'), timeout=30.0)
-        logger.debug("Response received from Add-In.")
-        
-        # Close connection
-        writer.close()
-        # skip wait_closed() as it can hang in some environments
-        
-        response = json.loads(data.decode('utf-8').strip())
-        
-        if "error" in response:
+    for attempt in range(2):
+        try:
+            reader, writer = await get_addin_connection()
+            
+            # Send request terminated by newline
+            writer.write(json.dumps(request).encode('utf-8') + b'\n')
+            await writer.drain()
+            
+            # Read response terminated by newline
+            data = await asyncio.wait_for(reader.readuntil(b'\n'), timeout=30.0)
+            
+            response = json.loads(data.decode('utf-8').strip())
+            
+            if "error" in response:
+                if record:
+                    record["status"] = "error"
+                    record["error"] = response["error"]
+                raise Exception(f"Fusion 360 Error: {response['error']}")
+            
+            result = response.get("result", {})
+            
             if record:
-                record["status"] = "error"
-                record["error"] = response["error"]
-            raise Exception(f"Fusion 360 Error: {response['error']}")
-        
-        result = response.get("result", {})
-        
-        if record:
-            record["status"] = "success"
-            record["result"] = result
+                record["status"] = "success"
+                record["result"] = result
 
-        # Log response result (cleansed of large base64 blobs)
-        res_to_log = result.copy() if isinstance(result, dict) else result
-        if isinstance(res_to_log, dict) and "file_content_base64" in res_to_log:
-            res_to_log["file_content_base64"] = "[BASE64_BLOB_TRUNCATED]"
-        
-        r_str = json.dumps(res_to_log)
-        logger.debug(f"Full response result: {r_str}")
-        logger.info(f"Response: {r_str[:500]}{'...' if len(r_str) > 500 else ''}")
-        
-        return result
-    except asyncio.TimeoutError:
-        error_msg = f"Timed out communicating with Add-In at {host}:{port}"
-        if record:
-            record["status"] = "timeout"
-            record["error"] = error_msg
-        logger.error(error_msg)
-        raise Exception(error_msg)
-    except Exception as e:
-        if record and record.get("status") == "pending":
-            record["status"] = "exception"
-            record["error"] = str(e)
-        logger.error(f"Error communicating with Add-In: {str(e)}")
-        raise
+            # Log response result
+            res_to_log = result.copy() if isinstance(result, dict) else result
+            if isinstance(res_to_log, dict) and "file_content_base64" in res_to_log:
+                res_to_log["file_content_base64"] = "[BASE64_BLOB_TRUNCATED]"
+            
+            r_str = json.dumps(res_to_log)
+            logger.debug(f"Full response result: {r_str}")
+            logger.info(f"Response: {r_str[:500]}{'...' if len(r_str) > 500 else ''}")
+            
+            return result
+
+        except (ConnectionResetError, BrokenPipeError, asyncio.IncompleteReadError, asyncio.TimeoutError) as e:
+            logger.warning(f"Add-in connection failure on attempt {attempt + 1}: {e}")
+            await drop_addin_connection()
+            if attempt == 1:
+                error_msg = f"Failed to communicate with Add-In at {host}:{port} after 2 attempts: {e}"
+                if record:
+                    record["status"] = "error"
+                    record["error"] = error_msg
+                logger.error(error_msg)
+                raise Exception(error_msg)
+            # Re-try on attempt 0
+            continue
+        except Exception as e:
+            if record and record.get("status") == "pending":
+                record["status"] = "exception"
+                record["error"] = str(e)
+            logger.error(f"Error communicating with Add-In: {str(e)}")
+            raise
 
 def register_dynamic_tool(name, metadata, module_globals=None):
     """
@@ -201,13 +265,13 @@ def register_dynamic_tool(name, metadata, module_globals=None):
                 arg_str += f" = {default_val}"
         arg_strings.append(arg_str)
         
-    # Add plane alias to signature if plane_name is present but plane is not
-    if "plane_name" in addin_param_names and "plane" not in addin_param_names:
-        arg_strings.append('plane: Optional[str] = None')
-        
         # Collect description for docstring enrichment
         if param.get("description"):
             param_docs.append(f"        {arg_name}: {param['description']}")
+    
+    # Add plane alias to signature if plane_name is present but plane is not
+    if "plane_name" in addin_param_names and "plane" not in addin_param_names:
+        arg_strings.append('plane: Optional[str] = None')
     
     if param_docs:
         docstring += "\n\n    Args:\n" + "\n".join(param_docs)
@@ -228,9 +292,6 @@ def register_dynamic_tool(name, metadata, module_globals=None):
     doc_lines = docstring.split("\n")
     indented_doc = "\n".join("    " + line for line in doc_lines)
     
-    # Define a set of names that are valid for the Add-in
-    # We'll pass this into the exec namespace
-    
     source = f"""
 async def {name}({full_sig}):
     \"\"\"
@@ -242,7 +303,6 @@ async def {name}({full_sig}):
     # Strip server-side only arguments before sending to the Add-in
     local_file_path = all_vars.pop("local_file_path", None)
     
-    # Filter for only those arguments the add-in expects
     # Special case: map 'plane' to 'plane_name' if 'plane_name' is expected but 'plane' was provided
     if "plane_name" in valid_addin_params and "plane" in all_vars and all_vars["plane"] is not None:
         all_vars["plane_name"] = all_vars.pop("plane")
@@ -250,7 +310,7 @@ async def {name}({full_sig}):
     # Filter for only those arguments the add-in expects
     args = {{k: v for k, v in all_vars.items() if k in valid_addin_params}}
     
-    result = await send_to_addin('{name}', args)
+    result = await call_addin('{name}', args)
     
     # Special handling for file downloads if local_file_path was provided
     if local_file_path and "file_content_base64" in result:
@@ -267,7 +327,7 @@ async def {name}({full_sig}):
     
     # Execute in a namespace with necessary imports
     namespace = {
-        "send_to_addin": send_to_addin,
+        "call_addin": call_addin,
         "Optional": Optional,
         "List": List,
         "Dict": Dict,
@@ -287,7 +347,6 @@ async def {name}({full_sig}):
             globals()[name] = handler
             
         # Register with MCP
-        # FastMCP mcp.tool() returns a decorator, so we call it on our handler
         mcp.tool()(handler)
         logger.info(f"Registered dynamic tool: {name}")
     except Exception as e:
@@ -300,7 +359,7 @@ async def initialize_tools(module_globals=None):
     """
     logger.info("Initializing dynamic tools from Fusion 360 Add-in...")
     try:
-        metadata = await send_to_addin("_get_command_metadata", {})
+        metadata = await call_addin("_get_command_metadata", {})
         if not metadata:
             logger.warning("No tool metadata received from Add-in.")
             return
@@ -380,8 +439,7 @@ async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion
         logger.info("Files updated successfully. Telling Add-in to reload...")
                 
         # 2. Tell the Fusion 360 Add-in to reload itself
-        # This will spin off a temporary script in Fusion that stops the old addin and runs the new one
-        addin_response = await send_to_addin("reload_addin", {})
+        addin_response = await call_addin("reload_addin", {})
         
         # 3. Restart this server process
         logger.info("Restarting MCP Server process...")
@@ -400,7 +458,7 @@ async def update_and_reload_mcp(git_repo: str = "https://github.com/deece/fusion
         logger.error(f"Auto-update failed: {str(e)}")
         return f"Error during update and reload: {str(e)}"
 
-# We'll return a special placeholder that delegates to the real handler
+# Placeholder for lazy tool lookup
 class ToolPlaceholder:
     def __init__(self, tool_name):
         self._tool_name = tool_name
@@ -425,69 +483,39 @@ class ToolPlaceholder:
 def __getattr__(name: str) -> Any:
     """
     Handle lazy lookup of dynamically registered tools.
-    This allows 'from server import some_tool' to work even before initialization.
+    Allows 'from server import some_tool' even before initialization.
     """
-    # If it's a known tool name (optional check, but let's be guestimate)
-    # or just try to initialize if not already done.
     if name.startswith("_") or name == "mcp":
         raise AttributeError(f"module {__name__} has no attribute {name}")
     
-    # Returning a placeholder or attempting a sync init?
-    # Sync init is risky if it hangs, but let's try to return the handler if it's there
     if name in globals():
         val = globals()[name]
         if not isinstance(val, ToolPlaceholder):
             return val
         
-    # For pytest collection, we just need the name to exist.
-    # Let's return a placeholder that will be replaced by the real handler in globals()
-    # when initialize_tools() is called.
     logger.debug(f"Lazy lookup for {name}")
-    
-    placeholder = ToolPlaceholder(name)
-    # Important: do NOT put the placeholder in globals() yet, or __getattr__ won't be called again
-    # unless we explicitly check for it. 
-    # Actually, from server import X will bind it.
-    return placeholder
+    return ToolPlaceholder(name)
 
-def start_background_discovery():
+async def start_discovery_task():
     """
-    Starts a background thread to discover tools from the Add-in.
-    This ensures the server stays alive even if the Add-in is not running initially.
+    Async task to discover tools from the Add-in.
     """
-    import threading
-    import time
-
-    def discovery_loop():
-        logger.info("Background tool discovery thread started.")
-        while True:
-            try:
-                # Use a fresh event loop for discovery to avoid conflicts with the main server loop
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(initialize_tools())
-                loop.close()
-                logger.info("Successfully discovered and registered tools from Add-in.")
-                break 
-            except Exception as e:
-                logger.warning(f"Tool discovery failed (Add-in might not be started or responding), retrying in 10s: {e}")
-                time.sleep(10)
-
-    thread = threading.Thread(target=discovery_loop, daemon=True)
-    thread.start()
+    logger.info("Background tool discovery task started.")
+    while True:
+        try:
+            await initialize_tools()
+            logger.info("Successfully discovered and registered tools from Add-in.")
+            break 
+        except Exception as e:
+            logger.warning(f"Tool discovery failed, retrying in 10s: {e}")
+            await asyncio.sleep(10)
 
 def _get_allowed_origins():
-    """Parse allowed origins from environment variable.
-    
-    Supports glob patterns like 'http://localhost:*' and 'http://127.0.0.1:*'.
-    Returns a list of origin patterns.
-    """
+    """Parse allowed origins from environment variable."""
     env = os.environ.get("MCP_ALLOWED_ORIGINS", "")
     if env.strip():
         return [o.strip() for o in env.split(",") if o.strip()]
-    # Default: allow localhost origins on any port
     return ["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*"]
-
 
 def _origin_is_allowed(origin: str, allowed_patterns: list) -> bool:
     """Check if an origin matches any of the allowed patterns."""
@@ -496,20 +524,10 @@ def _origin_is_allowed(origin: str, allowed_patterns: list) -> bool:
             return True
     return False
 
-
 def create_starlette_app(mcp, transport_env, host, port):
     """
-    Creates a unified Starlette application that supports both SSE and Streamable HTTP.
-    This enables targeted testing of routing and lifespan management.
+    Creates a unified Starlette application for SSE and Streamable HTTP.
     """
-    import uvicorn
-    from starlette.applications import Starlette
-    from starlette.routing import Route
-    from starlette.responses import JSONResponse, Response
-    from starlette.middleware.cors import CORSMiddleware
-    from starlette.types import ASGIApp, Receive, Scope, Send, Message
-    from starlette.datastructures import MutableHeaders
-    
     # Ensure settings are synced
     mcp.settings.host = host
     mcp.settings.port = int(port)
@@ -530,133 +548,91 @@ def create_starlette_app(mcp, transport_env, host, port):
 
     # Build unified routes
     routes = []
-
-    # 1. Add /sse routes
-    logger.info(f"Registering unified routes for {mcp.settings.sse_path}")
-    # GET/HEAD go to SSE app (old transport backwards compatibility)
     routes.append(Route(mcp.settings.sse_path, endpoint=sse_app, methods=["GET", "HEAD"]))
-    
-    # POST and DELETE /sse delegate to Streamable HTTP handler
     if mcp_handler:
         routes.append(Route(mcp.settings.sse_path, mcp_handler, methods=["POST", "DELETE"]))
-    else:
-        logger.warning("Could not find Streamable HTTP handler for /sse delegation")
-
     
-    # 2. Add /messages route (from SSE app)
     for r in sse_app.routes:
         if isinstance(r, Route) and r.path == mcp.settings.message_path:
-            methods = getattr(r, "methods", [])
-            logger.info(f"Registering SSE message route: {r.path} [{methods}]")
             routes.append(r)
             
-    # 3. Add /mcp route (from HTTP app)
     for r in http_app.routes:
         if isinstance(r, Route) and r.path == mcp.settings.streamable_http_path:
-            methods = getattr(r, "methods", [])
-            logger.info(f"Registering Streamable HTTP route: {r.path} [{methods}]")
             routes.append(r)
     
-    logger.info(f"Final Starlette routes: {[getattr(r, 'path', str(r)) for r in routes]}")
-    
-    # Add a root status route
     async def status_route(request):
         return JSONResponse({
             "status": "ok",
+            "version": SERVER_VERSION,
             "transport_config": transport_env,
-            "supported_endpoints": ["/sse", "/messages", "/mcp", "/history"],
-            "mcp_settings": {
-                "sse_path": mcp.settings.sse_path,
-                "message_path": mcp.settings.message_path,
-                "streamable_http_path": mcp.settings.streamable_http_path
-            }
+            "supported_endpoints": ["/sse", "/messages", "/mcp", "/history"]
         })
     routes.append(Route("/", endpoint=status_route))
     
-    # Add a history route to assist with E2E unit testing command validation
     async def history_route(request):
         return JSONResponse({
             "command_history": command_history
         })
     routes.append(Route("/history", endpoint=history_route))
     
-    logger.info("Initializing Starlette app with unified routes")
-    from contextlib import asynccontextmanager
     @asynccontextmanager
     async def lifespan(app: Starlette):
         logger.info("Server lifespan starting...")
+        discovery_task = asyncio.create_task(start_discovery_task())
         
-        # Access session manager (triggers lazy init if needed)
         manager = None
         try:
             manager = mcp.session_manager
         except RuntimeError:
-            logger.warning("Session manager not initialized via streamable_http_app()")
+            pass
 
         if manager:
             try:
-                logger.info("Starting session manager via lifespan...")
                 async with manager.run():
-                    logger.info("Streamable HTTP session manager is now running")
                     yield
             except RuntimeError as e:
                 if "can only be called once" in str(e):
                     yield
                 else:
                     raise
-            except Exception as e:
-                logger.error(f"Unexpected exception in lifespan: {e}")
-                raise
         else:
-            logger.info("No session manager, yielding...")
             yield
         
         logger.info("Server lifespan ending")
+        discovery_task.cancel()
+        try:
+            await discovery_task
+        except asyncio.CancelledError:
+            pass
 
     app = Starlette(routes=routes, lifespan=lifespan)
     
-    # ---- MCP Spec Compliance Middleware (MUST) ----
-    # 1. Header validation: X-MCP-Protocol-Version MUST be in all responses
-    # 2. Origin validation: MUST return 403 for invalid Origins (prevent DNS rebinding)
     class MCPComplianceMiddleware:
         def __init__(self, app: ASGIApp):
             self.app = app
-
         async def __call__(self, scope: Scope, receive: Receive, send: Send):
             if scope["type"] != "http":
                 await self.app(scope, receive, send)
                 return
-
-            # Capture headers to check Origin
             headers = dict(scope.get("headers", []))
             origin = headers.get(b"origin", b"").decode("latin-1")
-
             if origin and not _origin_is_allowed(origin, allowed_origins):
-                logger.warning(f"Rejected request with invalid Origin: {origin}")
                 response = JSONResponse(
                     {"jsonrpc": "2.0", "error": {"code": -32600, "message": "Forbidden: invalid Origin"}},
                     status_code=403
                 )
-                # Add version header to error response too
                 response.headers["X-MCP-Protocol-Version"] = "2024-11-05"
                 await response(scope, receive, send)
                 return
-
-            # Wrapper to inject X-MCP-Protocol-Version into all responses
             async def send_with_compliance_headers(message: Message):
                 if message["type"] == "http.response.start":
                     headers = MutableHeaders(scope=message)
                     headers.append("X-MCP-Protocol-Version", "2024-11-05")
                 await send(message)
-
             await self.app(scope, receive, send_with_compliance_headers)
 
     app.add_middleware(MCPComplianceMiddleware)
-    
-    # CORS support for browser-based clients
-    # Derive concrete origins from allowed patterns for the CORS middleware.
     cors_origins = [p for p in allowed_origins if "*" not in p]
-    # If any pattern has wildcards, allow all (CORS middleware needs exact matches)
     allow_all = any("*" in p for p in allowed_origins)
     app.add_middleware(
         CORSMiddleware,
@@ -669,28 +645,22 @@ def create_starlette_app(mcp, transport_env, host, port):
 
 if __name__ == "__main__":
     try:
-        # Check transport from environment
         transport_env = os.environ.get("MCP_TRANSPORT", "stdio").lower()
         host = os.environ.get("MCP_HOST", "127.0.0.1")
         port = os.environ.get("MCP_PORT", "8000")
         
         logger.info(f"Starting MCP Server (transport={transport_env}, host={host}, port={port})")
         
-        start_background_discovery()
-        
         if transport_env in ["sse", "streamable-http"]:
             import uvicorn
             app = create_starlette_app(mcp, transport_env, host, port)
-            
-            config = uvicorn.Config(
-                app,
-                host=host,
-                port=int(port),
-                log_level=logging.getLevelName(logger.getEffectiveLevel()).lower(),
-            )
+            config = uvicorn.Config(app, host=host, port=int(port), log_level="info")
             server = uvicorn.Server(config)
             asyncio.run(server.serve())
         else:
+            # For stdio, we don't have a lifespan easily, so we run discovery in the loop
+            loop = asyncio.get_event_loop()
+            loop.create_task(start_discovery_task())
             mcp.run(transport="stdio")
     except Exception as e:
         logger.critical(f"Server failed to start: {e}", exc_info=True)

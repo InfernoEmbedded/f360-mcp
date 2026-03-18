@@ -2468,7 +2468,7 @@
     "method": "create_sketch",
     "params": {
       "name": "BaseSketch",
-      "plane_name": "XY",
+      "plane_name": "xy",
       "body_name": null,
       "face_index": null
     },
@@ -2530,7 +2530,7 @@
     "method": "create_sketch",
     "params": {
       "name": "UprightSketch",
-      "plane_name": "XY",
+      "plane_name": "xz",
       "body_name": null,
       "face_index": null
     },

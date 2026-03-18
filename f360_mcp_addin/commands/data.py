@@ -139,7 +139,20 @@ def open_design(app, project_name, name, folder_path=None):
 
 @command()
 def create_new_design(app, name, project_name=None, folder_path=None):
-    doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+    import time
+    # Mitigation for InternalValidationError during rapid test execution
+    doc = None
+    last_err = None
+    for attempt in range(3):
+        try:
+            doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+            if doc: break
+        except Exception as e:
+            last_err = e
+            time.sleep(0.5)
+    
+    if not doc:
+        raise Exception(f"Failed to create new design after 3 attempts: {last_err}")
     
     if project_name:
         hub = app.data.activeHub
