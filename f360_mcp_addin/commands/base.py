@@ -7,10 +7,15 @@ logger = logging.getLogger('f360_mcp')
 _group_stack = []
 
 def get_active_design(app):
-    design = app.activeProduct
-    if not design or not hasattr(design, 'rootComponent'): # Check if it's a design
-        raise Exception("No active Fusion 360 design.")
-    return design
+    if not app:
+        return None
+    try:
+        design = app.activeProduct
+        if not design or not design.isValid or not hasattr(design, 'rootComponent'): # Check if it's a design and valid
+            return None
+        return design
+    except:
+        return None
 
 def _get_body(app, name):
     design = get_active_design(app)
@@ -97,11 +102,18 @@ def _get_timeline_health_map(app):
     """
     try:
         design = get_active_design(app)
+        if not design:
+            return {}
         timeline = design.timeline
+        if not timeline or not timeline.isValid:
+            return {}
+        
         health_map = {}
         for i in range(timeline.count):
-            item = timeline.item(i)
             try:
+                item = timeline.item(i)
+                if not item or not item.isValid:
+                    continue
                 state = item.healthState
                 if state != 0 and state != 3: # Not Success and not Info
                     msg = ""

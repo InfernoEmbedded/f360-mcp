@@ -102,14 +102,23 @@ class MCPCustomEventHandler(adsk.core.CustomEventHandler):
                 if method in dispatch:
                     old_issues = _get_timeline_health_map(app)
                     design = get_active_design(app)
-                    pre_count = design.timeline.count if design else 0
+                    pre_count = 0
+                    if design and design.isValid:
+                        try: pre_count = design.timeline.count
+                        except: pass
                     
                     result = dispatch[method](app, **params)
                     
                     new_issues_map = _get_timeline_health_map(app)
-                    post_count = design.timeline.count if design else 0
+                    
+                    # Re-fetch design after command execution
+                    design = get_active_design(app)
+                    post_count = 0
+                    if design and design.isValid:
+                        try: post_count = design.timeline.count
+                        except: pass
 
-                    if design and post_count > pre_count and not _group_stack:
+                    if design and design.isValid and post_count > pre_count and not _group_stack:
                         from .commands.base import _is_internal_command
                         if not _is_internal_command(method):
                             try:

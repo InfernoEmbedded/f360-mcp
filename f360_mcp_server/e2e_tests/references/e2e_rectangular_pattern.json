@@ -2536,31 +2536,23 @@
     "params": {
       "name": "HoleBody",
       "sketch_name": "HoleSketch",
-      "distance": -2.0,
+      "distance": 1.0,
       "operation": "cut",
       "profile_index": 0,
       "target_body_name": "PlateBody"
     },
     "status": "success",
     "result": {
-      "message": "Extruded -2.0cm using operation cut as 'HoleBody'.",
+      "message": "Extruded 1.0cm using operation cut as 'HoleBody'.",
       "feature_name": "HoleBody",
-      "new_issues": [
-        {
-          "index": 3,
-          "name": "HoleBody",
-          "type": "adsk::fusion::TimelineObject",
-          "health": 1,
-          "message": "No target body!Compute FailedHoleBody"
-        }
-      ]
+      "new_issues": []
     }
   },
   {
     "method": "create_rectangular_pattern",
     "params": {
       "name": "RectPattern",
-      "body_name": "PlateBody",
+      "body_name": "HoleBody",
       "count_x": 4,
       "count_y": 4,
       "distance_x": 5.0,
@@ -2568,8 +2560,8 @@
     },
     "status": "success",
     "result": {
-      "message": "Created rectangular pattern 'RectPattern' for 'PlateBody'",
-      "pattern_name": "RectPattern",
+      "message": "Created rectangular pattern 'RectPattern' for HoleBody.",
+      "feature_name": "RectPattern",
       "new_issues": []
     }
   }

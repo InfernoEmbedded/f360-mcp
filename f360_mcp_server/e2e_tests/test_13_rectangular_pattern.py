@@ -16,7 +16,7 @@ async def test_scenario_13_rectangular_pattern(mcp_client):
     await f360.call_tool("create_extrude", {
         "name": "HoleBody",
         "sketch_name": "HoleSketch",
-        "distance": -2.0,
+        "distance": 1.0,
         "operation": "cut",
         "target_body_name": "PlateBody"
     })
