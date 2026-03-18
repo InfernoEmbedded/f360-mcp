@@ -15,6 +15,11 @@ def create_user_parameter(app, name, expression, unit="", description=""):
         "comment": param.comment
     }
 
+@command(name="create_parameter")
+def create_parameter(app, name, value, comment=""):
+    """Compatibility wrapper for E2E tests."""
+    return create_user_parameter(app, name, value, description=comment)
+
 @command()
 def list_user_parameters(app):
     return list_parameters(app)

@@ -32,6 +32,21 @@ def resolve_entity(sketch, entity_type, index):
         if sub_type == "center": return ent.centerSketchPoint
     elif base_type == "point":
         return sketch.sketchPoints.item(index)
+    elif base_type == "axis":
+        comp = sketch.parentComponent
+        if index == 0:
+            return comp.xConstructionAxis
+        if index == 1:
+            return comp.yConstructionAxis
+        if index == 2:
+            return comp.zConstructionAxis
+        axis_index = index - 3
+        if axis_index >= 0 and axis_index < comp.constructionAxes.count:
+            return comp.constructionAxes.item(axis_index)
+    elif base_type == "construction" and sub_type == "axis":
+        comp = sketch.parentComponent
+        if index >= 0 and index < comp.constructionAxes.count:
+            return comp.constructionAxes.item(index)
         
     if ent:
         return ent
@@ -74,6 +89,11 @@ def create_sketch(app, name, plane_name="XY", body_name=None, face_index=None):
     sketch.name = name
     
     return {"sketch_name": sketch.name, "message": "Sketch created successfully"}
+
+@command()
+def create_sketch_on_plane(app, name, plane_name):
+    """Compatibility wrapper for explicit plane-name sketch creation."""
+    return create_sketch(app, name, plane_name=plane_name)
 
 @command()
 def add_circle(app, sketch_name, x, y, radius):

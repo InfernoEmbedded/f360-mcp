@@ -41,7 +41,7 @@ def find_occ(app, name):
     design = get_active_design(app)
     root = design.rootComponent
     for occ in root.allOccurrences:
-        if occ.name == name:
+        if occ.name == name or occ.component.name == name:
             return occ
     raise Exception(f"Occurrence '{name}' not found.")
 
