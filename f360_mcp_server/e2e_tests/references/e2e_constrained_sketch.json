@@ -2441,13 +2441,13 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Constraints",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Constraints' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
@@ -2455,46 +2455,61 @@
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "ConstrainedSketch",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "ConstrainedSketch",
       "message": "Sketch created successfully",
       "new_issues": []
     }
   },
   {
-    "method": "add_circle",
+    "method": "add_line",
     "params": {
-      "sketch_name": "BaseSketch",
-      "x": 0,
-      "y": 0,
-      "radius": 2.5
+      "sketch_name": "ConstrainedSketch",
+      "x1": 0,
+      "y1": 0,
+      "x2": 5,
+      "y2": 1
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Line added from (0,0) to (5,1)",
       "new_issues": []
     }
   },
   {
-    "method": "create_extrude",
+    "method": "add_line",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
-      "operation": "new_body",
-      "profile_index": 0,
-      "target_body_name": null
+      "sketch_name": "ConstrainedSketch",
+      "x1": 0,
+      "y1": 5,
+      "x2": 5,
+      "y2": 4
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Line added from (0,5) to (5,4)",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "apply_constraint",
+    "params": {
+      "sketch_name": "ConstrainedSketch",
+      "constraint_type": "parallel",
+      "ent1_type": "line",
+      "ent1_idx": 0,
+      "ent2_type": "line",
+      "ent2_idx": 1
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully added parallel constraint.",
       "new_issues": []
     }
   }

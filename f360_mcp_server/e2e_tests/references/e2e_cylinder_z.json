@@ -2441,13 +2441,13 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Cylinder_Z",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Cylinder_Z' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
@@ -2456,7 +2456,7 @@
     "method": "create_sketch",
     "params": {
       "name": "BaseSketch",
-      "plane_name": "yz",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },

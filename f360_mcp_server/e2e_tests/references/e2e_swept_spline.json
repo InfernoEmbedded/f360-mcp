@@ -2441,13 +2441,13 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Sweep",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Sweep' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
@@ -2455,14 +2455,58 @@
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "PathSketch",
+      "plane_name": "xz",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "PathSketch",
+      "message": "Sketch created successfully",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "add_spline",
+    "params": {
+      "sketch_name": "PathSketch",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          10,
+          5
+        ]
+      ]
+    },
+    "status": "success",
+    "result": {
+      "message": "Spline added with 4 points.",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "ProfileSketch",
+      "plane_name": "xy",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "sketch_name": "ProfileSketch",
       "message": "Sketch created successfully",
       "new_issues": []
     }
@@ -2470,31 +2514,32 @@
   {
     "method": "add_circle",
     "params": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "ProfileSketch",
       "x": 0,
       "y": 0,
-      "radius": 2.5
+      "radius": 0.5
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Circle added at (0,0) with radius 0.5",
       "new_issues": []
     }
   },
   {
-    "method": "create_extrude",
+    "method": "create_sweep",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
+      "name": "SweepBody",
+      "profile_sketch_name": "ProfileSketch",
+      "path_sketch_name": "PathSketch",
+      "path_ent_type": "spline",
+      "path_ent_idx": 0,
       "operation": "new_body",
-      "profile_index": 0,
-      "target_body_name": null
+      "profile_index": 0
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Sweep 'SweepBody' created using operation new_body.",
+      "feature_name": "SweepBody",
       "new_issues": []
     }
   }

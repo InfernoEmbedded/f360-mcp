@@ -19,14 +19,45 @@ def _get_body(app, name):
     for i in range(rootComp.bRepBodies.count):
         b = rootComp.bRepBodies.item(i)
         if b.name == name:
+            logger.debug(f"Found body '{name}' in rootComponent.")
             return b
     # Check all components
     for comp in design.allComponents:
         for i in range(comp.bRepBodies.count):
             b = comp.bRepBodies.item(i)
             if b.name == name:
+                logger.debug(f"Found body '{name}' in component '{comp.name}'.")
                 return b
+    
+    # Log all existing bodies if not found
+    all_bodies = [b.name for b in rootComp.bRepBodies]
+    for comp in design.allComponents:
+        all_bodies.extend([b.name for b in comp.bRepBodies])
+    logger.error(f"Body '{name}' not found. Available bodies: {all_bodies}")
     raise Exception(f"Body '{name}' not found.")
+    
+def _get_feature(app, name):
+    design = get_active_design(app)
+    rootComp = design.rootComponent
+    # Search all features in root
+    for i in range(rootComp.features.count):
+        feat = rootComp.features.item(i)
+        if feat.name == name:
+            return feat
+    # Search in all components
+    for comp in design.allComponents:
+        for i in range(comp.features.count):
+            feat = comp.features.item(i)
+            if feat.name == name:
+                logger.debug(f"Found feature '{name}' in component '{comp.name}'.")
+                return feat
+    
+    # Log all existing features if not found
+    all_feats = [f.name for f in rootComp.features]
+    for comp in design.allComponents:
+        all_feats.extend([f.name for f in comp.features])
+    logger.error(f"Feature '{name}' not found. Available features: {all_feats}")
+    raise Exception(f"Feature '{name}' not found.")
 
 def get_sketch_by_name(app, sketch_name):
     design = get_active_design(app)

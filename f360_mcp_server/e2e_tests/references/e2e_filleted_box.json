@@ -2441,13 +2441,13 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Filleted_Box",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Filleted_Box' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
@@ -2455,37 +2455,41 @@
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "BoxSketch",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "BoxSketch",
       "message": "Sketch created successfully",
       "new_issues": []
     }
   },
   {
-    "method": "add_circle",
+    "method": "add_rectangle",
     "params": {
-      "sketch_name": "BaseSketch",
-      "x": 0,
-      "y": 0,
-      "radius": 2.5
+      "sketch_name": "BoxSketch",
+      "x1": -5,
+      "y1": -5,
+      "x2": 5,
+      "y2": 5,
+      "x3": null,
+      "y3": null,
+      "rect_type": "two_point"
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Two-point rectangle added.",
       "new_issues": []
     }
   },
   {
     "method": "create_extrude",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
+      "name": "BoxBody",
+      "sketch_name": "BoxSketch",
       "distance": 10.0,
       "operation": "new_body",
       "profile_index": 0,
@@ -2493,8 +2497,22 @@
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Extruded 10.0cm using operation new_body as 'BoxBody'.",
+      "feature_name": "BoxBody",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_fillet",
+    "params": {
+      "name": "BoxFillet",
+      "body_name": "BoxBody",
+      "radius": 1.0
+    },
+    "status": "success",
+    "result": {
+      "message": "Filleted 'BoxFillet' all edges of body BoxBody with 1.0cm radius.",
+      "feature_name": "BoxFillet",
       "new_issues": []
     }
   }

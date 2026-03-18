@@ -22,7 +22,7 @@ async def test_scenario_13_rectangular_pattern(mcp_client):
     })
     await f360.call_tool("create_rectangular_pattern", {
         "name": "RectPattern", 
-        "body_name": "PlateBody", 
+        "body_name": "HoleBody", 
         "count_x": 4, 
         "count_y": 4, 
         "distance_x": 5.0, 

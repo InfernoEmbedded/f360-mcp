@@ -2441,60 +2441,96 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Parametric_Bracket",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Parametric_Bracket' (unsaved).",
       "status": "unsaved",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_parameter",
+    "params": {
+      "name": "width",
+      "value": "50mm",
+      "comment": "Bracket width"
+    },
+    "status": "success",
+    "result": {
+      "message": "Created parameter 'width' = 50mm",
+      "name": "width",
+      "value": 0.0,
+      "comment": "Bracket width",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_parameter",
+    "params": {
+      "name": "height",
+      "value": "30mm",
+      "comment": ""
+    },
+    "status": "success",
+    "result": {
+      "message": "Created parameter 'height' = 30mm",
+      "name": "height",
+      "value": 0.0,
+      "comment": "",
       "new_issues": []
     }
   },
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "BracketSketch",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "BracketSketch",
       "message": "Sketch created successfully",
       "new_issues": []
     }
   },
   {
-    "method": "add_circle",
+    "method": "add_rectangle",
     "params": {
-      "sketch_name": "BaseSketch",
-      "x": 0,
-      "y": 0,
-      "radius": 2.5
+      "sketch_name": "BracketSketch",
+      "x1": 0,
+      "y1": 0,
+      "x2": 5,
+      "y2": 3,
+      "x3": null,
+      "y3": null,
+      "rect_type": "two_point"
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Two-point rectangle added.",
       "new_issues": []
     }
   },
   {
     "method": "create_extrude",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
+      "name": "BracketBody",
+      "sketch_name": "BracketSketch",
+      "distance": 0.5,
       "operation": "new_body",
       "profile_index": 0,
       "target_body_name": null
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Extruded 0.5cm using operation new_body as 'BracketBody'.",
+      "feature_name": "BracketBody",
       "new_issues": []
     }
   }

@@ -3,6 +3,7 @@ import asyncio
 from .conftest import SKIP_E2E
 from .fusion_e2e import FusionE2E
 
+@pytest.mark.skip(reason="Dangerous for local development as it wipes local changes via git reset")
 @pytest.mark.skipif(SKIP_E2E, reason="F360_ADDIN_HOST not set")
 @pytest.mark.anyio
 async def test_scenario_00_reload(mcp_client):

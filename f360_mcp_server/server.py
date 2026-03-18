@@ -107,7 +107,7 @@ async def send_to_addin(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         # Open connection with timeout
         logger.debug(f"Connecting to Add-In at {host}:{port}...")
         reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(host, port),
+            asyncio.open_connection(host, port, limit=50 * 1024 * 1024),
             timeout=30.0
         )
         logger.debug("Connected to Add-In.")
@@ -201,6 +201,10 @@ def register_dynamic_tool(name, metadata, module_globals=None):
                 arg_str += f" = {default_val}"
         arg_strings.append(arg_str)
         
+    # Add plane alias to signature if plane_name is present but plane is not
+    if "plane_name" in addin_param_names and "plane" not in addin_param_names:
+        arg_strings.append('plane: Optional[str] = None')
+        
         # Collect description for docstring enrichment
         if param.get("description"):
             param_docs.append(f"        {arg_name}: {param['description']}")
@@ -238,6 +242,11 @@ async def {name}({full_sig}):
     # Strip server-side only arguments before sending to the Add-in
     local_file_path = all_vars.pop("local_file_path", None)
     
+    # Filter for only those arguments the add-in expects
+    # Special case: map 'plane' to 'plane_name' if 'plane_name' is expected but 'plane' was provided
+    if "plane_name" in valid_addin_params and "plane" in all_vars and all_vars["plane"] is not None:
+        all_vars["plane_name"] = all_vars.pop("plane")
+
     # Filter for only those arguments the add-in expects
     args = {{k: v for k, v in all_vars.items() if k in valid_addin_params}}
     
@@ -547,6 +556,8 @@ def create_starlette_app(mcp, transport_env, host, port):
             methods = getattr(r, "methods", [])
             logger.info(f"Registering Streamable HTTP route: {r.path} [{methods}]")
             routes.append(r)
+    
+    logger.info(f"Final Starlette routes: {[getattr(r, 'path', str(r)) for r in routes]}")
     
     # Add a root status route
     async def status_route(request):

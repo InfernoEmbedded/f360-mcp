@@ -2441,60 +2441,56 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Slider",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Slider' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
   },
   {
-    "method": "create_sketch",
+    "method": "create_component",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
-      "body_name": null,
-      "face_index": null
+      "name": "Base"
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
-      "message": "Sketch created successfully",
+      "message": "Created component 'Base'. Note: modeling still default happens in root component via MCP.",
+      "component_name": "Base",
       "new_issues": []
     }
   },
   {
-    "method": "add_circle",
+    "method": "create_component",
     "params": {
-      "sketch_name": "BaseSketch",
-      "x": 0,
-      "y": 0,
-      "radius": 2.5
+      "name": "Slider"
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Created component 'Slider'. Note: modeling still default happens in root component via MCP.",
+      "component_name": "Slider",
       "new_issues": []
     }
   },
   {
-    "method": "create_extrude",
+    "method": "create_joint",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
-      "operation": "new_body",
-      "profile_index": 0,
-      "target_body_name": null
+      "name": "SliderJoint",
+      "component1_name": "Base",
+      "component2_name": "Slider",
+      "joint_type": "slider",
+      "offset_x": 0,
+      "offset_y": 0,
+      "offset_z": 0
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Created slider joint 'SliderJoint'.",
+      "joint_name": "SliderJoint",
       "new_issues": []
     }
   }

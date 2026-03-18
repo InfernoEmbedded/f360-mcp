@@ -5,6 +5,7 @@ import json
 import base64
 import hashlib
 import re
+import difflib
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -17,6 +18,29 @@ class FusionE2E:
             "Accept": "application/json, text/event-stream",
             "mcp-session-id": self.session_id
         }
+
+    def _normalize_step_content(self, content: bytes) -> bytes:
+        """Strips non-deterministic metadata from STEP files for stable hashing."""
+        try:
+            text = content.decode("utf-8", errors="ignore")
+            # 1. Normalize FILE_NAME section
+            text = re.sub(
+                r"FILE_NAME\s*\([^;]*\);",
+                "FILE_NAME('normalized.step', '2026-03-18T00:00:00Z', (''), (''), 'normalized', 'normalized', '');",
+                text,
+                flags=re.DOTALL
+            )
+            # 2. Normalize PRODUCT and PRODUCT_DEFINITION IDs (which often contain timestamps)
+            # Example: #95=PRODUCT_DEFINITION('2026-03-18-22-44-39-641','(Unsaved)',#96,#94);
+            text = re.sub(
+                r"(PRODUCT(?:_DEFINITION)?\s*\(')[^']*(')",
+                r"\1normalized-id\2",
+                text
+            )
+            return text.encode("utf-8")
+        except Exception as e:
+            print(f"Warning: STEP normalization failed: {e}")
+            return content
 
     @staticmethod
     def parse_mcp_response(content: bytes) -> dict:
@@ -103,17 +127,34 @@ class FusionE2E:
         if not content_b64:
             raise Exception("No file content received from export_model")
             
+            
         content_bytes = base64.b64decode(content_b64)
-        current_hash = hashlib.sha256(content_bytes).hexdigest()
+        normalized_content = self._normalize_step_content(content_bytes)
+        current_hash = hashlib.sha256(normalized_content).hexdigest()
 
         if update_references:
             reference_dir.mkdir(parents=True, exist_ok=True)
-            reference_step_path.write_bytes(content_bytes)
+            reference_step_path.write_bytes(normalized_content)
             print(f"[STABILITY] Updated STEP reference for {test_name} at {reference_step_path}")
         elif reference_step_path.exists():
             reference_bytes = reference_step_path.read_bytes()
+            # Reference file is already normalized on save
             reference_step_hash = hashlib.sha256(reference_bytes).hexdigest()
             if current_hash != reference_step_hash:
+                # Generate diff for easier analysis
+                ref_text = reference_bytes.decode("utf-8", errors="ignore")
+                curr_text = normalized_content.decode("utf-8", errors="ignore")
+                diff = difflib.unified_diff(
+                    ref_text.splitlines(),
+                    curr_text.splitlines(),
+                    fromfile="reference",
+                    tofile="current",
+                    lineterm=""
+                )
+                print(f"\n[STABILITY] STEP mismatch for {test_name}:")
+                for line in list(diff)[:50]: # Show first 50 lines of diff
+                    print(line)
+                
                 raise AssertionError(
                     f"STEP stability check failed for {test_name}: "
                     f"expected {reference_step_hash}, got {current_hash}. "

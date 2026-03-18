@@ -2441,13 +2441,13 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Revolved_Wheel",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Revolved_Wheel' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
@@ -2455,46 +2455,66 @@
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "WheelSketch",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "WheelSketch",
       "message": "Sketch created successfully",
       "new_issues": []
     }
   },
   {
-    "method": "add_circle",
+    "method": "add_line",
     "params": {
-      "sketch_name": "BaseSketch",
-      "x": 0,
-      "y": 0,
-      "radius": 2.5
+      "sketch_name": "WheelSketch",
+      "x1": 0,
+      "y1": -5,
+      "x2": 0,
+      "y2": 5
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Line added from (0,-5) to (0,5)",
       "new_issues": []
     }
   },
   {
-    "method": "create_extrude",
+    "method": "add_rectangle",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
-      "operation": "new_body",
-      "profile_index": 0,
-      "target_body_name": null
+      "sketch_name": "WheelSketch",
+      "x1": 1,
+      "y1": -2,
+      "x2": 3,
+      "y2": 2,
+      "x3": null,
+      "y3": null,
+      "rect_type": "two_point"
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Two-point rectangle added.",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_revolve",
+    "params": {
+      "name": "WheelBody",
+      "sketch_name": "WheelSketch",
+      "axis_ent_type": "line",
+      "axis_ent_idx": 0,
+      "angle": 360.0,
+      "operation": "new_body",
+      "profile_index": 0
+    },
+    "status": "success",
+    "result": {
+      "message": "Revolved 360.0 degrees using operation new_body as 'WheelBody'.",
+      "feature_name": "WheelBody",
       "new_issues": []
     }
   }

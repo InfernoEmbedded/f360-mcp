@@ -2441,14 +2441,26 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Final_Masterpiece",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Final_Masterpiece' (unsaved).",
       "status": "unsaved",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_component",
+    "params": {
+      "name": "BaseComp"
+    },
+    "status": "success",
+    "result": {
+      "message": "Created component 'BaseComp'. Note: modeling still default happens in root component via MCP.",
+      "component_name": "BaseComp",
       "new_issues": []
     }
   },
@@ -2456,7 +2468,7 @@
     "method": "create_sketch",
     "params": {
       "name": "BaseSketch",
-      "plane_name": "yz",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
@@ -2468,33 +2480,143 @@
     }
   },
   {
-    "method": "add_circle",
+    "method": "add_rectangle",
     "params": {
       "sketch_name": "BaseSketch",
-      "x": 0,
-      "y": 0,
-      "radius": 2.5
+      "x1": -25,
+      "y1": -25,
+      "x2": 25,
+      "y2": 25,
+      "x3": null,
+      "y3": null,
+      "rect_type": "two_point"
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Two-point rectangle added.",
       "new_issues": []
     }
   },
   {
     "method": "create_extrude",
     "params": {
-      "name": "MainBody",
+      "name": "BaseBody",
       "sketch_name": "BaseSketch",
-      "distance": 10.0,
+      "distance": 2.0,
       "operation": "new_body",
       "profile_index": 0,
       "target_body_name": null
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Extruded 2.0cm using operation new_body as 'BaseBody'.",
+      "feature_name": "BaseBody",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_component",
+    "params": {
+      "name": "UprightComp"
+    },
+    "status": "success",
+    "result": {
+      "message": "Created component 'UprightComp'. Note: modeling still default happens in root component via MCP.",
+      "component_name": "UprightComp",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "UprightSketch",
+      "plane_name": "XY",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "sketch_name": "UprightSketch",
+      "message": "Sketch created successfully",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "add_rectangle",
+    "params": {
+      "sketch_name": "UprightSketch",
+      "x1": -5,
+      "y1": 0,
+      "x2": 5,
+      "y2": 20,
+      "x3": null,
+      "y3": null,
+      "rect_type": "two_point"
+    },
+    "status": "success",
+    "result": {
+      "message": "Two-point rectangle added.",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_extrude",
+    "params": {
+      "name": "UprightBody",
+      "sketch_name": "UprightSketch",
+      "distance": 2.0,
+      "operation": "new_body",
+      "profile_index": 0,
+      "target_body_name": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Extruded 2.0cm using operation new_body as 'UprightBody'.",
+      "feature_name": "UprightBody",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_joint",
+    "params": {
+      "name": "BaseUprightJoint",
+      "component1_name": "BaseComp",
+      "component2_name": "UprightComp",
+      "joint_type": "rigid",
+      "offset_x": 0,
+      "offset_y": 0,
+      "offset_z": 0
+    },
+    "status": "success",
+    "result": {
+      "message": "Created rigid joint 'BaseUprightJoint'.",
+      "joint_name": "BaseUprightJoint",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_fillet",
+    "params": {
+      "name": "FinalFillet",
+      "body_name": "BaseBody",
+      "radius": 1.0
+    },
+    "status": "success",
+    "result": {
+      "message": "Filleted 'FinalFillet' all edges of body BaseBody with 1.0cm radius.",
+      "feature_name": "FinalFillet",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "apply_material",
+    "params": {
+      "body_name": "BaseBody",
+      "material_name": "Steel"
+    },
+    "status": "success",
+    "result": {
+      "message": "Successfully applied material 'Steel' to body 'BaseBody'.",
       "new_issues": []
     }
   }

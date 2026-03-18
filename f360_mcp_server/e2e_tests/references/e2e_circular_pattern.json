@@ -2441,13 +2441,13 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Circ_Pattern",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Circ_Pattern' (unsaved).",
       "status": "unsaved",
       "new_issues": []
     }
@@ -2455,14 +2455,14 @@
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "DiscSketch",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "DiscSketch",
       "message": "Sketch created successfully",
       "new_issues": []
     }
@@ -2470,31 +2470,93 @@
   {
     "method": "add_circle",
     "params": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "DiscSketch",
       "x": 0,
       "y": 0,
-      "radius": 2.5
+      "radius": 10.0
     },
     "status": "success",
     "result": {
-      "message": "Circle added at (0,0) with radius 2.5",
+      "message": "Circle added at (0,0) with radius 10.0",
       "new_issues": []
     }
   },
   {
     "method": "create_extrude",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
+      "name": "DiscBody",
+      "sketch_name": "DiscSketch",
+      "distance": 1.0,
       "operation": "new_body",
       "profile_index": 0,
       "target_body_name": null
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Extruded 1.0cm using operation new_body as 'DiscBody'.",
+      "feature_name": "DiscBody",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "SeedSketch",
+      "plane_name": "XY",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "sketch_name": "SeedSketch",
+      "message": "Sketch created successfully",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "add_circle",
+    "params": {
+      "sketch_name": "SeedSketch",
+      "x": 8,
+      "y": 0,
+      "radius": 1.0
+    },
+    "status": "success",
+    "result": {
+      "message": "Circle added at (8,0) with radius 1.0",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_extrude",
+    "params": {
+      "name": "SeedBody",
+      "sketch_name": "SeedSketch",
+      "distance": 5.0,
+      "operation": "new_body",
+      "profile_index": 0,
+      "target_body_name": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Extruded 5.0cm using operation new_body as 'SeedBody'.",
+      "feature_name": "SeedBody",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_circular_pattern",
+    "params": {
+      "name": "CircPattern",
+      "body_name": "SeedBody",
+      "axis_name": "z",
+      "count": 6,
+      "angle_deg": 360.0
+    },
+    "status": "success",
+    "result": {
+      "message": "Created circular pattern 'CircPattern' for 'SeedBody' around z",
+      "pattern_name": "CircPattern",
       "new_issues": []
     }
   }

@@ -2,7 +2,7 @@ import adsk.core
 import adsk.fusion
 import math
 from . import command
-from .base import get_active_design, get_sketch_by_name, _get_body
+from .base import get_active_design, get_sketch_by_name, _get_body, _get_feature, logger
 from .sketch import resolve_entity
 
 @command()
@@ -45,7 +45,15 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
         )
         extrudeInput.setOneSideExtent(extent, direction)
         if target_body_name:
-            extrudeInput.participantBodies = [_get_body(app, target_body_name)]
+            target_body = _get_body(app, target_body_name)
+            if target_body:
+                # participantBodies expects a list/ObjectCollection of BRepBody
+                bodies = adsk.core.ObjectCollection.create()
+                bodies.add(target_body)
+                extrudeInput.participantBodies = [target_body]
+                logger.debug(f"Set participantBody '{target_body_name}' for cut operation.")
+            else:
+                 logger.error(f"Target body '{target_body_name}' resolved to None!")
     else:
         extrudeInput.setDistanceExtent(False, distance_val)
     extrude = extrudes.add(extrudeInput)
@@ -207,7 +215,12 @@ def feature_mirror(app, name, body_name, plane_name):
     design = get_active_design(app)
     rootComp = design.rootComponent
     mirrors = rootComp.features.mirrorFeatures
-    body = _get_body(app, body_name)
+    # Try body then feature
+    try:
+        input_ent = _get_body(app, body_name)
+    except:
+        input_ent = _get_feature(app, body_name)
+    
     plane_map = {
         'xy': rootComp.xYConstructionPlane,
         'yz': rootComp.yZConstructionPlane,
@@ -218,7 +231,7 @@ def feature_mirror(app, name, body_name, plane_name):
     if not plane:
         raise Exception(f"Invalid plane '{plane_name}'. Use 'xy', 'yz', or 'xz'.")
     inputEntities = adsk.core.ObjectCollection.create()
-    inputEntities.add(body)
+    inputEntities.add(input_ent)
     mirrorInput = mirrors.createInput(inputEntities, plane)
     mirror = mirrors.add(mirrorInput)
     mirror.name = name
@@ -228,9 +241,21 @@ def feature_mirror(app, name, body_name, plane_name):
 def create_rectangular_pattern(app, name, body_name, count_x, count_y, distance_x, distance_y):
     design = get_active_design(app)
     rootComp = design.rootComponent
-    body = _get_body(app, body_name)
+    # Try body then feature
+    input_ent = None
+    try:
+        input_ent = _get_body(app, body_name)
+        logger.debug(f"Resolved '{body_name}' as Body for rectangular pattern.")
+    except:
+        try:
+            input_ent = _get_feature(app, body_name)
+            logger.debug(f"Resolved '{body_name}' as Feature for rectangular pattern.")
+        except Exception as e:
+            logger.error(f"Failed to resolve '{body_name}' for pattern: {e}")
+            raise
+        
     inputEntities = adsk.core.ObjectCollection.create()
-    inputEntities.add(body)
+    inputEntities.add(input_ent)
     xAxis = rootComp.xConstructionAxis
     yAxis = rootComp.yConstructionAxis
     rectPatterns = rootComp.features.rectangularPatternFeatures
@@ -238,15 +263,20 @@ def create_rectangular_pattern(app, name, body_name, count_x, count_y, distance_
     rectPatternInput.setDirectionTwo(yAxis, adsk.core.ValueInput.createByReal(count_y), adsk.core.ValueInput.createByReal(distance_y))
     pattern = rectPatterns.add(rectPatternInput)
     pattern.name = name
-    return {"message": f"Created rectangular pattern '{name}' for '{body_name}'", "pattern_name": pattern.name}
+    return {"message": f"Created rectangular pattern '{name}' for {body_name}.", "feature_name": pattern.name}
 
 @command()
 def create_circular_pattern(app, name, body_name, axis_name, count, angle_deg):
     design = get_active_design(app)
     rootComp = design.rootComponent
-    body = _get_body(app, body_name)
+    # Try body then feature
+    try:
+        input_ent = _get_body(app, body_name)
+    except:
+        input_ent = _get_feature(app, body_name)
+        
     inputEntities = adsk.core.ObjectCollection.create()
-    inputEntities.add(body)
+    inputEntities.add(input_ent)
     if axis_name.upper() == "X":
         axis = rootComp.xConstructionAxis
     elif axis_name.upper() == "Y":

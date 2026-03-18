@@ -2441,28 +2441,40 @@
   {
     "method": "create_new_design",
     "params": {
-      "name": "E2E_Cylinder_X",
+      "name": "E2E_Rigid_Assembly",
       "project_name": null,
       "folder_path": null
     },
     "status": "success",
     "result": {
-      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "message": "Created design 'E2E_Rigid_Assembly' (unsaved).",
       "status": "unsaved",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_component",
+    "params": {
+      "name": "CompA"
+    },
+    "status": "success",
+    "result": {
+      "message": "Created component 'CompA'. Note: modeling still default happens in root component via MCP.",
+      "component_name": "CompA",
       "new_issues": []
     }
   },
   {
     "method": "create_sketch",
     "params": {
-      "name": "BaseSketch",
-      "plane_name": "yz",
+      "name": "SketchA",
+      "plane_name": "XY",
       "body_name": null,
       "face_index": null
     },
     "status": "success",
     "result": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "SketchA",
       "message": "Sketch created successfully",
       "new_issues": []
     }
@@ -2470,7 +2482,7 @@
   {
     "method": "add_circle",
     "params": {
-      "sketch_name": "BaseSketch",
+      "sketch_name": "SketchA",
       "x": 0,
       "y": 0,
       "radius": 2.5
@@ -2484,17 +2496,97 @@
   {
     "method": "create_extrude",
     "params": {
-      "name": "MainBody",
-      "sketch_name": "BaseSketch",
-      "distance": 10.0,
+      "name": "BodyA",
+      "sketch_name": "SketchA",
+      "distance": 5.0,
       "operation": "new_body",
       "profile_index": 0,
       "target_body_name": null
     },
     "status": "success",
     "result": {
-      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
-      "feature_name": "MainBody",
+      "message": "Extruded 5.0cm using operation new_body as 'BodyA'.",
+      "feature_name": "BodyA",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_component",
+    "params": {
+      "name": "CompB"
+    },
+    "status": "success",
+    "result": {
+      "message": "Created component 'CompB'. Note: modeling still default happens in root component via MCP.",
+      "component_name": "CompB",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "SketchB",
+      "plane_name": "XY",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "sketch_name": "SketchB",
+      "message": "Sketch created successfully",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "add_rectangle",
+    "params": {
+      "sketch_name": "SketchB",
+      "x1": -2,
+      "y1": -2,
+      "x2": 2,
+      "y2": 2,
+      "x3": null,
+      "y3": null,
+      "rect_type": "two_point"
+    },
+    "status": "success",
+    "result": {
+      "message": "Two-point rectangle added.",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_extrude",
+    "params": {
+      "name": "BodyB",
+      "sketch_name": "SketchB",
+      "distance": 5.0,
+      "operation": "new_body",
+      "profile_index": 0,
+      "target_body_name": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Extruded 5.0cm using operation new_body as 'BodyB'.",
+      "feature_name": "BodyB",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_joint",
+    "params": {
+      "name": "RigidJoint",
+      "component1_name": "CompA",
+      "component2_name": "CompB",
+      "joint_type": "rigid",
+      "offset_x": 0,
+      "offset_y": 0,
+      "offset_z": 10.0
+    },
+    "status": "success",
+    "result": {
+      "message": "Created rigid joint 'RigidJoint'.",
+      "joint_name": "RigidJoint",
       "new_issues": []
     }
   }
