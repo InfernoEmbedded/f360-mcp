@@ -6,7 +6,7 @@ from .base import get_active_design, get_sketch_by_name, _get_body
 from .sketch import resolve_entity
 
 @command()
-def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=0):
+def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=0, target_body_name=None):
     """
     Extrudes a sketch profile.
     
@@ -33,7 +33,21 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
     extrudeInput = extrudes.createInput(profile, fusion_op)
-    extrudeInput.setDistanceExtent(False, distance_val)
+    if fusion_op in (
+        adsk.fusion.FeatureOperations.CutFeatureOperation,
+        adsk.fusion.FeatureOperations.IntersectFeatureOperation,
+    ):
+        extent = adsk.fusion.DistanceExtentDefinition.create(adsk.core.ValueInput.createByReal(abs(distance)))
+        direction = (
+            adsk.fusion.ExtentDirections.PositiveExtentDirection
+            if distance >= 0
+            else adsk.fusion.ExtentDirections.NegativeExtentDirection
+        )
+        extrudeInput.setOneSideExtent(extent, direction)
+        if target_body_name:
+            extrudeInput.participantBodies = [_get_body(app, target_body_name)]
+    else:
+        extrudeInput.setDistanceExtent(False, distance_val)
     extrude = extrudes.add(extrudeInput)
     extrude.name = name
     if fusion_op == adsk.fusion.FeatureOperations.NewBodyFeatureOperation and extrude.bodies.count > 0:

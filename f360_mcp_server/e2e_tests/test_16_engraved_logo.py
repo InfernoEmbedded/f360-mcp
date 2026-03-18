@@ -13,5 +13,11 @@ async def test_scenario_16_engraved_logo(mcp_client):
     await f360.call_tool("create_extrude", {"name": "PlateBody", "sketch_name": "PlateSketch", "distance": 1.0})
     await f360.call_tool("create_sketch", {"name": "TextSketch", "plane": "xy"})
     await f360.call_tool("add_text", {"sketch_name": "TextSketch", "text": "F360", "x": -5, "y": -1.5, "height": 3.0})
-    await f360.call_tool("create_extrude", {"name": "Engrave", "sketch_name": "TextSketch", "distance": -0.2, "operation": "cut"})
+    await f360.call_tool("create_extrude", {
+        "name": "Engrave",
+        "sketch_name": "TextSketch",
+        "distance": -0.2,
+        "operation": "cut",
+        "target_body_name": "PlateBody"
+    })
     await f360.export_and_verify("engraved_logo")
