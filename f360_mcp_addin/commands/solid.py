@@ -33,6 +33,17 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
     extrudeInput = extrudes.createInput(profile, fusion_op)
+    if fusion_op in (
+        adsk.fusion.FeatureOperations.CutFeatureOperation,
+        adsk.fusion.FeatureOperations.IntersectFeatureOperation,
+        adsk.fusion.FeatureOperations.JoinFeatureOperation,
+    ):
+        participants = adsk.core.ObjectCollection.create()
+        for comp in design.allComponents:
+            for i in range(comp.bRepBodies.count):
+                participants.add(comp.bRepBodies.item(i))
+        if participants.count > 0:
+            extrudeInput.participantBodies = participants
     extrudeInput.setDistanceExtent(False, distance_val)
     extrude = extrudes.add(extrudeInput)
     extrude.name = name
@@ -673,4 +684,3 @@ def get_design_health(app):
         "warnings": warnings,
         "is_healthy": (errors == 0 and warnings == 0)
     }
-

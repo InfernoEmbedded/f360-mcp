@@ -33,17 +33,15 @@ async def send_tcp_command(host: str, port: int, method: str, params: dict[str, 
     }
     
     reader, writer = await asyncio.open_connection(host, port)
-    
-    payload = json.dumps(request).encode("utf-8")
-    writer.write(len(payload).to_bytes(4, "big") + payload)
+
+    payload = json.dumps(request).encode("utf-8") + b"\n"
+    writer.write(payload)
     await writer.drain()
-    
-    # Read response length
-    length_bytes = await reader.readexactly(4)
-    length = int.from_bytes(length_bytes, "big")
-    
-    # Read response
-    response_bytes = await reader.readexactly(length)
+
+    response_bytes = await reader.readline()
+    if not response_bytes:
+        raise RuntimeError("No response received from add-in")
+
     response = json.loads(response_bytes.decode("utf-8"))
     
     writer.close()
@@ -59,7 +57,8 @@ async def reload_via_tcp(host: str, port: int):
     # First ping to verify connectivity
     try:
         ping = await send_tcp_command(host, port, "get_version")
-        version = ping.get("result", {}).get("version", "unknown")
+        version_result = ping.get("result")
+        version = version_result if isinstance(version_result, str) else ping.get("result", {}).get("version", "unknown")
         print(f"Connected! Current add-in version: {version}")
     except Exception as e:
         print(f"Error: Cannot connect to add-in at {host}:{port}: {e}")
@@ -80,7 +79,8 @@ async def reload_via_tcp(host: str, port: int):
         await asyncio.sleep(2)
         try:
             ping = await send_tcp_command(host, port, "get_version")
-            new_version = ping.get("result", {}).get("version", "unknown")
+            version_result = ping.get("result")
+            new_version = version_result if isinstance(version_result, str) else ping.get("result", {}).get("version", "unknown")
             print(f"Add-in is back! Version: {new_version}")
             return True
         except (ConnectionRefusedError, OSError):

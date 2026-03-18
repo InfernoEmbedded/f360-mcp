@@ -1,5 +1,6 @@
 import adsk.core
 import adsk.fusion
+import math
 from . import command
 from .base import get_active_design, find_occ
 
@@ -80,8 +81,9 @@ def create_joint(app, name, component1_name, component2_name, joint_type="rigid"
         raise ValueError(f"Unsupported joint type: {joint_type}")
         
     if offset_x != 0 or offset_y != 0 or offset_z != 0:
-        offset = adsk.core.Vector3D.create(offset_x, offset_y, offset_z)
-        jointInput.offset = offset
+        # Fusion's joint offset is scalar along the joint axis, not a 3D vector.
+        offset_value = offset_z if offset_z != 0 else math.sqrt(offset_x**2 + offset_y**2 + offset_z**2)
+        jointInput.offset = adsk.core.ValueInput.createByReal(offset_value)
     joint = joints.add(jointInput)
     joint.name = name
     return {"message": f"Created {joint_type} joint '{name}'.", "joint_name": joint.name}

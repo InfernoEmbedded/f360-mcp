@@ -9,7 +9,7 @@ async def test_scenario_07_revolved_wheel(mcp_client):
     f360 = FusionE2E(mcp_client)
     await f360.call_tool("create_new_design", {"name": "E2E_Revolved_Wheel"})
     await f360.call_tool("create_sketch", {"name": "WheelSketch", "plane": "xz"})
-    await f360.call_tool("add_rectangle", {"sketch_name": "WheelSketch", "x1": 2, "y1": -1, "x2": 5, "y2": 1})
+    await f360.call_tool("add_rectangle", {"sketch_name": "WheelSketch", "x1": 2, "y1": 1, "x2": 5, "y2": 2})
     await f360.call_tool("create_revolve", {
         "name": "WheelBody", 
         "sketch_name": "WheelSketch", 

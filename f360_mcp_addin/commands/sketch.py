@@ -196,8 +196,12 @@ def add_text(app, sketch_name, text, x, y, height=0.5):
     texts = sketch.sketchTexts
     position = adsk.core.Point3D.create(x, y, 0)
     input = texts.createInput(text, height, position)
-    texts.add(input)
-    return {"message": f"Text '{text}' added at ({x}, {y})."}
+    text_entity = texts.add(input)
+    try:
+        text_entity.explode()
+        return {"message": f"Text '{text}' added and exploded at ({x}, {y})."}
+    except Exception:
+        return {"message": f"Text '{text}' added at ({x}, {y})."}
 
 @command()
 def apply_constraint(app, sketch_name, constraint_type, ent1_type, ent1_idx, ent2_type=None, ent2_idx=None):
