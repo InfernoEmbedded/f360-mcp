@@ -139,6 +139,7 @@ class MockFusionServer:
                     "open_design": [{"name": "project_name"}, {"name": "name"}, {"name": "folder_path", "has_default": True, "default": None}],
                     "create_new_design": [{"name": "name"}, {"name": "project_name", "has_default": True, "default": None}, {"name": "folder_path", "has_default": True, "default": None}],
                     "close_document": [{"name": "save", "has_default": True, "default": False}],
+                    "close_all_documents": [{"name": "save", "has_default": True, "default": False}],
                     "export_model": [{"name": "file_path"}, {"name": "file_type", "has_default": True, "default": "step"}, {"name": "body_name", "has_default": True, "default": None}, {"name": "send_to_mcp", "has_default": True, "default": False}],
 
                     # Materials
@@ -329,6 +330,8 @@ class MockFusionServer:
                 result = {"message": "Reloader script executed. Add-in should restart momentarily."}
             elif method == 'close_document':
                 result = {"message": "Closed document 'MockDoc'."}
+            elif method == 'close_all_documents':
+                result = {"message": "Closed 1 document(s).", "closed": ["MockDoc"]}
             else:
                 # Default generic result
                 result = {"message": f"Successfully executed {method}"}

@@ -143,11 +143,11 @@ async def mcp_client(mcp_server):
         # to avoid event loop issues with shared httpx clients
         yield {"base_url": base_url, "session_id": session_id}
         
-        # TEARDOWN: Close active document
+        # TEARDOWN: Close all open documents without saving
         payload = {
             "method": "tools/call",
             "params": {
-                "name": "close_document",
+                "name": "close_all_documents",
                 "arguments": {"save": False}
             },
             "jsonrpc": "2.0",

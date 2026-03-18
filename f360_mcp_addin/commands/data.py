@@ -176,6 +176,20 @@ def close_document(app, save=False):
     return {"message": f"Closed document '{name}'."}
 
 @command()
+def close_all_documents(app, save=False):
+    """
+    Closes all open documents.
+    save (bool): True to save changes, False (default) to discard without saving.
+    """
+    closed = []
+    # Keep closing the active document until there are none left
+    while app.activeDocument:
+        name = app.activeDocument.name
+        app.activeDocument.close(save)
+        closed.append(name)
+    return {"message": f"Closed {len(closed)} document(s).", "closed": closed}
+
+@command()
 def export_model(app, file_path, file_type="step", body_name=None, send_to_mcp=False):
     design = get_active_design(app)
     exportMgr = design.exportManager

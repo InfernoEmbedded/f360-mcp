@@ -1,0 +1,2400 @@
+[
+  {
+    "method": "_get_command_metadata",
+    "params": {},
+    "status": "success",
+    "result": {
+      "create_sketch": {
+        "doc": "\nCreates a new sketch on a plane or face.\n\nArguments:\n    name (str): Mandatory name for the new sketch.\n    plane_name (str): \"XY\", \"XZ\", \"YZ\", or construction plane name.\n    body_name (str): Optional. Name of the body if sketching on a face.\n    face_index (int): Optional. Index of the face on the body.\n",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "Mandatory name for the new sketch.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "plane_name",
+            "description": "\"XY\", \"XZ\", \"YZ\", or construction plane name.",
+            "has_default": true,
+            "default": "XY",
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "Optional. Name of the body if sketching on a face.",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "face_index",
+            "description": "Optional. Index of the face on the body.",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_circle": {
+        "doc": "Adds a circle. Units: cm.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "radius",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_line": {
+        "doc": "Adds a line. Units: cm.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x1",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y1",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x2",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y2",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_rectangle": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x1",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y1",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x2",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y2",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x3",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y3",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "rect_type",
+            "description": "",
+            "has_default": true,
+            "default": "two_point",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_arc": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x1",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y1",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x2",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y2",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x3",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y3",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "arc_type",
+            "description": "",
+            "has_default": true,
+            "default": "three_point",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_spline": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "points",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_polygon": {
+        "doc": "Adds a regular polygon. Units: cm.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "center_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "center_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "num_sides",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "vertex_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "vertex_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "poly_type",
+            "description": "",
+            "has_default": true,
+            "default": "inscribed",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_ellipse": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "center_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "center_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "major_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "major_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "minor_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "minor_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_point": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_text": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "height",
+            "description": "",
+            "has_default": true,
+            "default": 0.5,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "apply_constraint": {
+        "doc": "\nApplies a geometric constraint.\n\nTypes: coincident, collinear, concentric, midpoint, parallel, perpendicular, \n       horizontal, vertical, tangent, equal.\n",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "constraint_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent1_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent1_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent2_type",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent2_idx",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_symmetry_constraint": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent1_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent1_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent2_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent2_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sym_line_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sym_line_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_distance_dimension": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent1_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent1_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent2_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent2_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "orientation",
+            "description": "",
+            "has_default": true,
+            "default": "aligned",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_radial_dimension": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_diameter_dimension": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "add_angular_dimension": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "line1_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "line2_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "text_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_sketches": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "delete_sketch": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "project_geometry": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "from_sketch_name",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "offset_geometry": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "offset_distance",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "delete_sketch_entity": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "trim_sketch_geometry": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_extrude": {
+        "doc": "\nExtrudes a sketch profile.\n\nArguments:\n    name (str): Mandatory name for the new feature.\n    distance (float): Extrusion depth in cm.\n    operation (str): new_body, join, cut, intersect.\n",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "Mandatory name for the new feature.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "distance",
+            "description": "Extrusion depth in cm.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "operation",
+            "description": "new_body, join, cut, intersect.",
+            "has_default": true,
+            "default": "new_body",
+            "annotation": "Any"
+          },
+          {
+            "name": "profile_index",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_revolve": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "axis_ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "axis_ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "angle",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "operation",
+            "description": "",
+            "has_default": true,
+            "default": "new_body",
+            "annotation": "Any"
+          },
+          {
+            "name": "profile_index",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_sweep": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "profile_sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "path_sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "path_ent_type",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "path_ent_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "operation",
+            "description": "",
+            "has_default": true,
+            "default": "new_body",
+            "annotation": "Any"
+          },
+          {
+            "name": "profile_index",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_loft": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "profiles_info",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_hole": {
+        "doc": "Creates a circular hole. Units: cm.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "point_idx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "diameter",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "depth",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_shell": {
+        "doc": "Hollows a body. Units: cm.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "thickness",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_fillet": {
+        "doc": "Fillets all edges of a body. Units: cm.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "radius",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_chamfer": {
+        "doc": "Chamfers all edges of a body. Units: cm.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "distance",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "feature_mirror": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "plane_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_rectangular_pattern": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "count_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "count_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "distance_x",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "distance_y",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_circular_pattern": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "axis_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "count",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "angle_deg",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_bodies": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "combine_bodies": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "target_body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "tool_body_names",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "operation",
+            "description": "",
+            "has_default": true,
+            "default": "join",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "rename_body": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "old_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "new_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "delete_body": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_features": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "rename_feature": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "old_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "new_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "delete_feature": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "feature_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "split_body": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "split_tool_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "is_surface_tool",
+            "description": "",
+            "has_default": true,
+            "default": true,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "scale_body": {
+        "doc": "Uniformly scales a body from the component origin.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "scale_factor",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_thread": {
+        "doc": "Adds a thread to a cylindrical face of a body.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "face_index",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          },
+          {
+            "name": "is_modeled",
+            "description": "",
+            "has_default": true,
+            "default": true,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "move_body": {
+        "doc": "Translates a body by (dx, dy, dz) in cm.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "dx",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "dy",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "dz",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "measure_interference": {
+        "doc": "Checks for interference between a list of bodies.",
+        "parameters": [
+          {
+            "name": "body_names",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_rib": {
+        "doc": "Creates a rib feature from a sketch profile.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "thickness",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_web": {
+        "doc": "Creates a web feature from a sketch profile.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "thickness",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_emboss": {
+        "doc": "Creates an emboss or deboss feature.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "depth",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "import_mesh": {
+        "doc": "Imports an STL or OBJ mesh file into the active design.",
+        "parameters": [
+          {
+            "name": "file_path",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "convert_mesh_to_solid": {
+        "doc": "\nConverts a mesh body to a solid (BRep) body using Fusion's native conversion tool.\n\nArguments:\n    body_name (str): The name of the mesh body to convert.\n    method (str): 'faceted' (each triangle becomes a face) or 'prismatic' (attempts to merge planar/cylindrical faces). Prismatic is best for mechanical parts.\n",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "The name of the mesh body to convert.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "method",
+            "description": "'faceted' (each triangle becomes a face) or 'prismatic' (attempts to merge planar/cylindrical faces). Prismatic is best for mechanical parts.",
+            "has_default": true,
+            "default": "prismatic",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "compute_all": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "get_design_health": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "reload_addin": {
+        "doc": "\nCreates a temporary script to stop and restart this Add-in.\nThis safely allows the Add-in to reload its own code after an update.\n",
+        "parameters": []
+      },
+      "create_offset_plane": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "base_plane",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "offset",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_plane_at_angle": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "axis_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "angle_deg",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_construction": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "rename_construction": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "old_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "new_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "type",
+            "description": "",
+            "has_default": true,
+            "default": "plane",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "delete_construction": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "type",
+            "description": "",
+            "has_default": true,
+            "default": "plane",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_component": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_components": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "rename_component": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "old_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "new_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "delete_component": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "occurrence_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_joint": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "component1_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "component2_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "joint_type",
+            "description": "",
+            "has_default": true,
+            "default": "rigid",
+            "annotation": "Any"
+          },
+          {
+            "name": "offset_x",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          },
+          {
+            "name": "offset_y",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          },
+          {
+            "name": "offset_z",
+            "description": "",
+            "has_default": true,
+            "default": 0,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_as_built_joint": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "component1_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "component2_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "joint_type",
+            "description": "",
+            "has_default": true,
+            "default": "rigid",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_user_parameter": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "expression",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "unit",
+            "description": "",
+            "has_default": true,
+            "default": "",
+            "annotation": "Any"
+          },
+          {
+            "name": "description",
+            "description": "",
+            "has_default": true,
+            "default": "",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_user_parameters": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "list_parameters": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "update_parameter": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "expression",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "description",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "update_user_parameter": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "expression",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "description",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "delete_user_parameter": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_projects": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "create_project": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_folder": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "project_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "folder_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "parent_folder_path",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_designs": {
+        "doc": "\nLists designs in a project and folder.\n\nArgs:\n    project_name: Name of the project.\n    folder_path: Optional path to a subfolder (e.g. \"Mechanical/Parts\").\n",
+        "parameters": [
+          {
+            "name": "project_name",
+            "description": "Name of the project.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "folder_path",
+            "description": "Optional path to a subfolder (e.g. \"Mechanical/Parts\").",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "open_design": {
+        "doc": "\nOpens an existing design.\n\nArgs:\n    project_name: Name of the project.\n    name: Name of the design file.\n    folder_path: Optional path to a subfolder.\n",
+        "parameters": [
+          {
+            "name": "project_name",
+            "description": "Name of the project.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "name",
+            "description": "Name of the design file.",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "folder_path",
+            "description": "Optional path to a subfolder.",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "create_new_design": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "project_name",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "folder_path",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "export_model": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "file_path",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "file_type",
+            "description": "",
+            "has_default": true,
+            "default": "step",
+            "annotation": "Any"
+          },
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": true,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "send_to_mcp",
+            "description": "",
+            "has_default": true,
+            "default": false,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "get_face_info": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "get_edge_info": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "get_sketch_info": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "sketch_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "get_body_properties": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "get_object_hierarchy": {
+        "doc": "Returns the full design object hierarchy showing name and type of every object.\n\nRecursively traverses the component tree starting from the root component,\ncollecting bodies, sketches, joints, construction planes/axes/points, and\nfeatures for each component.  Sub-components are listed as children via\ntheir occurrences.\n",
+        "parameters": []
+      },
+      "list_materials": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "apply_material": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "material_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "list_appearances": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "apply_appearance": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "body_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "appearance_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "undo": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "steps",
+            "description": "",
+            "has_default": true,
+            "default": 1,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "redo": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "steps",
+            "description": "",
+            "has_default": true,
+            "default": 1,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "save_design": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "description",
+            "description": "",
+            "has_default": true,
+            "default": "Saved via MCP",
+            "annotation": "Any"
+          }
+        ]
+      },
+      "capture_screenshot": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "file_path",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "width",
+            "description": "",
+            "has_default": true,
+            "default": 1280,
+            "annotation": "Any"
+          },
+          {
+            "name": "height",
+            "description": "",
+            "has_default": true,
+            "default": 720,
+            "annotation": "Any"
+          },
+          {
+            "name": "send_to_mcp",
+            "description": "",
+            "has_default": true,
+            "default": false,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "execute_script": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "script_code",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "start_timeline_group": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "stop_timeline_group": {
+        "doc": "No description provided.",
+        "parameters": []
+      },
+      "rename_sketch": {
+        "doc": "No description provided.",
+        "parameters": [
+          {
+            "name": "old_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          },
+          {
+            "name": "new_name",
+            "description": "",
+            "has_default": false,
+            "default": null,
+            "annotation": "Any"
+          }
+        ]
+      },
+      "_get_command_metadata": {
+        "doc": "\nInternal command to export all registered command metadata (signatures, docstrings).\n",
+        "parameters": []
+      },
+      "get_addin_logs": {
+        "doc": "\nInternal command to read the Add-in's persistent log file.\n",
+        "parameters": []
+      }
+    }
+  },
+  {
+    "method": "create_new_design",
+    "params": {
+      "name": "E2E_Cylinder_X",
+      "project_name": null,
+      "folder_path": null
+    },
+    "status": "success",
+    "result": {
+      "message": "Created design 'E2E_Cylinder_X' (unsaved).",
+      "status": "unsaved",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_sketch",
+    "params": {
+      "name": "BaseSketch",
+      "plane_name": "XY",
+      "body_name": null,
+      "face_index": null
+    },
+    "status": "success",
+    "result": {
+      "sketch_name": "BaseSketch",
+      "message": "Sketch created successfully",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "add_circle",
+    "params": {
+      "sketch_name": "BaseSketch",
+      "x": 0,
+      "y": 0,
+      "radius": 2.5
+    },
+    "status": "success",
+    "result": {
+      "message": "Circle added at (0,0) with radius 2.5",
+      "new_issues": []
+    }
+  },
+  {
+    "method": "create_extrude",
+    "params": {
+      "name": "MainBody",
+      "sketch_name": "BaseSketch",
+      "distance": 10.0,
+      "operation": "new_body",
+      "profile_index": 0
+    },
+    "status": "success",
+    "result": {
+      "message": "Extruded 10.0cm using operation new_body as 'MainBody'.",
+      "feature_name": "MainBody",
+      "new_issues": []
+    }
+  }
+]

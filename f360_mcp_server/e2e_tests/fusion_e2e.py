@@ -84,10 +84,10 @@ class FusionE2E:
         except Exception as e:
             print(f"Warning: Failed to fetch and verify command history: {e}")
 
-        # 2. Export STEP (We use a temporary path in the Fusion environment)
-        temp_path = f"C:/temp/e2e_{test_name}.step" # Add-in usually handles OS paths
-        if os.name != 'nt':
-            temp_path = f"/tmp/e2e_{test_name}.step"
+        # 2. Export STEP - path must be valid on the Fusion 360 host (always Windows)
+        # We use %TEMP% expanded path. Fusion 360 runs on Windows regardless of
+        # where the test runner is.
+        temp_path = f"C:/Users/Public/Documents/e2e_{test_name}.step"
             
         result = await self.call_tool("export_model", {
             "file_path": temp_path,
