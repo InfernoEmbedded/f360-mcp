@@ -1,0 +1,10 @@
+{
+  "include": [
+    "f360_mcp_addin",
+    "f360_mcp_server"
+  ],
+  "stubPath": "typings",
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.12",
+  "reportMissingModuleSource": "none"
+}

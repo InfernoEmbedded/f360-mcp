@@ -9,6 +9,7 @@ import os
 import sys
 import collections
 from datetime import datetime
+from typing import Any
 
 from .commands import (
     registry, command, sketch, solid, construction, assembly, params, data, query, materials, utils, internal
@@ -17,9 +18,9 @@ from .commands.base import get_active_design, _get_timeline_health_map, _group_s
 
 # Globals
 VERSION = "1.9"
-app = None
-ui  = None
-server_thread = None
+app: Any | None = None
+ui: Any | None = None
+server_thread: threading.Thread | None = None
 stop_event = threading.Event()
 handlers = []
 
@@ -73,7 +74,7 @@ pending_requests = {}
 request_id_counter = 0
 request_lock = threading.Lock()
 mcp_custom_event_id = 'FusionMCP_CustomEvent'
-mcp_custom_event = None
+mcp_custom_event: Any | None = None
 
 class PendingRequest:
     def __init__(self, method, params):
@@ -146,7 +147,7 @@ def dispatch_to_main_thread(method, params):
         req = PendingRequest(method, params)
         pending_requests[req_id] = req
     
-    if mcp_custom_event:
+    if mcp_custom_event and app is not None:
         app.fireCustomEvent(mcp_custom_event_id, json.dumps({"id": req_id, "method": method, "params": params}))
     else:
         with request_lock: del pending_requests[req_id]
@@ -290,7 +291,11 @@ def run(context):
     
     try:
         app = adsk.core.Application.get()
+        if app is None:
+            raise RuntimeError("Failed to acquire Fusion 360 application handle")
         ui  = app.userInterface
+        if ui is None:
+            raise RuntimeError("Failed to acquire Fusion 360 user interface handle")
         add_to_log("run() called. Starting initialization...")
 
         # 1. Setup UI (First, so it appears even if other things fail)
@@ -339,6 +344,8 @@ def run(context):
             except: pass
             
             mcp_custom_event = app.registerCustomEvent(mcp_custom_event_id)
+            if mcp_custom_event is None:
+                raise RuntimeError("Failed to register MCP custom event")
             on_mcp_event = MCPCustomEventHandler()
             mcp_custom_event.add(on_mcp_event)
             handlers.append(on_mcp_event)
@@ -369,21 +376,25 @@ def stop(context):
         
         # UI Cleanup
         try:
-            cmd_defs = ui.commandDefinitions
-            panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
-            if not panel: panel = ui.allToolbarPanels.itemById('ScriptsAddinsPanel')
-            
-            for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
-                if panel:
-                    ctrl = panel.controls.itemById(cid)
-                    if ctrl: ctrl.deleteMe()
-                cmd = cmd_defs.itemById(cid)
-                if cmd: cmd.deleteMe()
+            if ui is not None:
+                cmd_defs = ui.commandDefinitions
+                panel = ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
+                if not panel:
+                    panel = ui.allToolbarPanels.itemById('ScriptsAddinsPanel')
+
+                for cid in ['mcp_settings_cmd', 'mcp_log_view_cmd']:
+                    if panel:
+                        ctrl = panel.controls.itemById(cid)
+                        if ctrl:
+                            ctrl.deleteMe()
+                    cmd = cmd_defs.itemById(cid)
+                    if cmd:
+                        cmd.deleteMe()
         except: pass
 
         # Event Cleanup
         try:
-            if mcp_custom_event:
+            if mcp_custom_event and app is not None:
                 app.unregisterCustomEvent(mcp_custom_event_id)
                 mcp_custom_event = None
         except: pass

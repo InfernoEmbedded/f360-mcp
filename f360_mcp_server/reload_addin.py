@@ -20,9 +20,10 @@ import json
 import os
 import sys
 import argparse
+from typing import Any
 
 
-async def send_tcp_command(host: str, port: int, method: str, params: dict = None) -> dict:
+async def send_tcp_command(host: str, port: int, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """Send a JSON-RPC command directly to the add-in's TCP socket."""
     request = {
         "method": method,

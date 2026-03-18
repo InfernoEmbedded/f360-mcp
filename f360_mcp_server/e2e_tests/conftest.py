@@ -33,9 +33,6 @@ def mcp_server():
         stderr=log_file,
         bufsize=1, # Line buffered
     )
-    # We'll attach the log file handle to the process object so we can close it later
-    server_proc.log_file = log_file
-    
     # Wait for the server to be ready using socket
     base_url = "http://127.0.0.1:8360"
     timeout = 15.0
@@ -61,10 +58,6 @@ def mcp_server():
     except subprocess.TimeoutExpired:
         server_proc.kill()
 
-@pytest.fixture(scope="function")
-async def mcp_client(mcp_server):
-    """Initializes an MCP session and yields the client and session id."""
-    base_url = mcp_server
 @pytest.fixture(scope="function")
 async def mcp_client(mcp_server):
     """Initializes an MCP session and yields the session metadata."""
