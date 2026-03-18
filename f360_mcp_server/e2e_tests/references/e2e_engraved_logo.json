@@ -2490,14 +2490,14 @@
     "params": {
       "name": "PlateBody",
       "sketch_name": "PlateSketch",
-      "distance": 1.0,
+      "distance": -1.0,
       "operation": "new_body",
       "profile_index": 0,
       "target_body_name": null
     },
     "status": "success",
     "result": {
-      "message": "Extruded 1.0cm using operation new_body as 'PlateBody'.",
+      "message": "Extruded -1.0cm using operation new_body as 'PlateBody'.",
       "feature_name": "PlateBody",
       "new_issues": []
     }
@@ -2554,15 +2554,7 @@
     "result": {
       "message": "Extruded -0.2cm using operation cut as 'Engrave'.",
       "feature_name": "Engrave",
-      "new_issues": [
-        {
-          "index": 3,
-          "name": "Engrave",
-          "type": "adsk::fusion::TimelineObject",
-          "health": 1,
-          "message": "No target body!Compute FailedEngrave"
-        }
-      ]
+      "new_issues": []
     }
   }
 ]
