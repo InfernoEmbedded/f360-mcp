@@ -6,7 +6,7 @@ from .base import get_active_design, get_sketch_by_name, _get_body, _get_feature
 from .sketch import resolve_entity
 
 @command()
-def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=0, target_body_name=None):
+def create_extrude(app, name, sketch_name, distance, operation="new_body", profile_index=-1, target_body_name=None):
     """
     Extrudes a sketch profile.
     
@@ -14,6 +14,7 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
         name (str): Mandatory name for the new feature.
         distance (float): Extrusion depth in cm.
         operation (str): new_body, join, cut, intersect.
+        profile_index (int): Index of the profile to extrude, -1 for all profiles (default).
     """
     design = get_active_design(app)
     rootComp = design.rootComponent
@@ -21,9 +22,16 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     sketch = get_sketch_by_name(app, sketch_name)
     if sketch.profiles.count == 0:
         raise Exception(f"Sketch '{sketch_name}' does not contain any closed profiles to extrude.")
-    if profile_index >= sketch.profiles.count:
-        raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
-    profile = sketch.profiles.item(profile_index)
+    
+    profiles = adsk.core.ObjectCollection.create()
+    if profile_index == -1:
+        for i in range(sketch.profiles.count):
+            profiles.add(sketch.profiles.item(i))
+    else:
+        if profile_index >= sketch.profiles.count:
+            raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
+        profiles.add(sketch.profiles.item(profile_index))
+
     distance_val = adsk.core.ValueInput.createByReal(distance)
     op_map = {
         "new_body": adsk.fusion.FeatureOperations.NewBodyFeatureOperation,
@@ -32,7 +40,7 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
         "intersect": adsk.fusion.FeatureOperations.IntersectFeatureOperation
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
-    extrudeInput = extrudes.createInput(profile, fusion_op)
+    extrudeInput = extrudes.createInput(profiles, fusion_op)
     if fusion_op in (
         adsk.fusion.FeatureOperations.CutFeatureOperation,
         adsk.fusion.FeatureOperations.IntersectFeatureOperation,
@@ -63,16 +71,23 @@ def create_extrude(app, name, sketch_name, distance, operation="new_body", profi
     return {"message": f"Extruded {distance}cm using operation {operation} as '{name}'.", "feature_name": extrude.name}
 
 @command()
-def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, operation="new_body", profile_index=0):
+def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, operation="new_body", profile_index=-1):
     design = get_active_design(app)
     rootComp = design.rootComponent
     revolves = rootComp.features.revolveFeatures
     sketch = get_sketch_by_name(app, sketch_name)
     if sketch.profiles.count == 0:
         raise Exception(f"Sketch '{sketch_name}' does not contain any closed profiles to revolve.")
-    if profile_index >= sketch.profiles.count:
-        raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
-    profile = sketch.profiles.item(profile_index)
+    
+    profiles = adsk.core.ObjectCollection.create()
+    if profile_index == -1:
+        for i in range(sketch.profiles.count):
+            profiles.add(sketch.profiles.item(i))
+    else:
+        if profile_index >= sketch.profiles.count:
+            raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{sketch_name}'.")
+        profiles.add(sketch.profiles.item(profile_index))
+
     axis = resolve_entity(sketch, axis_ent_type, axis_ent_idx)
     angle_rad = math.radians(angle)
     angle_val = adsk.core.ValueInput.createByReal(angle_rad)
@@ -83,7 +98,7 @@ def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, o
         "intersect": adsk.fusion.FeatureOperations.IntersectFeatureOperation
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
-    revolveInput = revolves.createInput(profile, axis, fusion_op)
+    revolveInput = revolves.createInput(profiles, axis, fusion_op)
     revolveInput.setAngleExtent(False, angle_val)
     revolve = revolves.add(revolveInput)
     revolve.name = name
@@ -92,16 +107,23 @@ def create_revolve(app, name, sketch_name, axis_ent_type, axis_ent_idx, angle, o
     return {"message": f"Revolved {angle} degrees using operation {operation} as '{name}'.", "feature_name": revolve.name}
 
 @command()
-def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type, path_ent_idx, operation="new_body", profile_index=0):
+def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type, path_ent_idx, operation="new_body", profile_index=-1):
     design = get_active_design(app)
     rootComp = design.rootComponent
     sweeps = rootComp.features.sweepFeatures
     prof_sketch = get_sketch_by_name(app, profile_sketch_name)
     if prof_sketch.profiles.count == 0:
         raise Exception(f"Sketch '{profile_sketch_name}' does not contain any closed profiles to sweep.")
-    if profile_index >= prof_sketch.profiles.count:
-        raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{profile_sketch_name}'.")
-    profile = prof_sketch.profiles.item(profile_index)
+    
+    profiles = adsk.core.ObjectCollection.create()
+    if profile_index == -1:
+        for i in range(prof_sketch.profiles.count):
+            profiles.add(prof_sketch.profiles.item(i))
+    else:
+        if profile_index >= prof_sketch.profiles.count:
+            raise Exception(f"Profile index {profile_index} is out of bounds for sketch '{profile_sketch_name}'.")
+        profiles.add(prof_sketch.profiles.item(profile_index))
+
     path_sketch = get_sketch_by_name(app, path_sketch_name)
     path_ent = resolve_entity(path_sketch, path_ent_type, path_ent_idx)
     path = adsk.fusion.Path.create(path_ent, adsk.fusion.ChainedCurveOptions.tangentChainedCurves)
@@ -112,7 +134,7 @@ def create_sweep(app, name, profile_sketch_name, path_sketch_name, path_ent_type
         "intersect": adsk.fusion.FeatureOperations.IntersectFeatureOperation
     }
     fusion_op = op_map.get(operation.lower(), adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
-    sweepInput = sweeps.createInput(profile, path, fusion_op)
+    sweepInput = sweeps.createInput(profiles, path, fusion_op)
     sweepInput.orientation = adsk.fusion.SweepOrientationTypes.PerpendicularOrientationType
     sweep = sweeps.add(sweepInput)
     sweep.name = name
